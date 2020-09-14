@@ -1,3 +1,10 @@
+// Package gomponents provides components of DOM nodes for Go, that can render to an HTML Document.
+// The primary interface is a Node, which has a single function Render, which should render
+// the Node to a string. Furthermore, NodeFunc is a function which implements the Node interface
+// by calling itself on Render.
+// All DOM elements and attributes can be created by using the El and Attr functions.
+// The package also provides a lot of convenience functions for creating elements and attributes
+// with the most commonly used parameters. If they don't suffice, a fallback to El and Attr is always possible.
 package gomponents
 
 import (
