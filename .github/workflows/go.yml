@@ -42,6 +42,9 @@ jobs:
           version: v1.30
 
   coverage:
-    name: Codecov
-    uses: codecov/codecov-action@v1.0.13
+    name: Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Codecov
+        uses: codecov/codecov-action@v1.0.13
 
