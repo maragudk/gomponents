@@ -25,6 +25,11 @@ func (n NodeFunc) Render() string {
 	return n()
 }
 
+// String satisfies fmt.Stringer.
+func (n NodeFunc) String() string {
+	return n.Render()
+}
+
 // El creates an element DOM Node with a name and child Nodes.
 // Use this if no convenience creator exists.
 func El(name string, children ...Node) NodeFunc {
@@ -90,6 +95,11 @@ func (a attr) Render() string {
 		return fmt.Sprintf(" %v", a.name)
 	}
 	return fmt.Sprintf(` %v="%v"`, a.name, *a.value)
+}
+
+// String satisfies fmt.Stringer.
+func (a attr) String() string {
+	return a.Render()
 }
 
 // Text creates a text DOM Node that Renders the escaped string t.
