@@ -7,6 +7,15 @@ import (
 	"github.com/maragudk/gomponents/assert"
 )
 
+func TestNodeFunc(t *testing.T) {
+	t.Run("implements fmt.Stringer", func(t *testing.T) {
+		fn := g.NodeFunc(func() string { return "hat" })
+		if fn.String() != "hat" {
+			t.FailNow()
+		}
+	})
+}
+
 func TestAttr(t *testing.T) {
 	t.Run("renders just the local name with one argument", func(t *testing.T) {
 		a := g.Attr("required")
