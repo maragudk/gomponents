@@ -39,3 +39,93 @@ func Body(children ...g.Node) g.NodeFunc {
 func Title(title string) g.NodeFunc {
 	return g.El("title", g.Text(title))
 }
+
+func Meta(children ...g.Node) g.NodeFunc {
+	return g.El("meta", children...)
+}
+
+func Link(children ...g.Node) g.NodeFunc {
+	return g.El("link", children...)
+}
+
+func Style(children ...g.Node) g.NodeFunc {
+	return g.El("style", children...)
+}
+
+func Div(children ...g.Node) g.NodeFunc {
+	return g.El("div", children...)
+}
+
+func Span(children ...g.Node) g.NodeFunc {
+	return g.El("span", children...)
+}
+
+func A(href string, children ...g.Node) g.NodeFunc {
+	return g.El("a", prepend(g.Attr("href", href), children)...)
+}
+
+func P(children ...g.Node) g.NodeFunc {
+	return g.El("p", children...)
+}
+
+func H1(text string) g.NodeFunc {
+	return g.El("h1", g.Text(text))
+}
+
+func H2(text string) g.NodeFunc {
+	return g.El("h2", g.Text(text))
+}
+
+func H3(text string) g.NodeFunc {
+	return g.El("h3", g.Text(text))
+}
+
+func H4(text string) g.NodeFunc {
+	return g.El("h4", g.Text(text))
+}
+
+func H5(text string) g.NodeFunc {
+	return g.El("h5", g.Text(text))
+}
+
+func H6(text string) g.NodeFunc {
+	return g.El("h6", g.Text(text))
+}
+
+func Ol(children ...g.Node) g.NodeFunc {
+	return g.El("ol", children...)
+}
+
+func Ul(children ...g.Node) g.NodeFunc {
+	return g.El("ul", children...)
+}
+
+func Li(children ...g.Node) g.NodeFunc {
+	return g.El("li", children...)
+}
+
+func B(text string) g.NodeFunc {
+	return g.El("b", g.Text(text))
+}
+
+func Strong(text string) g.NodeFunc {
+	return g.El("strong", g.Text(text))
+}
+
+func I(text string) g.NodeFunc {
+	return g.El("i", g.Text(text))
+}
+
+func Em(text string) g.NodeFunc {
+	return g.El("em", g.Text(text))
+}
+
+func Img(src, alt string) g.NodeFunc {
+	return g.El("img", g.Attr("src", src), g.Attr("alt", alt))
+}
+
+func prepend(node g.Node, nodes []g.Node) []g.Node {
+	newNodes := []g.Node{node}
+	newNodes = append(newNodes, nodes...)
+	return newNodes
+}
