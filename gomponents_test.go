@@ -2,6 +2,7 @@ package gomponents_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -38,6 +39,14 @@ func TestAttr(t *testing.T) {
 		}()
 		g.Attr("name", "value", "what is this?")
 		if !called {
+			t.FailNow()
+		}
+	})
+
+	t.Run("implements fmt.Stringer", func(t *testing.T) {
+		a := g.Attr("required")
+		s := fmt.Sprintf("%v", a)
+		if s != " required" {
 			t.FailNow()
 		}
 	})
