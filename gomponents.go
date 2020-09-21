@@ -45,12 +45,11 @@ func El(name string, children ...Node) NodeFunc {
 		}
 
 		for _, c := range children {
-			s := c.Render()
 			if _, ok := c.(attr); ok {
-				attrString.WriteString(s)
-				continue
+				attrString.WriteString(c.Render())
+			} else {
+				childrenString.WriteString(c.Render())
 			}
-			childrenString.WriteString(c.Render())
 		}
 
 		b.WriteString(attrString.String())
