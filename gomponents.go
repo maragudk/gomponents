@@ -10,6 +10,7 @@ package gomponents
 import (
 	"fmt"
 	"html/template"
+	"io"
 	"strings"
 )
 
@@ -113,4 +114,10 @@ func Raw(t string) NodeFunc {
 	return func() string {
 		return t
 	}
+}
+
+// Write to the given io.Writer, returning any error.
+func Write(w io.Writer, n Node) error {
+	_, err := w.Write([]byte(n.Render()))
+	return err
 }

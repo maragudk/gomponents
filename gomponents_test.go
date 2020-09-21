@@ -1,6 +1,8 @@
 package gomponents_test
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
 	g "github.com/maragudk/gomponents"
@@ -74,5 +76,33 @@ func TestRaw(t *testing.T) {
 	t.Run("renders raw text", func(t *testing.T) {
 		e := g.Raw("<div/>")
 		assert.Equal(t, "<div/>", e)
+	})
+}
+
+type erroringWriter struct{}
+
+func (w *erroringWriter) Write(p []byte) (n int, err error) {
+	return 0, errors.New("don't want to write")
+}
+
+func TestWrite(t *testing.T) {
+	t.Run("writes to the writer", func(t *testing.T) {
+		e := g.El("div")
+		var b strings.Builder
+		err := g.Write(&b, e)
+		if err != nil {
+			t.FailNow()
+		}
+		if b.String() != e.Render() {
+			t.FailNow()
+		}
+	})
+
+	t.Run("errors on write error", func(t *testing.T) {
+		e := g.El("div")
+		err := g.Write(&erroringWriter{}, e)
+		if err == nil {
+			t.FailNow()
+		}
 	})
 }
