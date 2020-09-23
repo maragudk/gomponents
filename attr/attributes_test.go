@@ -21,11 +21,18 @@ func TestClass(t *testing.T) {
 
 func TestClasses(t *testing.T) {
 	t.Run("given a map, returns sorted keys from the map with value true", func(t *testing.T) {
-		assert.Equal(t, ` class="boheme-hat hat partyhat"`, attr.Classes(map[string]bool{
+		assert.Equal(t, ` class="boheme-hat hat partyhat"`, attr.Classes{
 			"boheme-hat": true,
 			"hat":        true,
 			"partyhat":   true,
 			"turtlehat":  false,
-		}))
+		})
+	})
+
+	t.Run("also works with fmt", func(t *testing.T) {
+		a := attr.Classes{"hat": true}
+		if a.String() != ` class="hat"` {
+			t.FailNow()
+		}
 	})
 }

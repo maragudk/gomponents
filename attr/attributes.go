@@ -19,15 +19,23 @@ func Class(v string) g.Node {
 	return g.Attr("class", v)
 }
 
-// Classes returns an attribute with name "class" and the value being a sorted, space-separated string of all the keys,
-// for which the corresponding value is true.
-func Classes(cs map[string]bool) g.Node {
+// Classes is a map of strings to booleans, which Renders to an attribute with name "class".
+// The attribute value is a sorted, space-separated string of all the map keys,
+// for which the corresponding map value is true.
+type Classes map[string]bool
+
+func (c Classes) Render() string {
 	var included []string
-	for c, include := range cs {
+	for c, include := range c {
 		if include {
 			included = append(included, c)
 		}
 	}
 	sort.Strings(included)
-	return g.Attr("class", strings.Join(included, " "))
+	return g.Attr("class", strings.Join(included, " ")).Render()
+}
+
+// String satisfies fmt.Stringer.
+func (c Classes) String() string {
+	return c.Render()
 }
