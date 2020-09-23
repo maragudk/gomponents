@@ -109,6 +109,13 @@ func Text(t string) NodeFunc {
 	}
 }
 
+// Textf creates a text DOM Node that Renders the interpolated and escaped string t.
+func Textf(format string, a ...interface{}) NodeFunc {
+	return func() string {
+		return template.HTMLEscaper(fmt.Sprintf(format, a...))
+	}
+}
+
 // Raw creates a raw Node that just Renders the unescaped string t.
 func Raw(t string) NodeFunc {
 	return func() string {
