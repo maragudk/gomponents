@@ -54,7 +54,7 @@ func Page(title, path string) g.Node {
 			el.Body(
 				Navbar(path),
 				el.H1(title),
-				el.P(g.Text(fmt.Sprintf("Welcome to the page at %v.", path))),
+				el.P(g.Textf("Welcome to the page at %v.", path)),
 			),
 		),
 	)
