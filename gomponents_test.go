@@ -81,6 +81,13 @@ func TestText(t *testing.T) {
 	})
 }
 
+func TestTextf(t *testing.T) {
+	t.Run("renders interpolated and escaped text", func(t *testing.T) {
+		e := g.Textf("<%v/>", "div")
+		assert.Equal(t, "&lt;div/&gt;", e)
+	})
+}
+
 func TestRaw(t *testing.T) {
 	t.Run("renders raw text", func(t *testing.T) {
 		e := g.Raw("<div/>")
