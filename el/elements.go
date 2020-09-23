@@ -68,28 +68,28 @@ func P(children ...g.Node) g.NodeFunc {
 	return g.El("p", children...)
 }
 
-func H1(text string) g.NodeFunc {
-	return g.El("h1", g.Text(text))
+func H1(text string, children ...g.Node) g.NodeFunc {
+	return g.El("h1", prepend(g.Text(text), children)...)
 }
 
-func H2(text string) g.NodeFunc {
-	return g.El("h2", g.Text(text))
+func H2(text string, children ...g.Node) g.NodeFunc {
+	return g.El("h2", prepend(g.Text(text), children)...)
 }
 
-func H3(text string) g.NodeFunc {
-	return g.El("h3", g.Text(text))
+func H3(text string, children ...g.Node) g.NodeFunc {
+	return g.El("h3", prepend(g.Text(text), children)...)
 }
 
-func H4(text string) g.NodeFunc {
-	return g.El("h4", g.Text(text))
+func H4(text string, children ...g.Node) g.NodeFunc {
+	return g.El("h4", prepend(g.Text(text), children)...)
 }
 
-func H5(text string) g.NodeFunc {
-	return g.El("h5", g.Text(text))
+func H5(text string, children ...g.Node) g.NodeFunc {
+	return g.El("h5", prepend(g.Text(text), children)...)
 }
 
-func H6(text string) g.NodeFunc {
-	return g.El("h6", g.Text(text))
+func H6(text string, children ...g.Node) g.NodeFunc {
+	return g.El("h6", prepend(g.Text(text), children)...)
 }
 
 func Ol(children ...g.Node) g.NodeFunc {
@@ -104,24 +104,26 @@ func Li(children ...g.Node) g.NodeFunc {
 	return g.El("li", children...)
 }
 
-func B(text string) g.NodeFunc {
-	return g.El("b", g.Text(text))
+func B(text string, children ...g.Node) g.NodeFunc {
+	return g.El("b", prepend(g.Text(text), children)...)
 }
 
-func Strong(text string) g.NodeFunc {
-	return g.El("strong", g.Text(text))
+func Strong(text string, children ...g.Node) g.NodeFunc {
+	return g.El("strong", prepend(g.Text(text), children)...)
 }
 
-func I(text string) g.NodeFunc {
-	return g.El("i", g.Text(text))
+func I(text string, children ...g.Node) g.NodeFunc {
+	return g.El("i", prepend(g.Text(text), children)...)
 }
 
-func Em(text string) g.NodeFunc {
-	return g.El("em", g.Text(text))
+func Em(text string, children ...g.Node) g.NodeFunc {
+	return g.El("em", prepend(g.Text(text), children)...)
 }
 
-func Img(src, alt string) g.NodeFunc {
-	return g.El("img", g.Attr("src", src), g.Attr("alt", alt))
+func Img(src, alt string, children ...g.Node) g.NodeFunc {
+	newChildren := prepend(g.Attr("alt", alt), children)
+	newChildren = prepend(g.Attr("src", src), newChildren)
+	return g.El("img", newChildren...)
 }
 
 func prepend(node g.Node, nodes []g.Node) []g.Node {
