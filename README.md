@@ -21,23 +21,50 @@ go get -u github.com/maragudk/gomponents
 Then do something like this:
 
 ```go
-package foo
+package main
 
 import (
-    "net/http"
+	"fmt"
+	"net/http"
 
-    g "github.com/maragudk/gomponents"
-    "github.com/maragudk/gomponents/el"
+	g "github.com/maragudk/gomponents"
+	"github.com/maragudk/gomponents/attr"
+	"github.com/maragudk/gomponents/el"
 )
 
 func main() {
-    _ = http.ListenAndServe("localhost:8080", handler())
+	_ = http.ListenAndServe("localhost:8080", handler())
 }
 
 func handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_ = g.Write(w, el.Document(el.HTML(el.Head(el.Title("Hi!")), el.Body(el.H1("Hi!")))))
+		page := Page("Hi!", r.URL.Path)
+		_ = g.Write(w, page)
 	}
+}
+
+func Page(title, path string) g.Node {
+	return el.Document(
+		el.HTML(
+			g.Attr("lang", "en"),
+			el.Head(
+				el.Title(title),
+				el.Style(g.Attr("type", "text/css"), g.Raw(".is-active{font-weight: bold}")),
+			),
+			el.Body(
+				Navbar(path),
+				el.H1(title),
+				el.P(g.Text(fmt.Sprintf("Welcome to the page at %v.", path))),
+			),
+		),
+	)
+}
+
+func Navbar(path string) g.Node {
+	return g.El("nav",
+		el.A("/", attr.Classes{"is-active": path == "/"}, g.Text("Home")),
+		el.A("/about", attr.Classes{"is-active": path == "/about"}, g.Text("About")),
+	)
 }
 ```
 
