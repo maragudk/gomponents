@@ -82,37 +82,37 @@ func TestP(t *testing.T) {
 
 func TestH1(t *testing.T) {
 	t.Run("returns an h1 element", func(t *testing.T) {
-		assert.Equal(t, `<h1>hat</h1>`, el.H1("hat"))
+		assert.Equal(t, `<h1 id="headline">hat</h1>`, el.H1("hat", g.Attr("id", "headline")))
 	})
 }
 
 func TestH2(t *testing.T) {
 	t.Run("returns an h2 element", func(t *testing.T) {
-		assert.Equal(t, `<h2>hat</h2>`, el.H2("hat"))
+		assert.Equal(t, `<h2 id="headline">hat</h2>`, el.H2("hat", g.Attr("id", "headline")))
 	})
 }
 
 func TestH3(t *testing.T) {
 	t.Run("returns an h3 element", func(t *testing.T) {
-		assert.Equal(t, `<h3>hat</h3>`, el.H3("hat"))
+		assert.Equal(t, `<h3 id="headline">hat</h3>`, el.H3("hat", g.Attr("id", "headline")))
 	})
 }
 
 func TestH4(t *testing.T) {
 	t.Run("returns an h4 element", func(t *testing.T) {
-		assert.Equal(t, `<h4>hat</h4>`, el.H4("hat"))
+		assert.Equal(t, `<h4 id="headline">hat</h4>`, el.H4("hat", g.Attr("id", "headline")))
 	})
 }
 
 func TestH5(t *testing.T) {
 	t.Run("returns an h5 element", func(t *testing.T) {
-		assert.Equal(t, `<h5>hat</h5>`, el.H5("hat"))
+		assert.Equal(t, `<h5 id="headline">hat</h5>`, el.H5("hat", g.Attr("id", "headline")))
 	})
 }
 
 func TestH6(t *testing.T) {
 	t.Run("returns an h6 element", func(t *testing.T) {
-		assert.Equal(t, `<h6>hat</h6>`, el.H6("hat"))
+		assert.Equal(t, `<h6 id="headline">hat</h6>`, el.H6("hat", g.Attr("id", "headline")))
 	})
 }
 
@@ -136,30 +136,30 @@ func TestLi(t *testing.T) {
 
 func TestB(t *testing.T) {
 	t.Run("returns a b element", func(t *testing.T) {
-		assert.Equal(t, `<b>hat</b>`, el.B("hat"))
+		assert.Equal(t, `<b id="text">hat</b>`, el.B("hat", g.Attr("id", "text")))
 	})
 }
 
 func TestStrong(t *testing.T) {
 	t.Run("returns a strong element", func(t *testing.T) {
-		assert.Equal(t, `<strong>hat</strong>`, el.Strong("hat"))
+		assert.Equal(t, `<strong id="text">hat</strong>`, el.Strong("hat", g.Attr("id", "text")))
 	})
 }
 
 func TestI(t *testing.T) {
 	t.Run("returns an i element", func(t *testing.T) {
-		assert.Equal(t, `<i>hat</i>`, el.I("hat"))
+		assert.Equal(t, `<i id="text">hat</i>`, el.I("hat", g.Attr("id", "text")))
 	})
 }
 
 func TestEm(t *testing.T) {
 	t.Run("returns an em element", func(t *testing.T) {
-		assert.Equal(t, `<em>hat</em>`, el.Em("hat"))
+		assert.Equal(t, `<em id="text">hat</em>`, el.Em("hat", g.Attr("id", "text")))
 	})
 }
 
 func TestImg(t *testing.T) {
 	t.Run("returns an img element with href and alt attributes", func(t *testing.T) {
-		assert.Equal(t, `<img src="hat.png" alt="hat"/>`, el.Img("hat.png", "hat"))
+		assert.Equal(t, `<img src="hat.png" alt="hat" id="image"/>`, el.Img("hat.png", "hat", g.Attr("id", "image")))
 	})
 }
