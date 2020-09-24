@@ -52,6 +52,12 @@ func TestAttr(t *testing.T) {
 	})
 }
 
+type outsider struct{}
+
+func (o outsider) Render() string {
+	return "outsider"
+}
+
 func TestEl(t *testing.T) {
 	t.Run("renders an empty element if no children given", func(t *testing.T) {
 		e := g.El("div")
@@ -71,6 +77,11 @@ func TestEl(t *testing.T) {
 	t.Run("renders attributes at the correct place regardless of placement in parameter list", func(t *testing.T) {
 		e := g.El("div", g.El("span"), g.Attr("class", "hat"))
 		assert.Equal(t, `<div class="hat"><span/></div>`, e)
+	})
+
+	t.Run("renders outside if node does not implement placer", func(t *testing.T) {
+		e := g.El("div", outsider{})
+		assert.Equal(t, `<div>outsider</div>`, e)
 	})
 }
 

@@ -35,6 +35,10 @@ func (c Classes) Render() string {
 	return g.Attr("class", strings.Join(included, " ")).Render()
 }
 
+func (c Classes) Place() g.Placement {
+	return g.Inside
+}
+
 // String satisfies fmt.Stringer.
 func (c Classes) String() string {
 	return c.Render()
