@@ -121,13 +121,17 @@ func Em(text string, children ...g.Node) g.NodeFunc {
 }
 
 func Img(src, alt string, children ...g.Node) g.NodeFunc {
-	newChildren := prepend(g.Attr("alt", alt), children)
-	newChildren = prepend(g.Attr("src", src), newChildren)
-	return g.El("img", newChildren...)
+	return g.El("img", prepend2(g.Attr("src", src), g.Attr("alt", alt), children)...)
 }
 
 func prepend(node g.Node, nodes []g.Node) []g.Node {
 	newNodes := []g.Node{node}
+	newNodes = append(newNodes, nodes...)
+	return newNodes
+}
+
+func prepend2(node1, node2 g.Node, nodes []g.Node) []g.Node {
+	newNodes := []g.Node{node1, node2}
 	newNodes = append(newNodes, nodes...)
 	return newNodes
 }
