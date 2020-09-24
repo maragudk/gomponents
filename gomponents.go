@@ -19,11 +19,29 @@ type Node interface {
 	Render() string
 }
 
+// Placer can be implemented to tell Render functions where to place the string representation of a Node
+// in the parent element.
+type Placer interface {
+	Place() Placement
+}
+
+// Placement is used with the Placer interface.
+type Placement int
+
+const (
+	Outside = Placement(iota)
+	Inside
+)
+
 // NodeFunc is render function that is also a Node.
 type NodeFunc func() string
 
 func (n NodeFunc) Render() string {
 	return n()
+}
+
+func (n NodeFunc) Place() Placement {
+	return Outside
 }
 
 // String satisfies fmt.Stringer.
@@ -35,7 +53,7 @@ func (n NodeFunc) String() string {
 // Use this if no convenience creator exists.
 func El(name string, children ...Node) NodeFunc {
 	return func() string {
-		var b, attrString, childrenString strings.Builder
+		var b, inside, outside strings.Builder
 
 		b.WriteString("<")
 		b.WriteString(name)
@@ -46,22 +64,28 @@ func El(name string, children ...Node) NodeFunc {
 		}
 
 		for _, c := range children {
-			if _, ok := c.(attr); ok {
-				attrString.WriteString(c.Render())
-			} else {
-				childrenString.WriteString(c.Render())
+			if p, ok := c.(Placer); ok {
+				switch p.Place() {
+				case Inside:
+					inside.WriteString(c.Render())
+				case Outside:
+					outside.WriteString(c.Render())
+				}
+				continue
 			}
+			// If c doesn't implement Placer, default to outside
+			outside.WriteString(c.Render())
 		}
 
-		b.WriteString(attrString.String())
+		b.WriteString(inside.String())
 
-		if childrenString.Len() == 0 {
+		if outside.Len() == 0 {
 			b.WriteString("/>")
 			return b.String()
 		}
 
 		b.WriteString(">")
-		b.WriteString(childrenString.String())
+		b.WriteString(outside.String())
 		b.WriteString("</")
 		b.WriteString(name)
 		b.WriteString(">")
@@ -95,6 +119,10 @@ func (a attr) Render() string {
 		return fmt.Sprintf(" %v", a.name)
 	}
 	return fmt.Sprintf(` %v="%v"`, a.name, *a.value)
+}
+
+func (a attr) Place() Placement {
+	return Inside
 }
 
 // String satisfies fmt.Stringer.
