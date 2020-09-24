@@ -10,25 +10,25 @@ import (
 
 func TestDocument(t *testing.T) {
 	t.Run("returns doctype and children", func(t *testing.T) {
-		assert.Equal(t, `<!doctype html><html/>`, el.Document(g.El("html")))
+		assert.Equal(t, `<!doctype html><html />`, el.Document(g.El("html")))
 	})
 }
 
 func TestHTML(t *testing.T) {
 	t.Run("returns an html element", func(t *testing.T) {
-		assert.Equal(t, "<html><div/><span/></html>", el.HTML(g.El("div"), g.El("span")))
+		assert.Equal(t, "<html><div /><span /></html>", el.HTML(g.El("div"), g.El("span")))
 	})
 }
 
 func TestHead(t *testing.T) {
 	t.Run("returns a head element", func(t *testing.T) {
-		assert.Equal(t, "<head><title/><link/></head>", el.Head(g.El("title"), g.El("link")))
+		assert.Equal(t, "<head><title /><link /></head>", el.Head(g.El("title"), g.El("link")))
 	})
 }
 
 func TestBody(t *testing.T) {
 	t.Run("returns a body element", func(t *testing.T) {
-		assert.Equal(t, "<body><div/><span/></body>", el.Body(g.El("div"), g.El("span")))
+		assert.Equal(t, "<body><div /><span /></body>", el.Body(g.El("div"), g.El("span")))
 	})
 }
 
@@ -40,25 +40,25 @@ func TestTitle(t *testing.T) {
 
 func TestMeta(t *testing.T) {
 	t.Run("returns a meta element", func(t *testing.T) {
-		assert.Equal(t, `<meta charset="utf-8"/>`, el.Meta(g.Attr("charset", "utf-8")))
+		assert.Equal(t, `<meta charset="utf-8" />`, el.Meta(g.Attr("charset", "utf-8")))
 	})
 }
 
 func TestLink(t *testing.T) {
 	t.Run("returns a link element", func(t *testing.T) {
-		assert.Equal(t, `<link rel="stylesheet"/>`, el.Link(g.Attr("rel", "stylesheet")))
+		assert.Equal(t, `<link rel="stylesheet" />`, el.Link(g.Attr("rel", "stylesheet")))
 	})
 }
 
 func TestStyle(t *testing.T) {
 	t.Run("returns a style element", func(t *testing.T) {
-		assert.Equal(t, `<style type="text/css"/>`, el.Style(g.Attr("type", "text/css")))
+		assert.Equal(t, `<style type="text/css" />`, el.Style(g.Attr("type", "text/css")))
 	})
 }
 
 func TestDiv(t *testing.T) {
 	t.Run("returns a div element", func(t *testing.T) {
-		assert.Equal(t, `<div><span/></div>`, el.Div(el.Span()))
+		assert.Equal(t, `<div><span /></div>`, el.Div(el.Span()))
 	})
 }
 
@@ -118,13 +118,13 @@ func TestH6(t *testing.T) {
 
 func TestOl(t *testing.T) {
 	t.Run("returns an ol element", func(t *testing.T) {
-		assert.Equal(t, `<ol><li/></ol>`, el.Ol(el.Li()))
+		assert.Equal(t, `<ol><li /></ol>`, el.Ol(el.Li()))
 	})
 }
 
 func TestUl(t *testing.T) {
 	t.Run("returns a ul element", func(t *testing.T) {
-		assert.Equal(t, `<ul><li/></ul>`, el.Ul(el.Li()))
+		assert.Equal(t, `<ul><li /></ul>`, el.Ul(el.Li()))
 	})
 }
 
@@ -160,6 +160,6 @@ func TestEm(t *testing.T) {
 
 func TestImg(t *testing.T) {
 	t.Run("returns an img element with href and alt attributes", func(t *testing.T) {
-		assert.Equal(t, `<img src="hat.png" alt="hat" id="image"/>`, el.Img("hat.png", "hat", g.Attr("id", "image")))
+		assert.Equal(t, `<img src="hat.png" alt="hat" id="image" />`, el.Img("hat.png", "hat", g.Attr("id", "image")))
 	})
 }

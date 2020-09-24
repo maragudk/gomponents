@@ -10,19 +10,19 @@ import (
 
 func TestButton(t *testing.T) {
 	t.Run("returns a button element", func(t *testing.T) {
-		assert.Equal(t, `<button/>`, el.Button())
+		assert.Equal(t, `<button />`, el.Button())
 	})
 }
 
 func TestForm(t *testing.T) {
 	t.Run("returns a form element with action and method attributes", func(t *testing.T) {
-		assert.Equal(t, `<form action="/" method="post"/>`, el.Form("/", "post"))
+		assert.Equal(t, `<form action="/" method="post" />`, el.Form("/", "post"))
 	})
 }
 
 func TestInput(t *testing.T) {
 	t.Run("returns an input element with attributes type and name", func(t *testing.T) {
-		assert.Equal(t, `<input type="text" name="hat"/>`, el.Input("text", "hat"))
+		assert.Equal(t, `<input type="text" name="hat" />`, el.Input("text", "hat"))
 	})
 }
 
@@ -40,7 +40,7 @@ func TestOption(t *testing.T) {
 
 func TestProgress(t *testing.T) {
 	t.Run("returns a progress element with attributes value and max", func(t *testing.T) {
-		assert.Equal(t, `<progress value="5.5" max="10"/>`, el.Progress(5.5, 10))
+		assert.Equal(t, `<progress value="5.5" max="10" />`, el.Progress(5.5, 10))
 	})
 }
 
@@ -53,6 +53,6 @@ func TestSelect(t *testing.T) {
 
 func TestTextarea(t *testing.T) {
 	t.Run("returns a textarea element with attribute name", func(t *testing.T) {
-		assert.Equal(t, `<textarea name="hat"/>`, el.Textarea("hat"))
+		assert.Equal(t, `<textarea name="hat" />`, el.Textarea("hat"))
 	})
 }

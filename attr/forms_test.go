@@ -11,6 +11,6 @@ import (
 func TestForms(t *testing.T) {
 	t.Run("adds placeholder and required attributes", func(t *testing.T) {
 		e := g.El("input", attr.Placeholder("hat"), attr.Required())
-		assert.Equal(t, `<input placeholder="hat" required/>`, e)
+		assert.Equal(t, `<input placeholder="hat" required />`, e)
 	})
 }
