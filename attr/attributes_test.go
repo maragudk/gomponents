@@ -32,7 +32,7 @@ func TestClasses(t *testing.T) {
 
 	t.Run("renders as attribute in an element", func(t *testing.T) {
 		e := g.El("div", attr.Classes{"hat": true})
-		assert.Equal(t, `<div class="hat"/>`, e)
+		assert.Equal(t, `<div class="hat" />`, e)
 	})
 
 	t.Run("also works with fmt", func(t *testing.T) {

@@ -59,7 +59,7 @@ func El(name string, children ...Node) NodeFunc {
 		b.WriteString(name)
 
 		if len(children) == 0 {
-			b.WriteString("/>")
+			b.WriteString(" />")
 			return b.String()
 		}
 
@@ -80,7 +80,7 @@ func El(name string, children ...Node) NodeFunc {
 		b.WriteString(inside.String())
 
 		if outside.Len() == 0 {
-			b.WriteString("/>")
+			b.WriteString(" />")
 			return b.String()
 		}
 
