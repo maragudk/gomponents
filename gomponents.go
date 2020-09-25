@@ -133,7 +133,7 @@ func (a attr) String() string {
 // Text creates a text DOM Node that Renders the escaped string t.
 func Text(t string) NodeFunc {
 	return func() string {
-		return template.HTMLEscaper(t)
+		return template.HTMLEscapeString(t)
 	}
 }
 
