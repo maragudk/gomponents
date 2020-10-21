@@ -140,7 +140,7 @@ func Text(t string) NodeFunc {
 // Textf creates a text DOM Node that Renders the interpolated and escaped string t.
 func Textf(format string, a ...interface{}) NodeFunc {
 	return func() string {
-		return template.HTMLEscaper(fmt.Sprintf(format, a...))
+		return template.HTMLEscapeString(fmt.Sprintf(format, a...))
 	}
 }
 
