@@ -1,4 +1,4 @@
-// Package gomponents provides components of DOM nodes for Go, that can render to an HTML Document.
+// Package gomponents provides declarative view components in Go, that can render to HTML.
 // The primary interface is a Node, which has a single function Render, which should render
 // the Node to a string. Furthermore, NodeFunc is a function which implements the Node interface
 // by calling itself on Render.
