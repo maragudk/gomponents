@@ -156,3 +156,18 @@ func Write(w io.Writer, n Node) error {
 	_, err := w.Write([]byte(n.Render()))
 	return err
 }
+
+type wrapper struct {
+	children []Node
+}
+
+// Wrap multiple Nodes into one Node. Useful for concatenation with variadic parameters.
+func Wrap(children ...Node) NodeFunc {
+	return func() string {
+		var b strings.Builder
+		for _, c := range children {
+			b.WriteString(c.Render())
+		}
+		return b.String()
+	}
+}

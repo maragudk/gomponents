@@ -133,3 +133,11 @@ func TestWrite(t *testing.T) {
 		}
 	})
 }
+
+func TestWrap(t *testing.T) {
+	t.Run("wraps multiple nodes into one", func(t *testing.T) {
+		children := []g.Node{g.El("div"), g.El("div")}
+		e := g.El("div", g.Attr("class", "foo"), g.Wrap(children...))
+		assert.Equal(t, `<div class="foo"><div /><div /></div>`, e)
+	})
+}
