@@ -31,32 +31,32 @@ func Header(children ...g.Node) g.NodeFunc {
 
 // H1 returns an element with name "h1", the given text content, and the given children.
 func H1(text string, children ...g.Node) g.NodeFunc {
-	return g.El("h1", prepend(g.Text(text), children)...)
+	return g.El("h1", g.Text(text), g.Group(children))
 }
 
 // H2 returns an element with name "h2", the given text content, and the given children.
 func H2(text string, children ...g.Node) g.NodeFunc {
-	return g.El("h2", prepend(g.Text(text), children)...)
+	return g.El("h2", g.Text(text), g.Group(children))
 }
 
 // H3 returns an element with name "h3", the given text content, and the given children.
 func H3(text string, children ...g.Node) g.NodeFunc {
-	return g.El("h3", prepend(g.Text(text), children)...)
+	return g.El("h3", g.Text(text), g.Group(children))
 }
 
 // H4 returns an element with name "h4", the given text content, and the given children.
 func H4(text string, children ...g.Node) g.NodeFunc {
-	return g.El("h4", prepend(g.Text(text), children)...)
+	return g.El("h4", g.Text(text), g.Group(children))
 }
 
 // H5 returns an element with name "h5", the given text content, and the given children.
 func H5(text string, children ...g.Node) g.NodeFunc {
-	return g.El("h5", prepend(g.Text(text), children)...)
+	return g.El("h5", g.Text(text), g.Group(children))
 }
 
 // H6 returns an element with name "h6", the given text content, and the given children.
 func H6(text string, children ...g.Node) g.NodeFunc {
-	return g.El("h6", prepend(g.Text(text), children)...)
+	return g.El("h6", g.Text(text), g.Group(children))
 }
 
 // HGroup returns an element with name "hgroup" and the given children.

@@ -64,17 +64,7 @@ func El(name string, children ...Node) NodeFunc {
 		}
 
 		for _, c := range children {
-			if p, ok := c.(Placer); ok {
-				switch p.Place() {
-				case Inside:
-					inside.WriteString(c.Render())
-				case Outside:
-					outside.WriteString(c.Render())
-				}
-				continue
-			}
-			// If c doesn't implement Placer, default to outside
-			outside.WriteString(c.Render())
+			renderChild(c, &inside, &outside)
 		}
 
 		b.WriteString(inside.String())
@@ -91,6 +81,26 @@ func El(name string, children ...Node) NodeFunc {
 		b.WriteString(">")
 		return b.String()
 	}
+}
+
+func renderChild(c Node, inside, outside *strings.Builder) {
+	if g, ok := c.(group); ok {
+		for _, groupC := range g.children {
+			renderChild(groupC, inside, outside)
+		}
+		return
+	}
+	if p, ok := c.(Placer); ok {
+		switch p.Place() {
+		case Inside:
+			inside.WriteString(c.Render())
+		case Outside:
+			outside.WriteString(c.Render())
+		}
+		return
+	}
+	// If c doesn't implement Placer, default to outside
+	outside.WriteString(c.Render())
 }
 
 // Attr creates an attr DOM Node.
@@ -155,4 +165,19 @@ func Raw(t string) NodeFunc {
 func Write(w io.Writer, n Node) error {
 	_, err := w.Write([]byte(n.Render()))
 	return err
+}
+
+type group struct {
+	children []Node
+}
+
+func (g group) Render() string {
+	panic("cannot render group")
+}
+
+// Group multiple Nodes into one Node. Useful for concatenation of Nodes in variadic functions.
+// The resulting Node cannot Render directly, trying it will panic.
+// Render must happen through a parent element created with El or a helper.
+func Group(children []Node) Node {
+	return group{children: children}
 }

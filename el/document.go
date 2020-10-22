@@ -55,15 +55,3 @@ func Style(children ...g.Node) g.NodeFunc {
 func Base(children ...g.Node) g.NodeFunc {
 	return g.El("base", children...)
 }
-
-func prepend(node g.Node, nodes []g.Node) []g.Node {
-	newNodes := []g.Node{node}
-	newNodes = append(newNodes, nodes...)
-	return newNodes
-}
-
-func prepend2(node1, node2 g.Node, nodes []g.Node) []g.Node {
-	newNodes := []g.Node{node1, node2}
-	newNodes = append(newNodes, nodes...)
-	return newNodes
-}

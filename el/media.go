@@ -5,5 +5,5 @@ import (
 )
 
 func Img(src, alt string, children ...g.Node) g.NodeFunc {
-	return g.El("img", prepend2(g.Attr("src", src), g.Attr("alt", alt), children)...)
+	return g.El("img", g.Attr("src", src), g.Attr("alt", alt), g.Group(children))
 }

@@ -133,3 +133,25 @@ func TestWrite(t *testing.T) {
 		}
 	})
 }
+
+func TestGroup(t *testing.T) {
+	t.Run("groups multiple nodes into one", func(t *testing.T) {
+		children := []g.Node{g.El("div", g.Attr("id", "hat")), g.El("div")}
+		e := g.El("div", g.Attr("class", "foo"), g.El("div"), g.Group(children))
+		assert.Equal(t, `<div class="foo"><div /><div id="hat" /><div /></div>`, e)
+	})
+
+	t.Run("panics on direct render", func(t *testing.T) {
+		e := g.Group(nil)
+		panicced := false
+		defer func() {
+			if err := recover(); err != nil {
+				panicced = true
+			}
+		}()
+		e.Render()
+		if !panicced {
+			t.FailNow()
+		}
+	})
+}
