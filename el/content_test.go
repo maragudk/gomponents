@@ -37,3 +37,15 @@ func TestP(t *testing.T) {
 		assert.Equal(t, `<p>hat</p>`, el.P(g.Text("hat")))
 	})
 }
+
+func TestBr(t *testing.T) {
+	t.Run("returns a br element in context", func(t *testing.T) {
+		assert.Equal(t, `<p>Test<br />Me</p>`, el.P(g.Text("Test"), el.Br(), g.Text("Me")))
+	})
+}
+
+func TestHr(t *testing.T) {
+	t.Run("returns a hr element with class", func(t *testing.T) {
+		assert.Equal(t, `<hr class="test" />`, el.Hr(g.Attr("class","test")))
+	})
+}

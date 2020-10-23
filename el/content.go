@@ -23,3 +23,11 @@ func Li(children ...g.Node) g.NodeFunc {
 func P(children ...g.Node) g.NodeFunc {
 	return g.El("p", children...)
 }
+
+func Br(children ...g.Node) g.NodeFunc {
+	return g.El("br", children...)
+}
+
+func Hr(children ...g.Node) g.NodeFunc {
+	return g.El("hr", children...)
+}
