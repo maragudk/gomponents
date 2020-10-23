@@ -44,6 +44,7 @@ func page(props pageProps) g.Node {
 			),
 			el.Body(
 				navbar(navbarProps{path: props.path}),
+				el.Hr(),
 				el.H1(props.title),
 				el.P(g.Text(fmt.Sprintf("Welcome to the page at %v.", props.path))),
 				el.P(g.Text(fmt.Sprintf("Rendered at %v", time.Now()))),
