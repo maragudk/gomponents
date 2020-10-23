@@ -84,6 +84,9 @@ func El(name string, children ...Node) NodeFunc {
 }
 
 func renderChild(c Node, inside, outside *strings.Builder) {
+	if c == nil {
+		return
+	}
 	if g, ok := c.(group); ok {
 		for _, groupC := range g.children {
 			renderChild(groupC, inside, outside)

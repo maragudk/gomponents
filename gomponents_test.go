@@ -83,6 +83,11 @@ func TestEl(t *testing.T) {
 		e := g.El("div", outsider{})
 		assert.Equal(t, `<div>outsider</div>`, e)
 	})
+
+	t.Run("does not fail on nil node", func(t *testing.T) {
+		e := g.El("div", g.El("span"), nil, g.El("span"))
+		assert.Equal(t, `<div><span /><span /></div>`, e)
+	})
 }
 
 func TestText(t *testing.T) {
