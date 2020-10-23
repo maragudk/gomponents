@@ -46,6 +46,6 @@ func TestBr(t *testing.T) {
 
 func TestHr(t *testing.T) {
 	t.Run("returns a hr element with class", func(t *testing.T) {
-		assert.Equal(t, `<hr class="test" />`, el.Hr(g.Attr("class","test")))
+		assert.Equal(t, `<hr class="test" />`, el.Hr(g.Attr("class", "test")))
 	})
 }
