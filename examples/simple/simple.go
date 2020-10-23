@@ -36,7 +36,11 @@ func page(props pageProps) g.Node {
 			g.Attr("lang", "en"),
 			el.Head(
 				el.Title(props.title),
-				el.Style(g.Attr("type", "text/css"), g.Raw(".is-active{font-weight: bold}")),
+				el.Style(g.Attr("type", "text/css"),
+					g.Raw(".is-active{font-weight: bold}"),
+					g.Raw("ul.nav { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }"),
+					g.Raw("ul.nav li { display: block;  padding: 8px; float: left; }"),
+				),
 			),
 			el.Body(
 				navbar(navbarProps{path: props.path}),
@@ -66,5 +70,5 @@ func navbar(props navbarProps) g.Node {
 		lis = append(lis, el.Li(
 			el.A(item.path, attr.Classes(map[string]bool{"is-active": props.path == item.path}), g.Text(item.text))))
 	}
-	return el.Ul(lis...)
+	return el.Ul(append(lis, attr.Class("nav"))...)
 }

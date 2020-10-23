@@ -27,7 +27,6 @@ Then do something like this:
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	g "github.com/maragudk/gomponents"
