@@ -8,8 +8,8 @@ func BlockQuote(children ...g.Node) g.NodeFunc {
 	return g.El("blockquote", children...)
 }
 
-func Dd(children ...g.Node) g.NodeFunc {
-	return g.El("dd", children...)
+func Dd(text string, children ...g.Node) g.NodeFunc {
+	return g.El("dd", g.Text(text), g.Group(children))
 }
 
 func Div(children ...g.Node) g.NodeFunc {
@@ -20,8 +20,8 @@ func Dl(children ...g.Node) g.NodeFunc {
 	return g.El("dl", children...)
 }
 
-func Dt(children ...g.Node) g.NodeFunc {
-	return g.El("dt", children...)
+func Dt(text string, children ...g.Node) g.NodeFunc {
+	return g.El("dt", g.Text(text), g.Group(children))
 }
 
 func FigCaption(children ...g.Node) g.NodeFunc {

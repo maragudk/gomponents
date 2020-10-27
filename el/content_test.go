@@ -49,3 +49,45 @@ func TestHr(t *testing.T) {
 		assert.Equal(t, `<hr class="test" />`, el.Hr(g.Attr("class", "test")))
 	})
 }
+
+func TestBlockQuote(t *testing.T) {
+	t.Run("returns a blockquote element", func(t *testing.T) {
+		assert.Equal(t, `<blockquote>hat</blockquote>`, el.BlockQuote(g.Text("hat")))
+	})
+}
+
+func TestDd(t *testing.T) {
+	t.Run("returns a dd element", func(t *testing.T) {
+		assert.Equal(t, `<dd>hat</dd>`, el.Dd("hat"))
+	})
+}
+
+func TestDl(t *testing.T) {
+	t.Run("returns a dl element", func(t *testing.T) {
+		assert.Equal(t, `<dl><dt>hat</dt><dd>a nice thing for the head</dd></dl>`, el.Dl(el.Dt("hat"), el.Dd("a nice thing for the head")))
+	})
+}
+
+func TestDt(t *testing.T) {
+	t.Run("returns a dt element", func(t *testing.T) {
+		assert.Equal(t, `<dt>hat</dt>`, el.Dt("hat"))
+	})
+}
+
+func TestFigCaption(t *testing.T) {
+	t.Run("returns a figcaption element", func(t *testing.T) {
+		assert.Equal(t, `<figcaption>hat</figcaption>`, el.FigCaption(g.Text("hat")))
+	})
+}
+
+func TestFigure(t *testing.T) {
+	t.Run("returns a figure element", func(t *testing.T) {
+		assert.Equal(t, `<figure>hat</figure>`, el.FigCaption(g.Text("hat")))
+	})
+}
+
+func TestPre(t *testing.T) {
+	t.Run("returns a pre element", func(t *testing.T) {
+		assert.Equal(t, `<pre>hat</pre>`, el.Pre(g.Text("hat")))
+	})
+}
