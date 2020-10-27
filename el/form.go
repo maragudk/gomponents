@@ -11,6 +11,14 @@ func Button(children ...g.Node) g.NodeFunc {
 	return g.El("button", children...)
 }
 
+func Datalist(children ...g.Node) g.NodeFunc {
+	return g.El("datalist", children...)
+}
+
+func Fieldset(children ...g.Node) g.NodeFunc {
+	return g.El("fieldset", children...)
+}
+
 // Form returns an element with name "form", the given action and method attributes, and the given children.
 func Form(action, method string, children ...g.Node) g.NodeFunc {
 	return g.El("form", g.Attr("action", action), g.Attr("method", method), g.Group(children))
@@ -26,6 +34,18 @@ func Input(typ, name string, children ...g.Node) g.NodeFunc {
 // Note that "for" is a keyword in Go, so the parameter is called forr.
 func Label(forr string, children ...g.Node) g.NodeFunc {
 	return g.El("label", g.Attr("for", forr), g.Group(children))
+}
+
+func Legend(children ...g.Node) g.NodeFunc {
+	return g.El("legend", children...)
+}
+
+func Meter(children ...g.Node) g.NodeFunc {
+	return g.El("meter", children...)
+}
+
+func OptGroup(children ...g.Node) g.NodeFunc {
+	return g.El("optgroup", children...)
 }
 
 // Option returns an element with name "option", the given text content and value attribute, and the given children.
