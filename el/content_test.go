@@ -82,7 +82,7 @@ func TestFigCaption(t *testing.T) {
 
 func TestFigure(t *testing.T) {
 	t.Run("returns a figure element", func(t *testing.T) {
-		assert.Equal(t, `<figure>hat</figure>`, el.FigCaption(g.Text("hat")))
+		assert.Equal(t, `<figure>hat</figure>`, el.Figure(g.Text("hat")))
 	})
 }
 
