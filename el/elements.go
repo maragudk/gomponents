@@ -1,19 +1,37 @@
+// Package el provides shortcuts and helpers to common HTML elements.
+// See https://developer.mozilla.org/en-US/docs/Web/HTML/Element for a list of elements.
 package el
 
 import (
 	"fmt"
+	"strings"
 
 	g "github.com/maragudk/gomponents"
 )
 
-// Button returns an element with name "button" and the given children.
-func Button(children ...g.Node) g.NodeFunc {
-	return g.El("button", children...)
+func A(href string, children ...g.Node) g.NodeFunc {
+	return g.El("a", g.Attr("href", href), g.Group(children))
+}
+
+// Document returns an special kind of Node that prefixes its children with the string "<!doctype html>".
+func Document(children ...g.Node) g.NodeFunc {
+	return func() string {
+		var b strings.Builder
+		b.WriteString("<!doctype html>")
+		for _, c := range children {
+			b.WriteString(c.Render())
+		}
+		return b.String()
+	}
 }
 
 // Form returns an element with name "form", the given action and method attributes, and the given children.
 func Form(action, method string, children ...g.Node) g.NodeFunc {
 	return g.El("form", g.Attr("action", action), g.Attr("method", method), g.Group(children))
+}
+
+func Img(src, alt string, children ...g.Node) g.NodeFunc {
+	return g.El("img", g.Attr("src", src), g.Attr("alt", alt), g.Group(children))
 }
 
 // Input returns an element with name "input", the given type and name attributes, and the given children.
