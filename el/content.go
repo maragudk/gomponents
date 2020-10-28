@@ -24,8 +24,8 @@ func Dt(text string, children ...g.Node) g.NodeFunc {
 	return g.El("dt", g.Text(text), g.Group(children))
 }
 
-func FigCaption(children ...g.Node) g.NodeFunc {
-	return g.El("figcaption", children...)
+func FigCaption(text string, children ...g.Node) g.NodeFunc {
+	return g.El("figcaption", g.Text(text), g.Group(children))
 }
 
 func Figure(children ...g.Node) g.NodeFunc {
