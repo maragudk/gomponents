@@ -1,27 +1,37 @@
+// Package el provides shortcuts and helpers to common HTML elements.
+// See https://developer.mozilla.org/en-US/docs/Web/HTML/Element for a list of elements.
 package el
 
 import (
 	"fmt"
+	"strings"
 
 	g "github.com/maragudk/gomponents"
 )
 
-// Button returns an element with name "button" and the given children.
-func Button(children ...g.Node) g.NodeFunc {
-	return g.El("button", children...)
+func A(href string, children ...g.Node) g.NodeFunc {
+	return g.El("a", g.Attr("href", href), g.Group(children))
 }
 
-func Datalist(children ...g.Node) g.NodeFunc {
-	return g.El("datalist", children...)
-}
-
-func Fieldset(children ...g.Node) g.NodeFunc {
-	return g.El("fieldset", children...)
+// Document returns an special kind of Node that prefixes its children with the string "<!doctype html>".
+func Document(children ...g.Node) g.NodeFunc {
+	return func() string {
+		var b strings.Builder
+		b.WriteString("<!doctype html>")
+		for _, c := range children {
+			b.WriteString(c.Render())
+		}
+		return b.String()
+	}
 }
 
 // Form returns an element with name "form", the given action and method attributes, and the given children.
 func Form(action, method string, children ...g.Node) g.NodeFunc {
 	return g.El("form", g.Attr("action", action), g.Attr("method", method), g.Group(children))
+}
+
+func Img(src, alt string, children ...g.Node) g.NodeFunc {
+	return g.El("img", g.Attr("src", src), g.Attr("alt", alt), g.Group(children))
 }
 
 // Input returns an element with name "input", the given type and name attributes, and the given children.
@@ -34,18 +44,6 @@ func Input(typ, name string, children ...g.Node) g.NodeFunc {
 // Note that "for" is a keyword in Go, so the parameter is called forr.
 func Label(forr string, children ...g.Node) g.NodeFunc {
 	return g.El("label", g.Attr("for", forr), g.Group(children))
-}
-
-func Legend(children ...g.Node) g.NodeFunc {
-	return g.El("legend", children...)
-}
-
-func Meter(children ...g.Node) g.NodeFunc {
-	return g.El("meter", children...)
-}
-
-func OptGroup(children ...g.Node) g.NodeFunc {
-	return g.El("optgroup", children...)
 }
 
 // Option returns an element with name "option", the given text content and value attribute, and the given children.

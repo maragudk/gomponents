@@ -8,9 +8,9 @@ import (
 	"github.com/maragudk/gomponents/el"
 )
 
-func TestButton(t *testing.T) {
-	t.Run("returns a button element", func(t *testing.T) {
-		assert.Equal(t, `<button />`, el.Button())
+func TestDocument(t *testing.T) {
+	t.Run("returns doctype and children", func(t *testing.T) {
+		assert.Equal(t, `<!doctype html><html />`, el.Document(g.El("html")))
 	})
 }
 
@@ -54,5 +54,17 @@ func TestSelect(t *testing.T) {
 func TestTextarea(t *testing.T) {
 	t.Run("returns a textarea element with attribute name", func(t *testing.T) {
 		assert.Equal(t, `<textarea name="hat" />`, el.Textarea("hat"))
+	})
+}
+
+func TestA(t *testing.T) {
+	t.Run("returns an a element with a href attribute", func(t *testing.T) {
+		assert.Equal(t, `<a href="#">hat</a>`, el.A("#", g.Text("hat")))
+	})
+}
+
+func TestImg(t *testing.T) {
+	t.Run("returns an img element with href and alt attributes", func(t *testing.T) {
+		assert.Equal(t, `<img src="hat.png" alt="hat" id="image" />`, el.Img("hat.png", "hat", g.Attr("id", "image")))
 	})
 }
