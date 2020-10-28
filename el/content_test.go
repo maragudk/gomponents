@@ -76,7 +76,7 @@ func TestDt(t *testing.T) {
 
 func TestFigCaption(t *testing.T) {
 	t.Run("returns a figcaption element", func(t *testing.T) {
-		assert.Equal(t, `<figcaption>hat</figcaption>`, el.FigCaption(g.Text("hat")))
+		assert.Equal(t, `<figcaption>hat</figcaption>`, el.FigCaption("hat"))
 	})
 }
 
