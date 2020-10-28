@@ -13,7 +13,9 @@ func TestSimpleAttributes(t *testing.T) {
 	cases := map[string]func(string) g.Node{
 		"accept":       attr.Accept,
 		"autocomplete": attr.AutoComplete,
+		"charset":      attr.Charset,
 		"class":        attr.Class,
+		"content":      attr.Content,
 		"form":         attr.Form,
 		"height":       attr.Height,
 		"href":         attr.Href,
