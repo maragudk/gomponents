@@ -9,16 +9,6 @@ import (
 	g "github.com/maragudk/gomponents"
 )
 
-// ID returns an attribute with name "id" and the given value.
-func ID(v string) g.Node {
-	return g.Attr("id", v)
-}
-
-// Class returns an attribute with name "class" and the given value.
-func Class(v string) g.Node {
-	return g.Attr("class", v)
-}
-
 // Classes is a map of strings to booleans, which Renders to an attribute with name "class".
 // The attribute value is a sorted, space-separated string of all the map keys,
 // for which the corresponding map value is true.
