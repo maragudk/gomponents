@@ -114,9 +114,9 @@ func renderChild(c Node, inside, outside *strings.Builder) {
 func Attr(name string, value ...string) Node {
 	switch len(value) {
 	case 0:
-		return attr{name: name}
+		return &attr{name: name}
 	case 1:
-		return attr{name: name, value: &value[0]}
+		return &attr{name: name, value: &value[0]}
 	default:
 		panic("attribute must be just name or name and value pair")
 	}
@@ -127,19 +127,19 @@ type attr struct {
 	value *string
 }
 
-func (a attr) Render() string {
+func (a *attr) Render() string {
 	if a.value == nil {
 		return fmt.Sprintf(" %v", a.name)
 	}
 	return fmt.Sprintf(` %v="%v"`, a.name, *a.value)
 }
 
-func (a attr) Place() Placement {
+func (a *attr) Place() Placement {
 	return Inside
 }
 
 // String satisfies fmt.Stringer.
-func (a attr) String() string {
+func (a *attr) String() string {
 	return a.Render()
 }
 
