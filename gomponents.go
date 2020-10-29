@@ -129,9 +129,9 @@ type attr struct {
 
 func (a *attr) Render() string {
 	if a.value == nil {
-		return fmt.Sprintf(" %v", a.name)
+		return " " + a.name
 	}
-	return fmt.Sprintf(` %v="%v"`, a.name, *a.value)
+	return " " + a.name + `="` + *a.value + `"`
 }
 
 func (a *attr) Place() Placement {

@@ -52,6 +52,22 @@ func TestAttr(t *testing.T) {
 	})
 }
 
+func BenchmarkAttr(b *testing.B) {
+	b.Run("boolean attributes", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			a := g.Attr("hat")
+			a.Render()
+		}
+	})
+
+	b.Run("name-value attributes", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			a := g.Attr("hat", "party")
+			a.Render()
+		}
+	})
+}
+
 type outsider struct{}
 
 func (o outsider) Render() string {

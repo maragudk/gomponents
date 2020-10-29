@@ -1,4 +1,7 @@
-.PHONY: cover lint test
+.PHONY: benchmark cover lint test
+
+benchmark:
+	go test -bench=.
 
 cover:
 	go tool cover -html=cover.out
