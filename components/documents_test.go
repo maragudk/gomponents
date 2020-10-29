@@ -11,7 +11,7 @@ import (
 )
 
 func TestHTML5(t *testing.T) {
-	t.Run("returns a html5 document template", func(t *testing.T) {
+	t.Run("returns an html5 document template", func(t *testing.T) {
 		e := c.HTML5(c.DocumentProps{
 			Title:       "Hat",
 			Description: "Love hats.",
