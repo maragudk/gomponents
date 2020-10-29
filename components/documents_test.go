@@ -1,4 +1,4 @@
-package doc_test
+package components_test
 
 import (
 	"testing"
@@ -6,13 +6,13 @@ import (
 	g "github.com/maragudk/gomponents"
 	"github.com/maragudk/gomponents/assert"
 	"github.com/maragudk/gomponents/attr"
-	"github.com/maragudk/gomponents/doc"
+	c "github.com/maragudk/gomponents/components"
 	"github.com/maragudk/gomponents/el"
 )
 
 func TestHTML5(t *testing.T) {
 	t.Run("returns a html5 document template", func(t *testing.T) {
-		e := doc.HTML5(doc.Props{
+		e := c.HTML5(c.DocumentProps{
 			Title:       "Hat",
 			Description: "Love hats.",
 			Language:    "en",
@@ -24,7 +24,7 @@ func TestHTML5(t *testing.T) {
 	})
 
 	t.Run("returns no language, description, and extra head/body elements if empty", func(t *testing.T) {
-		e := doc.HTML5(doc.Props{
+		e := c.HTML5(c.DocumentProps{
 			Title: "Hat",
 		})
 

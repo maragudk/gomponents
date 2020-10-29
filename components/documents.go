@@ -1,4 +1,4 @@
-package doc
+package components
 
 import (
 	g "github.com/maragudk/gomponents"
@@ -6,9 +6,9 @@ import (
 	"github.com/maragudk/gomponents/el"
 )
 
-// Props for documents.
-// Title is set no matter what, Description and Language only if non-empty.
-type Props struct {
+// DocumentProps for HTML5.
+// Title is set no matter what, Description and Language elements only if the strings are non-empty.
+type DocumentProps struct {
 	Title       string
 	Description string
 	Language    string
@@ -17,7 +17,7 @@ type Props struct {
 }
 
 // HTML5 document template.
-func HTML5(p Props) g.NodeFunc {
+func HTML5(p DocumentProps) g.NodeFunc {
 	var lang, description g.Node
 	if p.Language != "" {
 		lang = attr.Lang(p.Language)
