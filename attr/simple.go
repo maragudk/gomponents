@@ -12,8 +12,16 @@ func AutoComplete(v string) g.Node {
 	return g.Attr("autocomplete", v)
 }
 
+func Charset(v string) g.Node {
+	return g.Attr("charset", v)
+}
+
 func Class(v string) g.Node {
 	return g.Attr("class", v)
+}
+
+func Content(v string) g.Node {
+	return g.Attr("content", v)
 }
 
 func Form(v string) g.Node {
