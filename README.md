@@ -70,4 +70,50 @@ func Navbar(path string) g.Node {
 }
 ```
 
+You could also use a page template to simplify your code a bit:
+
+```go
+package main
+
+import (
+	"net/http"
+
+	g "github.com/maragudk/gomponents"
+	"github.com/maragudk/gomponents/attr"
+	c "github.com/maragudk/gomponents/components"
+	"github.com/maragudk/gomponents/el"
+)
+
+func main() {
+	_ = http.ListenAndServe("localhost:8080", handler())
+}
+
+func handler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		page := Page("Hi!", r.URL.Path)
+		_ = g.Write(w, page)
+	}
+}
+
+func Page(title, path string) g.Node {
+	return c.HTML5(c.DocumentProps{
+		Title:       title,
+		Language:    "en",
+		Head:        []g.Node{el.Style(g.Attr("type", "text/css"), g.Raw(".is-active{font-weight: bold}"))},
+		Body:        []g.Node{
+			Navbar(path),
+			el.H1(title),
+			el.P(g.Textf("Welcome to the page at %v.", path)),
+		},
+	})
+}
+
+func Navbar(path string) g.Node {
+	return g.El("nav",
+		el.A("/", attr.Classes{"is-active": path == "/"}, g.Text("Home")),
+		el.A("/about", attr.Classes{"is-active": path == "/about"}, g.Text("About")),
+	)
+}
+```
+
 For more complete examples, see [the examples directory](examples/).
