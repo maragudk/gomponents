@@ -1,6 +1,7 @@
 package gomponents_test
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -109,9 +110,21 @@ func TestEl(t *testing.T) {
 	})
 
 	t.Run("does not fail on nil node", func(t *testing.T) {
-		e := g.El("div", g.El("span"), nil, g.El("span"))
+		e := g.El("div", nil, g.El("span"), nil, g.El("span"))
 		assert.Equal(t, `<div><span /><span /></div>`, e)
 	})
+
+	t.Run("returns render error on cannot write", func(t *testing.T) {
+		e := g.El("div")
+		err := e.Render(&erroringWriter{})
+		assert.Error(t, err)
+	})
+}
+
+type erroringWriter struct{}
+
+func (w *erroringWriter) Write(p []byte) (n int, err error) {
+	return 0, errors.New("no thanks")
 }
 
 func TestText(t *testing.T) {

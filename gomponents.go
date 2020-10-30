@@ -62,86 +62,77 @@ const (
 // El creates an element DOM Node with a name and child Nodes.
 // Use this if no convenience creator exists.
 func El(name string, children ...Node) NodeFunc {
-	return func(w io.Writer) error {
-		if _, err := w.Write([]byte("<" + name)); err != nil {
-			return err
-		}
+	return func(w2 io.Writer) error {
+		w := &statefulWriter{w: w2}
+
+		w.Write([]byte("<" + name))
 
 		if len(children) == 0 {
-			_, err := w.Write([]byte(" />"))
-			return err
+			w.Write([]byte(" />"))
+			return w.err
 		}
 
-		hasNonAttributeChild := false
+		hasOutsideChildren := false
 		for _, c := range children {
-			hasNonAttributeChild = hasNonAttributeChild || isNonAttributeChild(c)
-			if err := renderChild(w, c, attrType); err != nil {
-				return err
-			}
+			hasOutsideChildren = renderChild(w, c, attrType) || hasOutsideChildren
 		}
 
-		if !hasNonAttributeChild {
-			_, err := w.Write([]byte(" />"))
-			return err
+		if !hasOutsideChildren {
+			w.Write([]byte(" />"))
+			return w.err
 		}
 
-		if _, err := w.Write([]byte(">")); err != nil {
-			return err
-		}
+		w.Write([]byte(">"))
 
 		for _, c := range children {
-			if err := renderChild(w, c, elementType); err != nil {
-				return err
-			}
+			renderChild(w, c, elementType)
 		}
 
-		_, err := w.Write([]byte("</" + name + ">"))
-		return err
+		w.Write([]byte("</" + name + ">"))
+		return w.err
 	}
-}
-
-func isNonAttributeChild(c Node) bool {
-	if c == nil {
-		return false
-	}
-	if g, ok := c.(group); ok {
-		for _, groupC := range g.children {
-			if isNonAttributeChild(groupC) {
-				return true
-			}
-		}
-		return false
-	}
-	if p, ok := c.(Placer); !ok || (ok && p.Place() == Outside) {
-		return true
-	}
-	return false
 }
 
 // renderChild c to the given writer w if the node type is t.
-func renderChild(w io.Writer, c Node, t nodeType) error {
-	if c == nil {
-		return nil
+// Returns whether the child would be written Outside.
+func renderChild(w *statefulWriter, c Node, t nodeType) bool {
+	if w.err != nil || c == nil {
+		return false
 	}
+
+	isOutside := false
 	if g, ok := c.(group); ok {
 		for _, groupC := range g.children {
-			if err := renderChild(w, groupC, t); err != nil {
-				return err
-			}
+			isOutside = renderChild(w, groupC, t) || isOutside
 		}
-		return nil
+		return isOutside
 	}
-	switch t {
-	case attrType:
-		if p, ok := c.(Placer); ok && p.Place() == Inside {
-			return c.Render(w)
-		}
-	case elementType:
-		if p, ok := c.(Placer); !ok || p.Place() == Outside {
-			return c.Render(w)
-		}
+
+	if p, ok := c.(Placer); !ok || p.Place() == Outside {
+		isOutside = true
 	}
-	return nil
+
+	switch {
+	case t == attrType && !isOutside:
+		w.err = c.Render(w.w)
+	case t == elementType && isOutside:
+		w.err = c.Render(w.w)
+	}
+
+	return isOutside
+}
+
+// statefulWriter only writes if no errors have occured earlier in its lifetime.
+type statefulWriter struct {
+	w   io.Writer
+	err error
+}
+
+func (w *statefulWriter) Write(p []byte) {
+	if w.err != nil {
+		return
+	}
+	_, w.err = w.w.Write(p)
 }
 
 // Attr creates an attr DOM Node.
