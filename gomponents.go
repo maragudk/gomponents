@@ -14,9 +14,9 @@ import (
 	"strings"
 )
 
-// Node is a DOM node that can Render itself to a string representation.
+// Node is a DOM node that can Render itself to a io.Writer.
 type Node interface {
-	Render() string
+	Render(w io.Writer) error
 }
 
 // Placer can be implemented to tell Render functions where to place the string representation of a Node
@@ -34,10 +34,10 @@ const (
 )
 
 // NodeFunc is render function that is also a Node.
-type NodeFunc func() string
+type NodeFunc func(io.Writer) error
 
-func (n NodeFunc) Render() string {
-	return n()
+func (n NodeFunc) Render(w io.Writer) error {
+	return n(w)
 }
 
 func (n NodeFunc) Place() Placement {
@@ -46,64 +46,105 @@ func (n NodeFunc) Place() Placement {
 
 // String satisfies fmt.Stringer.
 func (n NodeFunc) String() string {
-	return n.Render()
+	var b strings.Builder
+	_ = n.Render(&b)
+	return b.String()
 }
 
 // El creates an element DOM Node with a name and child Nodes.
 // Use this if no convenience creator exists.
 func El(name string, children ...Node) NodeFunc {
-	return func() string {
-		var b, inside, outside strings.Builder
-
-		b.WriteString("<")
-		b.WriteString(name)
+	return func(w io.Writer) error {
+		if _, err := w.Write([]byte("<" + name)); err != nil {
+			return err
+		}
 
 		if len(children) == 0 {
-			b.WriteString(" />")
-			return b.String()
+			_, err := w.Write([]byte(" />"))
+			return err
+		}
+
+		hasNonAttributeChild := false
+		for _, c := range children {
+			hasNonAttributeChild = hasNonAttributeChild || isNonAttributeChild(c)
+			if err := renderAttr(w, c); err != nil {
+				return err
+			}
+		}
+
+		if !hasNonAttributeChild {
+			_, err := w.Write([]byte(" />"))
+			return err
+		}
+
+		if _, err := w.Write([]byte(">")); err != nil {
+			return err
 		}
 
 		for _, c := range children {
-			renderChild(c, &inside, &outside)
+			if err := renderChild(w, c); err != nil {
+				return err
+			}
 		}
 
-		b.WriteString(inside.String())
-
-		if outside.Len() == 0 {
-			b.WriteString(" />")
-			return b.String()
-		}
-
-		b.WriteString(">")
-		b.WriteString(outside.String())
-		b.WriteString("</")
-		b.WriteString(name)
-		b.WriteString(">")
-		return b.String()
+		_, err := w.Write([]byte("</" + name + ">"))
+		return err
 	}
 }
 
-func renderChild(c Node, inside, outside *strings.Builder) {
+func isNonAttributeChild(c Node) bool {
 	if c == nil {
-		return
+		return false
 	}
 	if g, ok := c.(group); ok {
 		for _, groupC := range g.children {
-			renderChild(groupC, inside, outside)
+			if isNonAttributeChild(groupC) {
+				return true
+			}
 		}
-		return
+		return false
 	}
-	if p, ok := c.(Placer); ok {
-		switch p.Place() {
-		case Inside:
-			inside.WriteString(c.Render())
-		case Outside:
-			outside.WriteString(c.Render())
+	if p, ok := c.(Placer); !ok || (ok && p.Place() == Outside) {
+		return true
+	}
+	return false
+}
+
+func renderAttr(w io.Writer, c Node) error {
+	if c == nil {
+		return nil
+	}
+	if g, ok := c.(group); ok {
+		for _, groupC := range g.children {
+			if err := renderAttr(w, groupC); err != nil {
+				return err
+			}
 		}
-		return
+		return nil
+	}
+	if p, ok := c.(Placer); ok && p.Place() == Inside {
+		return c.Render(w)
+	}
+	return nil
+}
+
+func renderChild(w io.Writer, c Node) error {
+	if c == nil {
+		return nil
+	}
+	if g, ok := c.(group); ok {
+		for _, groupC := range g.children {
+			if err := renderChild(w, groupC); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if p, ok := c.(Placer); ok && p.Place() == Inside {
+		return nil
 	}
 	// If c doesn't implement Placer, default to outside
-	outside.WriteString(c.Render())
+	return c.Render(w)
 }
 
 // Attr creates an attr DOM Node.
@@ -127,11 +168,13 @@ type attr struct {
 	value *string
 }
 
-func (a *attr) Render() string {
+func (a *attr) Render(w io.Writer) error {
 	if a.value == nil {
-		return " " + a.name
+		_, err := w.Write([]byte(" " + a.name))
+		return err
 	}
-	return " " + a.name + `="` + *a.value + `"`
+	_, err := w.Write([]byte(" " + a.name + `="` + *a.value + `"`))
+	return err
 }
 
 func (a *attr) Place() Placement {
@@ -140,42 +183,41 @@ func (a *attr) Place() Placement {
 
 // String satisfies fmt.Stringer.
 func (a *attr) String() string {
-	return a.Render()
+	var b strings.Builder
+	_ = a.Render(&b)
+	return b.String()
 }
 
 // Text creates a text DOM Node that Renders the escaped string t.
 func Text(t string) NodeFunc {
-	return func() string {
-		return template.HTMLEscapeString(t)
+	return func(w io.Writer) error {
+		_, err := w.Write([]byte(template.HTMLEscapeString(t)))
+		return err
 	}
 }
 
 // Textf creates a text DOM Node that Renders the interpolated and escaped string t.
 func Textf(format string, a ...interface{}) NodeFunc {
-	return func() string {
-		return template.HTMLEscapeString(fmt.Sprintf(format, a...))
+	return func(w io.Writer) error {
+		_, err := w.Write([]byte(template.HTMLEscapeString(fmt.Sprintf(format, a...))))
+		return err
 	}
 }
 
 // Raw creates a raw Node that just Renders the unescaped string t.
 func Raw(t string) NodeFunc {
-	return func() string {
-		return t
+	return func(w io.Writer) error {
+		_, err := w.Write([]byte(t))
+		return err
 	}
-}
-
-// Write to the given io.Writer, returning any error.
-func Write(w io.Writer, n Node) error {
-	_, err := w.Write([]byte(n.Render()))
-	return err
 }
 
 type group struct {
 	children []Node
 }
 
-func (g group) Render() string {
-	panic("cannot render group")
+func (g group) Render(io.Writer) error {
+	panic("cannot render group directly")
 }
 
 // Group multiple Nodes into one Node. Useful for concatenation of Nodes in variadic functions.

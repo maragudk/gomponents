@@ -1,8 +1,8 @@
 package gomponents_test
 
 import (
-	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
@@ -12,7 +12,10 @@ import (
 
 func TestNodeFunc(t *testing.T) {
 	t.Run("implements fmt.Stringer", func(t *testing.T) {
-		fn := g.NodeFunc(func() string { return "hat" })
+		fn := g.NodeFunc(func(w io.Writer) error {
+			_, _ = w.Write([]byte("hat"))
+			return nil
+		})
 		if fn.String() != "hat" {
 			t.FailNow()
 		}
@@ -56,22 +59,23 @@ func BenchmarkAttr(b *testing.B) {
 	b.Run("boolean attributes", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			a := g.Attr("hat")
-			a.Render()
+			_ = a.Render(&strings.Builder{})
 		}
 	})
 
 	b.Run("name-value attributes", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			a := g.Attr("hat", "party")
-			a.Render()
+			_ = a.Render(&strings.Builder{})
 		}
 	})
 }
 
 type outsider struct{}
 
-func (o outsider) Render() string {
-	return "outsider"
+func (o outsider) Render(w io.Writer) error {
+	_, _ = w.Write([]byte("outsider"))
+	return nil
 }
 
 func TestEl(t *testing.T) {
@@ -127,34 +131,6 @@ func TestRaw(t *testing.T) {
 	})
 }
 
-type erroringWriter struct{}
-
-func (w *erroringWriter) Write(p []byte) (n int, err error) {
-	return 0, errors.New("don't want to write")
-}
-
-func TestWrite(t *testing.T) {
-	t.Run("writes to the writer", func(t *testing.T) {
-		e := g.El("div")
-		var b strings.Builder
-		err := g.Write(&b, e)
-		if err != nil {
-			t.FailNow()
-		}
-		if b.String() != e.Render() {
-			t.FailNow()
-		}
-	})
-
-	t.Run("errors on write error", func(t *testing.T) {
-		e := g.El("div")
-		err := g.Write(&erroringWriter{}, e)
-		if err == nil {
-			t.FailNow()
-		}
-	})
-}
-
 func TestGroup(t *testing.T) {
 	t.Run("groups multiple nodes into one", func(t *testing.T) {
 		children := []g.Node{g.El("div", g.Attr("id", "hat")), g.El("div")}
@@ -170,7 +146,7 @@ func TestGroup(t *testing.T) {
 				panicced = true
 			}
 		}()
-		e.Render()
+		_ = e.Render(nil)
 		if !panicced {
 			t.FailNow()
 		}

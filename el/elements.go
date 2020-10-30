@@ -4,7 +4,7 @@ package el
 
 import (
 	"fmt"
-	"strings"
+	"io"
 
 	g "github.com/maragudk/gomponents"
 )
@@ -13,15 +13,13 @@ func A(href string, children ...g.Node) g.NodeFunc {
 	return g.El("a", g.Attr("href", href), g.Group(children))
 }
 
-// Document returns an special kind of Node that prefixes its children with the string "<!doctype html>".
-func Document(children ...g.Node) g.NodeFunc {
-	return func() string {
-		var b strings.Builder
-		b.WriteString("<!doctype html>")
-		for _, c := range children {
-			b.WriteString(c.Render())
+// Document returns an special kind of Node that prefixes its child with the string "<!doctype html>".
+func Document(child g.Node) g.NodeFunc {
+	return func(w io.Writer) error {
+		if _, err := w.Write([]byte("<!doctype html>")); err != nil {
+			return err
 		}
-		return b.String()
+		return child.Render(w)
 	}
 }
 

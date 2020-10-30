@@ -3,6 +3,7 @@
 package attr
 
 import (
+	"io"
 	"sort"
 	"strings"
 
@@ -14,7 +15,7 @@ import (
 // for which the corresponding map value is true.
 type Classes map[string]bool
 
-func (c Classes) Render() string {
+func (c Classes) Render(w io.Writer) error {
 	var included []string
 	for c, include := range c {
 		if include {
@@ -22,7 +23,7 @@ func (c Classes) Render() string {
 		}
 	}
 	sort.Strings(included)
-	return g.Attr("class", strings.Join(included, " ")).Render()
+	return g.Attr("class", strings.Join(included, " ")).Render(w)
 }
 
 func (c Classes) Place() g.Placement {
@@ -31,5 +32,7 @@ func (c Classes) Place() g.Placement {
 
 // String satisfies fmt.Stringer.
 func (c Classes) String() string {
-	return c.Render()
+	var b strings.Builder
+	_ = c.Render(&b)
+	return b.String()
 }
