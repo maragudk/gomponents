@@ -17,6 +17,7 @@ import (
 // Node is a DOM node that can Render itself to a io.Writer.
 type Node interface {
 	Render(w io.Writer) error
+	fmt.Stringer
 }
 
 // Placer can be implemented to tell Render functions where to place the string representation of a Node
@@ -214,6 +215,10 @@ func Raw(t string) NodeFunc {
 
 type group struct {
 	children []Node
+}
+
+func (g group) String() string {
+	panic("cannot render group directly")
 }
 
 func (g group) Render(io.Writer) error {

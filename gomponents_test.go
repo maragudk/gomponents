@@ -73,6 +73,10 @@ func BenchmarkAttr(b *testing.B) {
 
 type outsider struct{}
 
+func (o outsider) String() string {
+	return "outsider"
+}
+
 func (o outsider) Render(w io.Writer) error {
 	_, _ = w.Write([]byte("outsider"))
 	return nil
