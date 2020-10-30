@@ -52,6 +52,13 @@ func (n NodeFunc) String() string {
 	return b.String()
 }
 
+type nodeType int
+
+const (
+	attrType = nodeType(iota)
+	elementType
+)
+
 // El creates an element DOM Node with a name and child Nodes.
 // Use this if no convenience creator exists.
 func El(name string, children ...Node) NodeFunc {
@@ -68,7 +75,7 @@ func El(name string, children ...Node) NodeFunc {
 		hasNonAttributeChild := false
 		for _, c := range children {
 			hasNonAttributeChild = hasNonAttributeChild || isNonAttributeChild(c)
-			if err := renderAttr(w, c); err != nil {
+			if err := renderChild(w, c, attrType); err != nil {
 				return err
 			}
 		}
@@ -83,7 +90,7 @@ func El(name string, children ...Node) NodeFunc {
 		}
 
 		for _, c := range children {
-			if err := renderChild(w, c); err != nil {
+			if err := renderChild(w, c, elementType); err != nil {
 				return err
 			}
 		}
@@ -111,41 +118,30 @@ func isNonAttributeChild(c Node) bool {
 	return false
 }
 
-func renderAttr(w io.Writer, c Node) error {
+// renderChild c to the given writer w if the node type is t.
+func renderChild(w io.Writer, c Node, t nodeType) error {
 	if c == nil {
 		return nil
 	}
 	if g, ok := c.(group); ok {
 		for _, groupC := range g.children {
-			if err := renderAttr(w, groupC); err != nil {
+			if err := renderChild(w, groupC, t); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
-	if p, ok := c.(Placer); ok && p.Place() == Inside {
-		return c.Render(w)
+	switch t {
+	case attrType:
+		if p, ok := c.(Placer); ok && p.Place() == Inside {
+			return c.Render(w)
+		}
+	case elementType:
+		if p, ok := c.(Placer); !ok || p.Place() == Outside {
+			return c.Render(w)
+		}
 	}
 	return nil
-}
-
-func renderChild(w io.Writer, c Node) error {
-	if c == nil {
-		return nil
-	}
-	if g, ok := c.(group); ok {
-		for _, groupC := range g.children {
-			if err := renderChild(w, groupC); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-	if p, ok := c.(Placer); ok && p.Place() == Inside {
-		return nil
-	}
-	// If c doesn't implement Placer, default to outside
-	return c.Render(w)
 }
 
 // Attr creates an attr DOM Node.

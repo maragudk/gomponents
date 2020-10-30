@@ -155,4 +155,18 @@ func TestGroup(t *testing.T) {
 			t.FailNow()
 		}
 	})
+
+	t.Run("panics on direct string", func(t *testing.T) {
+		e := g.Group(nil)
+		panicced := false
+		defer func() {
+			if err := recover(); err != nil {
+				panicced = true
+			}
+		}()
+		e.String()
+		if !panicced {
+			t.FailNow()
+		}
+	})
 }

@@ -16,3 +16,10 @@ func Equal(t *testing.T, expected string, actual g.Node) {
 		t.FailNow()
 	}
 }
+
+// Error checks for a non-nil error.
+func Error(t *testing.T, err error) {
+	if err == nil {
+		t.FailNow()
+	}
+}
