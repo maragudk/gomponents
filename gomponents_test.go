@@ -157,28 +157,28 @@ func TestGroup(t *testing.T) {
 
 	t.Run("panics on direct render", func(t *testing.T) {
 		e := g.Group(nil)
-		panicced := false
+		panicked := false
 		defer func() {
 			if err := recover(); err != nil {
-				panicced = true
+				panicked = true
 			}
 		}()
 		_ = e.Render(nil)
-		if !panicced {
+		if !panicked {
 			t.FailNow()
 		}
 	})
 
 	t.Run("panics on direct string", func(t *testing.T) {
-		e := g.Group(nil)
-		panicced := false
+		e := g.Group(nil).(fmt.Stringer)
+		panicked := false
 		defer func() {
 			if err := recover(); err != nil {
-				panicced = true
+				panicked = true
 			}
 		}()
-		_ = fmt.Sprintf("%v", e)
-		if !panicced {
+		e.String()
+		if !panicked {
 			t.FailNow()
 		}
 	})
