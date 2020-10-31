@@ -177,7 +177,7 @@ func TestGroup(t *testing.T) {
 				panicced = true
 			}
 		}()
-		e.String()
+		_ = fmt.Sprintf("%v", e)
 		if !panicced {
 			t.FailNow()
 		}

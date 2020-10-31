@@ -17,7 +17,6 @@ import (
 // Node is a DOM node that can Render itself to a io.Writer.
 type Node interface {
 	Render(w io.Writer) error
-	fmt.Stringer
 }
 
 // Placer can be implemented to tell Render functions where to place the string representation of a Node
@@ -94,7 +93,7 @@ func El(name string, children ...Node) NodeFunc {
 }
 
 // renderChild c to the given writer w if the node type is t.
-// Returns whether the child would be written Outside.
+// Returns whether the child would be written Outside, regardless of whether it is actually written.
 func renderChild(w *statefulWriter, c Node, t nodeType) bool {
 	if w.err != nil || c == nil {
 		return false
