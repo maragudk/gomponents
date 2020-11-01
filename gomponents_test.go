@@ -177,7 +177,7 @@ func TestGroup(t *testing.T) {
 				panicked = true
 			}
 		}()
-		e.String()
+		_ = e.String()
 		if !panicked {
 			t.FailNow()
 		}
