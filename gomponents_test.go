@@ -183,3 +183,16 @@ func TestGroup(t *testing.T) {
 		}
 	})
 }
+
+func TestMap(t *testing.T) {
+	t.Run("maps slices to nodes", func(t *testing.T) {
+		items := []string{"hat", "partyhat", "turtlehat"}
+		lis := g.Map(len(items), func(i int) g.Node {
+			return g.El("li", g.Text(items[i]))
+		})
+
+		list := g.El("ul", lis...)
+
+		assert.Equal(t, `<ul><li>hat</li><li>partyhat</li><li>turtlehat</li></ul>`, list)
+	})
+}
