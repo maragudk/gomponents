@@ -13,6 +13,16 @@ The implementation is still incomplete, but usable. The API may change until ver
 Check out the blog post [gomponents: declarative view components in Go](https://www.maragu.dk/blog/gomponents-declarative-view-components-in-go/)
 for background.
 
+## Features
+
+- Write declarative HTML in Go without all the strings, so you get
+  - Type safety
+  - Auto-completion
+  - Nice formatting with `gofmt`
+- Simple API that's easy to learn and use
+- Build reusable view components
+- No external dependencies
+
 ## Usage
 
 Get the library using `go get`:
