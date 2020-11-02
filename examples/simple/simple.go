@@ -14,22 +14,23 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	_ = g.Write(w, page(pageProps{
+	p := page(props{
 		title: r.URL.Path,
 		path:  r.URL.Path,
-	}))
+	})
+	_ = p.Render(w)
 }
 
-type pageProps struct {
+type props struct {
 	title string
 	path  string
 }
 
-func page(props pageProps) g.Node {
+func page(p props) g.Node {
 	return el.Document(
 		el.HTML(attr.Lang("en"),
 			el.Head(
-				el.Title(props.title),
+				el.Title(p.title),
 				el.Style(attr.Type("text/css"),
 					g.Raw(".is-active{font-weight: bold}"),
 					g.Raw("ul.nav { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }"),
@@ -37,10 +38,10 @@ func page(props pageProps) g.Node {
 				),
 			),
 			el.Body(
-				navbar(navbarProps{path: props.path}),
+				navbar(navbarProps{path: p.path}),
 				el.Hr(),
-				el.H1(props.title),
-				el.P(g.Textf("Welcome to the page at %v.", props.path)),
+				el.H1(p.title),
+				el.P(g.Textf("Welcome to the page at %v.", p.path)),
 				el.P(g.Textf("Rendered at %v", time.Now())),
 			),
 		),

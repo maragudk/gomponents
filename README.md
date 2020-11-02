@@ -41,7 +41,7 @@ func main() {
 func handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		page := Page("Hi!", r.URL.Path)
-		_ = g.Write(w, page)
+		_ = page.Render(w)
 	}
 }
 
@@ -91,7 +91,7 @@ func main() {
 func handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		page := Page("Hi!", r.URL.Path)
-		_ = g.Write(w, page)
+		_ = page.Render(w)
 	}
 }
 

@@ -1,6 +1,7 @@
 package el_test
 
 import (
+	"errors"
 	"testing"
 
 	g "github.com/maragudk/gomponents"
@@ -8,9 +9,20 @@ import (
 	"github.com/maragudk/gomponents/el"
 )
 
+type erroringWriter struct{}
+
+func (w *erroringWriter) Write(p []byte) (n int, err error) {
+	return 0, errors.New("don't want to write")
+}
+
 func TestDocument(t *testing.T) {
 	t.Run("returns doctype and children", func(t *testing.T) {
 		assert.Equal(t, `<!doctype html><html />`, el.Document(g.El("html")))
+	})
+
+	t.Run("errors on write error in Render", func(t *testing.T) {
+		err := el.Document(g.El("html")).Render(&erroringWriter{})
+		assert.Error(t, err)
 	})
 }
 
