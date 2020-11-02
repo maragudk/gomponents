@@ -1,3 +1,4 @@
+// Package components provides high-level components that are composed of low-level elements and attributes.
 package components
 
 import (
