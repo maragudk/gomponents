@@ -61,11 +61,11 @@ func navbar(props navbarProps) g.Node {
 		{"/foo", "Foo"},
 		{"/bar", "Bar"},
 	}
-	var lis []g.Node
-	for _, item := range items {
-		lis = append(lis, el.Li(el.A(item.path,
-			attr.Classes(map[string]bool{"is-active": props.path == item.path}),
-			g.Text(item.text))))
-	}
+	lis := g.Map(len(items), func(i int) g.Node {
+		item := items[i]
+		return el.Li(
+			el.A(item.path, attr.Classes(map[string]bool{"is-active": props.path == item.path}), g.Text(item.text)),
+		)
+	})
 	return el.Ul(attr.Class("nav"), g.Group(lis))
 }
