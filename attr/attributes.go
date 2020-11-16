@@ -26,8 +26,8 @@ func (c Classes) Render(w io.Writer) error {
 	return g.Attr("class", strings.Join(included, " ")).Render(w)
 }
 
-func (c Classes) Place() g.Placement {
-	return g.Inside
+func (c Classes) Type() g.NodeType {
+	return g.AttributeType
 }
 
 // String satisfies fmt.Stringer.

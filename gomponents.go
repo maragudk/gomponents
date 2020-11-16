@@ -23,29 +23,30 @@ type Node interface {
 	Render(w io.Writer) error
 }
 
-// Placer can be implemented to tell Render functions where to place the string representation of a Node
-// in the parent element.
-type Placer interface {
-	Place() Placement
-}
-
-// Placement is used with the Placer interface.
-type Placement int
+// NodeType describes what type of Node it is, currently either an element or an attribute.
+// Nodes default to being ElementType.
+type NodeType int
 
 const (
-	Outside = Placement(iota)
-	Inside
+	ElementType = NodeType(iota)
+	AttributeType
 )
 
-// NodeFunc is render function that is also a Node.
+// nodeTypeDescriber can be implemented by Nodes to let callers know whether the Node is an ElementType or an AttributeType.
+// This is used for rendering.
+type nodeTypeDescriber interface {
+	Type() NodeType
+}
+
+// NodeFunc is render function that is also a Node of ElementType.
 type NodeFunc func(io.Writer) error
 
 func (n NodeFunc) Render(w io.Writer) error {
 	return n(w)
 }
 
-func (n NodeFunc) Place() Placement {
-	return Outside
+func (n NodeFunc) Type() NodeType {
+	return ElementType
 }
 
 // String satisfies fmt.Stringer.
@@ -54,14 +55,6 @@ func (n NodeFunc) String() string {
 	_ = n.Render(&b)
 	return b.String()
 }
-
-// nodeType is for DOM Nodes that are either an element or an attribute.
-type nodeType int
-
-const (
-	elementType = nodeType(iota)
-	attributeType
-)
 
 // El creates an element DOM Node with a name and child Nodes.
 // Use this if no convenience creator exists.
@@ -76,7 +69,7 @@ func El(name string, children ...Node) NodeFunc {
 		w.Write([]byte("<" + name))
 
 		for _, c := range children {
-			renderChild(w, c, attributeType)
+			renderChild(w, c, AttributeType)
 		}
 
 		if isVoidKind(name) {
@@ -87,7 +80,7 @@ func El(name string, children ...Node) NodeFunc {
 		w.Write([]byte(">"))
 
 		for _, c := range children {
-			renderChild(w, c, elementType)
+			renderChild(w, c, ElementType)
 		}
 
 		w.Write([]byte("</" + name + ">"))
@@ -105,7 +98,7 @@ func isVoidKind(name string) bool {
 }
 
 // renderChild c to the given writer w if the node type is t.
-func renderChild(w *statefulWriter, c Node, t nodeType) {
+func renderChild(w *statefulWriter, c Node, t NodeType) {
 	if w.err != nil || c == nil {
 		return
 	}
@@ -118,12 +111,12 @@ func renderChild(w *statefulWriter, c Node, t nodeType) {
 	}
 
 	switch t {
-	case elementType:
-		if p, ok := c.(Placer); !ok || p.Place() == Outside {
+	case ElementType:
+		if p, ok := c.(nodeTypeDescriber); !ok || p.Type() == ElementType {
 			w.err = c.Render(w.w)
 		}
-	case attributeType:
-		if p, ok := c.(Placer); ok && p.Place() == Inside {
+	case AttributeType:
+		if p, ok := c.(nodeTypeDescriber); ok && p.Type() == AttributeType {
 			w.err = c.Render(w.w)
 		}
 	}
@@ -172,8 +165,8 @@ func (a *attr) Render(w io.Writer) error {
 	return err
 }
 
-func (a *attr) Place() Placement {
-	return Inside
+func (a *attr) Type() NodeType {
+	return AttributeType
 }
 
 // String satisfies fmt.Stringer.
