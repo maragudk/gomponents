@@ -12,19 +12,15 @@ import (
 func TestSimpleElements(t *testing.T) {
 	cases := map[string]func(...g.Node) g.NodeFunc{
 		"address":    el.Address,
-		"area":       el.Area,
 		"article":    el.Article,
 		"aside":      el.Aside,
 		"audio":      el.Audio,
-		"base":       el.Base,
 		"blockquote": el.BlockQuote,
 		"body":       el.Body,
-		"br":         el.Br,
 		"button":     el.Button,
 		"canvas":     el.Canvas,
 		"cite":       el.Cite,
 		"code":       el.Code,
-		"col":        el.Col,
 		"colgroup":   el.ColGroup,
 		"data":       el.Data,
 		"datalist":   el.DataList,
@@ -32,22 +28,18 @@ func TestSimpleElements(t *testing.T) {
 		"dialog":     el.Dialog,
 		"div":        el.Div,
 		"dl":         el.Dl,
-		"embed":      el.Embed,
 		"fieldset":   el.FieldSet,
 		"figure":     el.Figure,
 		"footer":     el.Footer,
 		"head":       el.Head,
 		"header":     el.Header,
 		"hgroup":     el.HGroup,
-		"hr":         el.Hr,
 		"html":       el.HTML,
 		"iframe":     el.IFrame,
 		"legend":     el.Legend,
 		"li":         el.Li,
-		"link":       el.Link,
 		"main":       el.Main,
 		"menu":       el.Menu,
-		"meta":       el.Meta,
 		"meter":      el.Meter,
 		"nav":        el.Nav,
 		"noscript":   el.NoScript,
@@ -55,12 +47,10 @@ func TestSimpleElements(t *testing.T) {
 		"ol":         el.Ol,
 		"optgroup":   el.OptGroup,
 		"p":          el.P,
-		"param":      el.Param,
 		"picture":    el.Picture,
 		"pre":        el.Pre,
 		"script":     el.Script,
 		"section":    el.Section,
-		"source":     el.Source,
 		"span":       el.Span,
 		"style":      el.Style,
 		"summary":    el.Summary,
@@ -72,13 +62,35 @@ func TestSimpleElements(t *testing.T) {
 		"thead":      el.THead,
 		"tr":         el.Tr,
 		"ul":         el.Ul,
-		"wbr":        el.Wbr,
 	}
 
 	for name, fn := range cases {
 		t.Run(fmt.Sprintf("should output %v", name), func(t *testing.T) {
 			n := fn(g.Attr("id", "hat"))
-			assert.Equal(t, fmt.Sprintf(`<%v id="hat" />`, name), n)
+			assert.Equal(t, fmt.Sprintf(`<%v id="hat"></%v>`, name, name), n)
+		})
+	}
+}
+
+func TestSimpleVoidKindElements(t *testing.T) {
+	cases := map[string]func(...g.Node) g.NodeFunc{
+		"area":   el.Area,
+		"base":   el.Base,
+		"br":     el.Br,
+		"col":    el.Col,
+		"embed":  el.Embed,
+		"hr":     el.Hr,
+		"link":   el.Link,
+		"meta":   el.Meta,
+		"param":  el.Param,
+		"source": el.Source,
+		"wbr":    el.Wbr,
+	}
+
+	for name, fn := range cases {
+		t.Run(fmt.Sprintf("should output %v", name), func(t *testing.T) {
+			n := fn(g.Attr("id", "hat"))
+			assert.Equal(t, fmt.Sprintf(`<%v id="hat">`, name), n)
 		})
 	}
 }

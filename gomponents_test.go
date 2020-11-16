@@ -86,22 +86,33 @@ func (o outsider) Render(w io.Writer) error {
 func TestEl(t *testing.T) {
 	t.Run("renders an empty element if no children given", func(t *testing.T) {
 		e := g.El("div")
-		assert.Equal(t, "<div />", e)
+		assert.Equal(t, "<div></div>", e)
+	})
+
+	t.Run("renders an empty element without closing tag if it's a void kind element", func(t *testing.T) {
+		e := g.El("hr")
+		assert.Equal(t, "<hr>", e)
+
+		e = g.El("br")
+		assert.Equal(t, "<br>", e)
+
+		e = g.El("img")
+		assert.Equal(t, "<img>", e)
 	})
 
 	t.Run("renders an empty element if only attributes given as children", func(t *testing.T) {
 		e := g.El("div", g.Attr("class", "hat"))
-		assert.Equal(t, `<div class="hat" />`, e)
+		assert.Equal(t, `<div class="hat"></div>`, e)
 	})
 
 	t.Run("renders an element, attributes, and element children", func(t *testing.T) {
-		e := g.El("div", g.Attr("class", "hat"), g.El("span"))
-		assert.Equal(t, `<div class="hat"><span /></div>`, e)
+		e := g.El("div", g.Attr("class", "hat"), g.El("br"))
+		assert.Equal(t, `<div class="hat"><br></div>`, e)
 	})
 
 	t.Run("renders attributes at the correct place regardless of placement in parameter list", func(t *testing.T) {
-		e := g.El("div", g.El("span"), g.Attr("class", "hat"))
-		assert.Equal(t, `<div class="hat"><span /></div>`, e)
+		e := g.El("div", g.El("br"), g.Attr("class", "hat"))
+		assert.Equal(t, `<div class="hat"><br></div>`, e)
 	})
 
 	t.Run("renders outside if node does not implement placer", func(t *testing.T) {
@@ -110,8 +121,8 @@ func TestEl(t *testing.T) {
 	})
 
 	t.Run("does not fail on nil node", func(t *testing.T) {
-		e := g.El("div", nil, g.El("span"), nil, g.El("span"))
-		assert.Equal(t, `<div><span /><span /></div>`, e)
+		e := g.El("div", nil, g.El("br"), nil, g.El("br"))
+		assert.Equal(t, `<div><br><br></div>`, e)
 	})
 
 	t.Run("returns render error on cannot write", func(t *testing.T) {
@@ -129,30 +140,30 @@ func (w *erroringWriter) Write(p []byte) (n int, err error) {
 
 func TestText(t *testing.T) {
 	t.Run("renders escaped text", func(t *testing.T) {
-		e := g.Text("<div />")
-		assert.Equal(t, "&lt;div /&gt;", e)
+		e := g.Text("<div>")
+		assert.Equal(t, "&lt;div&gt;", e)
 	})
 }
 
 func TestTextf(t *testing.T) {
 	t.Run("renders interpolated and escaped text", func(t *testing.T) {
-		e := g.Textf("<%v />", "div")
-		assert.Equal(t, "&lt;div /&gt;", e)
+		e := g.Textf("<%v>", "div")
+		assert.Equal(t, "&lt;div&gt;", e)
 	})
 }
 
 func TestRaw(t *testing.T) {
 	t.Run("renders raw text", func(t *testing.T) {
-		e := g.Raw("<div />")
-		assert.Equal(t, "<div />", e)
+		e := g.Raw("<div>")
+		assert.Equal(t, "<div>", e)
 	})
 }
 
 func TestGroup(t *testing.T) {
 	t.Run("groups multiple nodes into one", func(t *testing.T) {
-		children := []g.Node{g.El("div", g.Attr("id", "hat")), g.El("div")}
-		e := g.El("div", g.Attr("class", "foo"), g.El("div"), g.Group(children))
-		assert.Equal(t, `<div class="foo"><div /><div id="hat" /><div /></div>`, e)
+		children := []g.Node{g.El("br", g.Attr("id", "hat")), g.El("hr")}
+		e := g.El("div", g.Attr("class", "foo"), g.El("img"), g.Group(children))
+		assert.Equal(t, `<div class="foo"><img><br id="hat"><hr></div>`, e)
 	})
 
 	t.Run("panics on direct render", func(t *testing.T) {
