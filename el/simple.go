@@ -216,6 +216,10 @@ func Summary(children ...g.Node) g.NodeFunc {
 	return g.El("summary", children...)
 }
 
+func SVG(children ...g.Node) g.NodeFunc {
+	return g.El("svg", children...)
+}
+
 func Table(children ...g.Node) g.NodeFunc {
 	return g.El("table", children...)
 }
