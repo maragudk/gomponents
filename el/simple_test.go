@@ -54,6 +54,7 @@ func TestSimpleElements(t *testing.T) {
 		"span":       el.Span,
 		"style":      el.Style,
 		"summary":    el.Summary,
+		"svg":        el.SVG,
 		"table":      el.Table,
 		"tbody":      el.TBody,
 		"td":         el.Td,

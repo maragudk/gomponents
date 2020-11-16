@@ -20,6 +20,10 @@ func Class(v string) g.Node {
 	return g.Attr("class", v)
 }
 
+func Cols(v string) g.Node {
+	return g.Attr("cols", v)
+}
+
 func Content(v string) g.Node {
 	return g.Attr("content", v)
 }
@@ -78,6 +82,10 @@ func Placeholder(v string) g.Node {
 
 func Rel(v string) g.Node {
 	return g.Attr("rel", v)
+}
+
+func Rows(v string) g.Node {
+	return g.Attr("rows", v)
 }
 
 func Src(v string) g.Node {
