@@ -43,7 +43,7 @@ func TestSimpleAttributes(t *testing.T) {
 	for name, fn := range cases {
 		t.Run(fmt.Sprintf(`should output %v="hat"`, name), func(t *testing.T) {
 			n := g.El("div", fn("hat"))
-			assert.Equal(t, fmt.Sprintf(`<div %v="hat" />`, name), n)
+			assert.Equal(t, fmt.Sprintf(`<div %v="hat"></div>`, name), n)
 		})
 	}
 }

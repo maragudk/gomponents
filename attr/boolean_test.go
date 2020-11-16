@@ -26,7 +26,7 @@ func TestBooleanAttributes(t *testing.T) {
 	for name, fn := range cases {
 		t.Run(fmt.Sprintf("should output %v", name), func(t *testing.T) {
 			n := g.El("div", fn())
-			assert.Equal(t, fmt.Sprintf(`<div %v />`, name), n)
+			assert.Equal(t, fmt.Sprintf(`<div %v></div>`, name), n)
 		})
 	}
 }

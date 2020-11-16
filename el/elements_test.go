@@ -17,7 +17,7 @@ func (w *erroringWriter) Write(p []byte) (n int, err error) {
 
 func TestDocument(t *testing.T) {
 	t.Run("returns doctype and children", func(t *testing.T) {
-		assert.Equal(t, `<!doctype html><html />`, el.Document(g.El("html")))
+		assert.Equal(t, `<!doctype html><html></html>`, el.Document(g.El("html")))
 	})
 
 	t.Run("errors on write error in Render", func(t *testing.T) {
@@ -28,13 +28,13 @@ func TestDocument(t *testing.T) {
 
 func TestForm(t *testing.T) {
 	t.Run("returns a form element with action and method attributes", func(t *testing.T) {
-		assert.Equal(t, `<form action="/" method="post" />`, el.Form("/", "post"))
+		assert.Equal(t, `<form action="/" method="post"></form>`, el.Form("/", "post"))
 	})
 }
 
 func TestInput(t *testing.T) {
 	t.Run("returns an input element with attributes type and name", func(t *testing.T) {
-		assert.Equal(t, `<input type="text" name="hat" />`, el.Input("text", "hat"))
+		assert.Equal(t, `<input type="text" name="hat">`, el.Input("text", "hat"))
 	})
 }
 
@@ -52,7 +52,7 @@ func TestOption(t *testing.T) {
 
 func TestProgress(t *testing.T) {
 	t.Run("returns a progress element with attributes value and max", func(t *testing.T) {
-		assert.Equal(t, `<progress value="5.5" max="10" />`, el.Progress(5.5, 10))
+		assert.Equal(t, `<progress value="5.5" max="10"></progress>`, el.Progress(5.5, 10))
 	})
 }
 
@@ -65,7 +65,7 @@ func TestSelect(t *testing.T) {
 
 func TestTextarea(t *testing.T) {
 	t.Run("returns a textarea element with attribute name", func(t *testing.T) {
-		assert.Equal(t, `<textarea name="hat" />`, el.Textarea("hat"))
+		assert.Equal(t, `<textarea name="hat"></textarea>`, el.Textarea("hat"))
 	})
 }
 
@@ -77,6 +77,6 @@ func TestA(t *testing.T) {
 
 func TestImg(t *testing.T) {
 	t.Run("returns an img element with href and alt attributes", func(t *testing.T) {
-		assert.Equal(t, `<img src="hat.png" alt="hat" id="image" />`, el.Img("hat.png", "hat", g.Attr("id", "image")))
+		assert.Equal(t, `<img src="hat.png" alt="hat" id="image">`, el.Img("hat.png", "hat", g.Attr("id", "image")))
 	})
 }

@@ -3,8 +3,8 @@
 [![GoDoc](https://godoc.org/github.com/maragudk/gomponents?status.svg)](https://godoc.org/github.com/maragudk/gomponents)
 [![codecov](https://codecov.io/gh/maragudk/gomponents/branch/master/graph/badge.svg)](https://codecov.io/gh/maragudk/gomponents)
 
-gomponents are declarative view components in Go, that can render to HTML.
-gomponents aims to make it easy to build HTML pages of reusable components,
+gomponents are declarative view components in Go, that can render to HTML5.
+gomponents aims to make it easy to build HTML5 pages of reusable components,
 without the use of a template language. Think server-side-rendered React,
 but without the virtual DOM and diffing.
 
@@ -15,7 +15,7 @@ for background.
 
 ## Features
 
-- Write declarative HTML in Go without all the strings, so you get
+- Write declarative HTML5 in Go without all the strings, so you get
   - Type safety
   - Auto-completion
   - Nice formatting with `gofmt`

@@ -1,4 +1,4 @@
-// Package gomponents provides declarative view components in Go, that can render to HTML.
+// Package gomponents provides declarative view components in Go, that can render to HTML5.
 // The primary interface is a Node, which has a single function Render, which should render
 // the Node to a string. Furthermore, NodeFunc is a function which implements the Node interface
 // by calling itself on Render.
@@ -13,6 +13,10 @@ import (
 	"io"
 	"strings"
 )
+
+// voidElements don't have end tags and must be treated differently in the rendering.
+// See https://dev.w3.org/html5/spec-LC/syntax.html#void-elements
+var voidElements = []string{"area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"}
 
 // Node is a DOM node that can Render itself to a io.Writer.
 type Node interface {
@@ -51,33 +55,32 @@ func (n NodeFunc) String() string {
 	return b.String()
 }
 
+// nodeType is for DOM Nodes that are either an element or an attribute.
 type nodeType int
 
 const (
-	attrType = nodeType(iota)
-	elementType
+	elementType = nodeType(iota)
+	attributeType
 )
 
 // El creates an element DOM Node with a name and child Nodes.
 // Use this if no convenience creator exists.
+// See https://dev.w3.org/html5/spec-LC/syntax.html#elements-0 for how elements are rendered.
+// No tags are ever omitted from normal tags, even though it's allowed for elements given at
+// https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
+// If an element is a void kind, non-attribute nodes are ignored.
 func El(name string, children ...Node) NodeFunc {
 	return func(w2 io.Writer) error {
 		w := &statefulWriter{w: w2}
 
 		w.Write([]byte("<" + name))
 
-		if len(children) == 0 {
-			w.Write([]byte(" />"))
-			return w.err
-		}
-
-		hasOutsideChildren := false
 		for _, c := range children {
-			hasOutsideChildren = renderChild(w, c, attrType) || hasOutsideChildren
+			renderChild(w, c, attributeType)
 		}
 
-		if !hasOutsideChildren {
-			w.Write([]byte(" />"))
+		if isVoidKind(name) {
+			w.Write([]byte(">"))
 			return w.err
 		}
 
@@ -92,33 +95,38 @@ func El(name string, children ...Node) NodeFunc {
 	}
 }
 
+func isVoidKind(name string) bool {
+	for _, e := range voidElements {
+		if name == e {
+			return true
+		}
+	}
+	return false
+}
+
 // renderChild c to the given writer w if the node type is t.
-// Returns whether the child would be written Outside, regardless of whether it is actually written.
-func renderChild(w *statefulWriter, c Node, t nodeType) bool {
+func renderChild(w *statefulWriter, c Node, t nodeType) {
 	if w.err != nil || c == nil {
-		return false
+		return
 	}
 
-	isOutside := false
 	if g, ok := c.(group); ok {
 		for _, groupC := range g.children {
-			isOutside = renderChild(w, groupC, t) || isOutside
+			renderChild(w, groupC, t)
 		}
-		return isOutside
+		return
 	}
 
-	if p, ok := c.(Placer); !ok || p.Place() == Outside {
-		isOutside = true
+	switch t {
+	case elementType:
+		if p, ok := c.(Placer); !ok || p.Place() == Outside {
+			w.err = c.Render(w.w)
+		}
+	case attributeType:
+		if p, ok := c.(Placer); ok && p.Place() == Inside {
+			w.err = c.Render(w.w)
+		}
 	}
-
-	switch {
-	case t == attrType && !isOutside:
-		w.err = c.Render(w.w)
-	case t == elementType && isOutside:
-		w.err = c.Render(w.w)
-	}
-
-	return isOutside
 }
 
 // statefulWriter only writes if no errors have occured earlier in its lifetime.
