@@ -5,8 +5,7 @@ import (
 	"time"
 
 	g "github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/attr"
-	"github.com/maragudk/gomponents/el"
+	h "github.com/maragudk/gomponents/html"
 )
 
 func main() {
@@ -27,22 +26,22 @@ type props struct {
 }
 
 func page(p props) g.Node {
-	return el.Document(
-		el.HTML(attr.Lang("en"),
-			el.Head(
-				el.Title(p.title),
-				el.Style(attr.Type("text/css"),
+	return h.Document(
+		h.HTML(h.Lang("en"),
+			h.Head(
+				h.TitleEl(p.title),
+				h.StyleEl(h.Type("text/css"),
 					g.Raw(".is-active{font-weight: bold}"),
 					g.Raw("ul.nav { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }"),
 					g.Raw("ul.nav li { display: block;  padding: 8px; float: left; }"),
 				),
 			),
-			el.Body(
+			h.Body(
 				navbar(navbarProps{path: p.path}),
-				el.Hr(),
-				el.H1(p.title),
-				el.P(g.Textf("Welcome to the page at %v.", p.path)),
-				el.P(g.Textf("Rendered at %v", time.Now())),
+				h.Hr(),
+				h.H1(p.title),
+				h.P(g.Textf("Welcome to the page at %v.", p.path)),
+				h.P(g.Textf("Rendered at %v", time.Now())),
 			),
 		),
 	)
@@ -63,9 +62,9 @@ func navbar(props navbarProps) g.Node {
 	}
 	lis := g.Map(len(items), func(i int) g.Node {
 		item := items[i]
-		return el.Li(
-			el.A(item.path, attr.Classes(map[string]bool{"is-active": props.path == item.path}), g.Text(item.text)),
+		return h.Li(
+			h.A(item.path, h.Classes(map[string]bool{"is-active": props.path == item.path}), g.Text(item.text)),
 		)
 	})
-	return el.Ul(attr.Class("nav"), g.Group(lis))
+	return h.Ul(h.Class("nav"), g.Group(lis))
 }

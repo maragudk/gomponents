@@ -1,8 +1,81 @@
-package attr
+// Package attr provides shortcuts and helpers to common HTML attributes.
+
+package html
 
 import (
+	"io"
+	"sort"
+	"strings"
+
 	g "github.com/maragudk/gomponents"
 )
+
+// Classes is a map of strings to booleans, which Renders to an attribute with name "class".
+// The attribute value is a sorted, space-separated string of all the map keys,
+// for which the corresponding map value is true.
+type Classes map[string]bool
+
+func (c Classes) Render(w io.Writer) error {
+	var included []string
+	for c, include := range c {
+		if include {
+			included = append(included, c)
+		}
+	}
+	sort.Strings(included)
+	return g.Attr("class", strings.Join(included, " ")).Render(w)
+}
+
+func (c Classes) Type() g.NodeType {
+	return g.AttributeType
+}
+
+// String satisfies fmt.Stringer.
+func (c Classes) String() string {
+	var b strings.Builder
+	_ = c.Render(&b)
+	return b.String()
+}
+
+func Async() g.Node {
+	return g.Attr("async")
+}
+
+func AutoFocus() g.Node {
+	return g.Attr("autofocus")
+}
+
+func AutoPlay() g.Node {
+	return g.Attr("autoplay")
+}
+
+func Controls() g.Node {
+	return g.Attr("controls")
+}
+
+func Defer() g.Node {
+	return g.Attr("defer")
+}
+
+func Disabled() g.Node {
+	return g.Attr("disabled")
+}
+
+func Multiple() g.Node {
+	return g.Attr("multiple")
+}
+
+func ReadOnly() g.Node {
+	return g.Attr("readonly")
+}
+
+func Required() g.Node {
+	return g.Attr("required")
+}
+
+func Selected() g.Node {
+	return g.Attr("selected")
+}
 
 func Accept(v string) g.Node {
 	return g.Attr("accept", v)
@@ -28,7 +101,7 @@ func Content(v string) g.Node {
 	return g.Attr("content", v)
 }
 
-func Form(v string) g.Node {
+func FormAttr(v string) g.Node {
 	return g.Attr("form", v)
 }
 
@@ -92,7 +165,7 @@ func Src(v string) g.Node {
 	return g.Attr("src", v)
 }
 
-func Style(v string) g.Node {
+func StyleAttr(v string) g.Node {
 	return g.Attr("style", v)
 }
 
@@ -104,7 +177,7 @@ func Target(v string) g.Node {
 	return g.Attr("target", v)
 }
 
-func Title(v string) g.Node {
+func TitleAttr(v string) g.Node {
 	return g.Attr("title", v)
 }
 
