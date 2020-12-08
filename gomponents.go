@@ -57,11 +57,11 @@ func (n NodeFunc) String() string {
 }
 
 // El creates an element DOM Node with a name and child Nodes.
-// Use this if no convenience creator exists.
 // See https://dev.w3.org/html5/spec-LC/syntax.html#elements-0 for how elements are rendered.
 // No tags are ever omitted from normal tags, even though it's allowed for elements given at
 // https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
-// If an element is a void kind, non-attribute nodes are ignored.
+// If an element is a void kind, non-attribute children nodes are ignored.
+// Use this if no convenience creator exists.
 func El(name string, children ...Node) NodeFunc {
 	return func(w2 io.Writer) error {
 		w := &statefulWriter{w: w2}
@@ -72,12 +72,11 @@ func El(name string, children ...Node) NodeFunc {
 			renderChild(w, c, AttributeType)
 		}
 
+		w.Write([]byte(">"))
+
 		if isVoidKind(name) {
-			w.Write([]byte(">"))
 			return w.err
 		}
-
-		w.Write([]byte(">"))
 
 		for _, c := range children {
 			renderChild(w, c, ElementType)
@@ -135,10 +134,10 @@ func (w *statefulWriter) Write(p []byte) {
 	_, w.err = w.w.Write(p)
 }
 
-// Attr creates an attr DOM Node.
-// If one parameter is passed, it's a name-only attribute (like "required").
-// If two parameters are passed, it's a name-value attribute (like `class="header"`).
-// More parameter counts make Attr panic.
+// Attr creates an attribute DOM Node with a name and optional value.
+// If only a name is passed, it's a name-only (boolean) attribute (like "required").
+// If a name and value are passed, it's a name-value attribute (like `class="header"`).
+// More than one value make Attr panic.
 // Use this if no convenience creator exists.
 func Attr(name string, value ...string) Node {
 	switch len(value) {
@@ -192,7 +191,7 @@ func Textf(format string, a ...interface{}) NodeFunc {
 	}
 }
 
-// Raw creates a raw Node that just Renders the unescaped string t.
+// Raw creates a text DOM Node that just Renders the unescaped string t.
 func Raw(t string) NodeFunc {
 	return func(w io.Writer) error {
 		_, err := w.Write([]byte(t))
