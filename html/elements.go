@@ -1,4 +1,4 @@
-// Package html provides shortcuts and helpers to common HTML elements and attributes.
+// Package html provides common HTML elements and attributes.
 // See https://developer.mozilla.org/en-US/docs/Web/HTML/Element for a list of elements.
 // See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes for a list of attributes.
 package html
