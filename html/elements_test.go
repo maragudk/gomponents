@@ -16,13 +16,13 @@ func (w *erroringWriter) Write(p []byte) (n int, err error) {
 	return 0, errors.New("don't want to write")
 }
 
-func TestDocument(t *testing.T) {
+func TestDoctype(t *testing.T) {
 	t.Run("returns doctype and children", func(t *testing.T) {
-		assert.Equal(t, `<!doctype html><html></html>`, Document(g.El("html")))
+		assert.Equal(t, `<!doctype html><html></html>`, Doctype(g.El("html")))
 	})
 
 	t.Run("errors on write error in Render", func(t *testing.T) {
-		err := Document(g.El("html")).Render(&erroringWriter{})
+		err := Doctype(g.El("html")).Render(&erroringWriter{})
 		assert.Error(t, err)
 	})
 }

@@ -14,13 +14,13 @@ func A(href string, children ...g.Node) g.NodeFunc {
 	return g.El("a", g.Attr("href", href), g.Group(children))
 }
 
-// Document returns an special kind of Node that prefixes its child with the string "<!doctype html>".
-func Document(child g.Node) g.NodeFunc {
+// Doctype returns a special kind of Node that prefixes its sibling with the string "<!doctype html>".
+func Doctype(sibling g.Node) g.NodeFunc {
 	return func(w io.Writer) error {
 		if _, err := w.Write([]byte("<!doctype html>")); err != nil {
 			return err
 		}
-		return child.Render(w)
+		return sibling.Render(w)
 	}
 }
 
