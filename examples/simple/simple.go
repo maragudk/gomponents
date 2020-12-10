@@ -31,10 +31,10 @@ func Page(p props) g.Node {
 		Language: "en",
 		Head: []g.Node{
 			StyleEl(Type("text/css"),
-				g.Raw("html { font-family: sans-serif }"),
-				g.Raw(".is-active{ font-weight: bold }"),
+				g.Raw("html { font-family: sans-serif; }"),
 				g.Raw("ul { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }"),
 				g.Raw("ul li { display: block; padding: 8px; float: left; }"),
+				g.Raw(".is-active { font-weight: bold; }"),
 			),
 		},
 		Body: []g.Node{
