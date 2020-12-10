@@ -1,5 +1,3 @@
-// Package attr provides shortcuts and helpers to common HTML attributes.
-
 package html
 
 import (
