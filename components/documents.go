@@ -25,7 +25,7 @@ func HTML5(p HTML5Props) g.NodeFunc {
 	if p.Description != "" {
 		description = Meta(Name("description"), Content(p.Description))
 	}
-	return Document(
+	return Doctype(
 		HTML(lang,
 			Head(
 				Meta(Charset("utf-8")),

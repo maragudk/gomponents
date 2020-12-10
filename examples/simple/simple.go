@@ -27,7 +27,7 @@ type props struct {
 }
 
 func page(p props) g.Node {
-	return h.Document(
+	return h.Doctype(
 		h.HTML(h.Lang("en"),
 			h.Head(
 				h.TitleEl(p.title),

@@ -54,7 +54,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Page(title, currentPath string) g.Node {
-	return Document(
+	return Doctype(
 		HTML(
 			Lang("en"),
 			Head(
@@ -94,7 +94,7 @@ import (
 	"net/http"
 
 	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/components"
+	c "github.com/maragudk/gomponents/components"
 	. "github.com/maragudk/gomponents/html"
 )
 
@@ -107,7 +107,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Page(title, currentPath string) g.Node {
-	return HTML5(HTML5Props{
+	return c.HTML5(c.HTML5Props{
 		Title:    title,
 		Language: "en",
 		Head: []g.Node{
@@ -129,7 +129,7 @@ func Navbar(currentPath string) g.Node {
 }
 
 func NavbarLink(href, name, currentPath string) g.Node {
-	return A(href, Classes{"is-active": currentPath == href}, g.Text(name))
+	return A(href, c.Classes{"is-active": currentPath == href}, g.Text(name))
 }
 ```
 
