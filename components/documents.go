@@ -6,9 +6,9 @@ import (
 	. "github.com/maragudk/gomponents/html"
 )
 
-// DocumentProps for HTML5.
+// HTML5Props for HTML5.
 // Title is set no matter what, Description and Language elements only if the strings are non-empty.
-type DocumentProps struct {
+type HTML5Props struct {
 	Title       string
 	Description string
 	Language    string
@@ -17,7 +17,7 @@ type DocumentProps struct {
 }
 
 // HTML5 document template.
-func HTML5(p DocumentProps) g.NodeFunc {
+func HTML5(p HTML5Props) g.NodeFunc {
 	var lang, description g.Node
 	if p.Language != "" {
 		lang = Lang(p.Language)
