@@ -48,6 +48,14 @@ func Accept(v string) g.Node {
 	return g.Attr("accept", v)
 }
 
+func Action(v string) g.Node {
+	return g.Attr("action", v)
+}
+
+func Alt(v string) g.Node {
+	return g.Attr("alt", v)
+}
+
 func AutoComplete(v string) g.Node {
 	return g.Attr("autocomplete", v)
 }
@@ -66,6 +74,10 @@ func Cols(v string) g.Node {
 
 func Content(v string) g.Node {
 	return g.Attr("content", v)
+}
+
+func For(v string) g.Node {
+	return g.Attr("for", v)
 }
 
 func FormAttr(v string) g.Node {
@@ -94,6 +106,10 @@ func Max(v string) g.Node {
 
 func MaxLength(v string) g.Node {
 	return g.Attr("maxlength", v)
+}
+
+func Method(v string) g.Node {
+	return g.Attr("method", v)
 }
 
 func Min(v string) g.Node {

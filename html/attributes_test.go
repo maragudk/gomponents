@@ -34,11 +34,14 @@ func TestBooleanAttributes(t *testing.T) {
 func TestSimpleAttributes(t *testing.T) {
 	cases := map[string]func(string) g.Node{
 		"accept":       Accept,
+		"action":       Action,
+		"alt":          Alt,
 		"autocomplete": AutoComplete,
 		"charset":      Charset,
 		"class":        Class,
 		"cols":         Cols,
 		"content":      Content,
+		"for":          For,
 		"form":         FormAttr,
 		"height":       Height,
 		"href":         Href,
@@ -46,6 +49,7 @@ func TestSimpleAttributes(t *testing.T) {
 		"lang":         Lang,
 		"max":          Max,
 		"maxlength":    MaxLength,
+		"method":       Method,
 		"min":          Min,
 		"minlength":    MinLength,
 		"name":         Name,
