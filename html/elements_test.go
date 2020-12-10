@@ -27,63 +27,9 @@ func TestDoctype(t *testing.T) {
 	})
 }
 
-func TestFormEl(t *testing.T) {
-	t.Run("returns a form element with action and method attributes", func(t *testing.T) {
-		assert.Equal(t, `<form action="/" method="post"></form>`, FormEl("/", "post"))
-	})
-}
-
-func TestInput(t *testing.T) {
-	t.Run("returns an input element with attributes type and name", func(t *testing.T) {
-		assert.Equal(t, `<input type="text" name="hat">`, Input("text", "hat"))
-	})
-}
-
-func TestLabel(t *testing.T) {
-	t.Run("returns a label element with attribute for", func(t *testing.T) {
-		assert.Equal(t, `<label for="hat">Hat</label>`, Label("hat", g.Text("Hat")))
-	})
-}
-
-func TestOption(t *testing.T) {
-	t.Run("returns an option element with attribute label and content", func(t *testing.T) {
-		assert.Equal(t, `<option value="hat">Hat</option>`, Option("Hat", "hat"))
-	})
-}
-
-func TestProgress(t *testing.T) {
-	t.Run("returns a progress element with attributes value and max", func(t *testing.T) {
-		assert.Equal(t, `<progress value="5.5" max="10"></progress>`, Progress(5.5, 10))
-	})
-}
-
-func TestSelect(t *testing.T) {
-	t.Run("returns a select element with attribute name", func(t *testing.T) {
-		assert.Equal(t, `<select name="hat"><option value="partyhat">Partyhat</option></select>`,
-			Select("hat", Option("Partyhat", "partyhat")))
-	})
-}
-
-func TestTextarea(t *testing.T) {
-	t.Run("returns a textarea element with attribute name", func(t *testing.T) {
-		assert.Equal(t, `<textarea name="hat"></textarea>`, Textarea("hat"))
-	})
-}
-
-func TestA(t *testing.T) {
-	t.Run("returns an a element with a href attribute", func(t *testing.T) {
-		assert.Equal(t, `<a href="#">hat</a>`, A("#", g.Text("hat")))
-	})
-}
-
-func TestImg(t *testing.T) {
-	t.Run("returns an img element with href and alt attributes", func(t *testing.T) {
-		assert.Equal(t, `<img src="hat.png" alt="hat" id="image">`, Img("hat.png", "hat", g.Attr("id", "image")))
-	})
-}
-
 func TestSimpleElements(t *testing.T) {
 	cases := map[string]func(...g.Node) g.NodeFunc{
+		"a":          A,
 		"address":    Address,
 		"article":    Article,
 		"aside":      Aside,
@@ -104,11 +50,13 @@ func TestSimpleElements(t *testing.T) {
 		"fieldset":   FieldSet,
 		"figure":     Figure,
 		"footer":     Footer,
+		"form":       FormEl,
 		"head":       Head,
 		"header":     Header,
 		"hgroup":     HGroup,
 		"html":       HTML,
 		"iframe":     IFrame,
+		"label":      Label,
 		"legend":     Legend,
 		"li":         Li,
 		"main":       Main,
@@ -119,11 +67,14 @@ func TestSimpleElements(t *testing.T) {
 		"object":     Object,
 		"ol":         Ol,
 		"optgroup":   OptGroup,
+		"option":     Option,
 		"p":          P,
 		"picture":    Picture,
 		"pre":        Pre,
+		"progress":   Progress,
 		"script":     Script,
 		"section":    Section,
+		"select":     Select,
 		"span":       Span,
 		"style":      StyleEl,
 		"summary":    Summary,
@@ -131,6 +82,7 @@ func TestSimpleElements(t *testing.T) {
 		"table":      Table,
 		"tbody":      TBody,
 		"td":         Td,
+		"textarea":   Textarea,
 		"tfoot":      TFoot,
 		"th":         Th,
 		"thead":      THead,
@@ -154,6 +106,8 @@ func TestSimpleVoidKindElements(t *testing.T) {
 		"col":    Col,
 		"embed":  Embed,
 		"hr":     Hr,
+		"img":    Img,
+		"input":  Input,
 		"link":   Link,
 		"meta":   Meta,
 		"param":  Param,

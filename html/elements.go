@@ -4,15 +4,10 @@
 package html
 
 import (
-	"fmt"
 	"io"
 
 	g "github.com/maragudk/gomponents"
 )
-
-func A(href string, children ...g.Node) g.NodeFunc {
-	return g.El("a", g.Attr("href", href), g.Group(children))
-}
 
 // Doctype returns a special kind of Node that prefixes its sibling with the string "<!doctype html>".
 func Doctype(sibling g.Node) g.NodeFunc {
@@ -24,48 +19,8 @@ func Doctype(sibling g.Node) g.NodeFunc {
 	}
 }
 
-// FormEl returns an element with name "form", the given action and method attributes, and the given children.
-func FormEl(action, method string, children ...g.Node) g.NodeFunc {
-	return g.El("form", g.Attr("action", action), g.Attr("method", method), g.Group(children))
-}
-
-func Img(src, alt string, children ...g.Node) g.NodeFunc {
-	return g.El("img", g.Attr("src", src), g.Attr("alt", alt), g.Group(children))
-}
-
-// Input returns an element with name "input", the given type and name attributes, and the given children.
-// Note that "type" is a keyword in Go, so the parameter is called typ.
-func Input(typ, name string, children ...g.Node) g.NodeFunc {
-	return g.El("input", g.Attr("type", typ), g.Attr("name", name), g.Group(children))
-}
-
-// Label returns an element with name "label", the given for attribute, and the given children.
-// Note that "for" is a keyword in Go, so the parameter is called forr.
-func Label(forr string, children ...g.Node) g.NodeFunc {
-	return g.El("label", g.Attr("for", forr), g.Group(children))
-}
-
-// Option returns an element with name "option", the given text content and value attribute, and the given children.
-func Option(text, value string, children ...g.Node) g.NodeFunc {
-	return g.El("option", g.Attr("value", value), g.Text(text), g.Group(children))
-}
-
-// Progress returns an element with name "progress", the given value and max attributes, and the given children.
-func Progress(value, max float64, children ...g.Node) g.NodeFunc {
-	return g.El("progress",
-		g.Attr("value", fmt.Sprintf("%v", value)),
-		g.Attr("max", fmt.Sprintf("%v", max)),
-		g.Group(children))
-}
-
-// Select returns an element with name "select", the given name attribute, and the given children.
-func Select(name string, children ...g.Node) g.NodeFunc {
-	return g.El("select", g.Attr("name", name), g.Group(children))
-}
-
-// Textarea returns an element with name "textarea", the given name attribute, and the given children.
-func Textarea(name string, children ...g.Node) g.NodeFunc {
-	return g.El("textarea", g.Attr("name", name), g.Group(children))
+func A(children ...g.Node) g.NodeFunc {
+	return g.El("a", children...)
 }
 
 func Address(children ...g.Node) g.NodeFunc {
@@ -156,6 +111,10 @@ func Embed(children ...g.Node) g.NodeFunc {
 	return g.El("embed", children...)
 }
 
+func FormEl(children ...g.Node) g.NodeFunc {
+	return g.El("form", children...)
+}
+
 func FieldSet(children ...g.Node) g.NodeFunc {
 	return g.El("fieldset", children...)
 }
@@ -190,6 +149,18 @@ func HTML(children ...g.Node) g.NodeFunc {
 
 func IFrame(children ...g.Node) g.NodeFunc {
 	return g.El("iframe", children...)
+}
+
+func Img(children ...g.Node) g.NodeFunc {
+	return g.El("img", children...)
+}
+
+func Input(children ...g.Node) g.NodeFunc {
+	return g.El("input", children...)
+}
+
+func Label(children ...g.Node) g.NodeFunc {
+	return g.El("label", children...)
 }
 
 func Legend(children ...g.Node) g.NodeFunc {
@@ -240,6 +211,10 @@ func OptGroup(children ...g.Node) g.NodeFunc {
 	return g.El("optgroup", children...)
 }
 
+func Option(children ...g.Node) g.NodeFunc {
+	return g.El("option", children...)
+}
+
 func P(children ...g.Node) g.NodeFunc {
 	return g.El("p", children...)
 }
@@ -256,12 +231,20 @@ func Pre(children ...g.Node) g.NodeFunc {
 	return g.El("pre", children...)
 }
 
+func Progress(children ...g.Node) g.NodeFunc {
+	return g.El("progress", children...)
+}
+
 func Script(children ...g.Node) g.NodeFunc {
 	return g.El("script", children...)
 }
 
 func Section(children ...g.Node) g.NodeFunc {
 	return g.El("section", children...)
+}
+
+func Select(children ...g.Node) g.NodeFunc {
+	return g.El("select", children...)
 }
 
 func Source(children ...g.Node) g.NodeFunc {
@@ -294,6 +277,10 @@ func TBody(children ...g.Node) g.NodeFunc {
 
 func Td(children ...g.Node) g.NodeFunc {
 	return g.El("td", children...)
+}
+
+func Textarea(children ...g.Node) g.NodeFunc {
+	return g.El("textarea", children...)
 }
 
 func TFoot(children ...g.Node) g.NodeFunc {
@@ -356,32 +343,26 @@ func FigCaption(text string, children ...g.Node) g.NodeFunc {
 	return g.El("figcaption", g.Text(text), g.Group(children))
 }
 
-// H1 returns an element with name "h1", the given text content, and the given children.
 func H1(text string, children ...g.Node) g.NodeFunc {
 	return g.El("h1", g.Text(text), g.Group(children))
 }
 
-// H2 returns an element with name "h2", the given text content, and the given children.
 func H2(text string, children ...g.Node) g.NodeFunc {
 	return g.El("h2", g.Text(text), g.Group(children))
 }
 
-// H3 returns an element with name "h3", the given text content, and the given children.
 func H3(text string, children ...g.Node) g.NodeFunc {
 	return g.El("h3", g.Text(text), g.Group(children))
 }
 
-// H4 returns an element with name "h4", the given text content, and the given children.
 func H4(text string, children ...g.Node) g.NodeFunc {
 	return g.El("h4", g.Text(text), g.Group(children))
 }
 
-// H5 returns an element with name "h5", the given text content, and the given children.
 func H5(text string, children ...g.Node) g.NodeFunc {
 	return g.El("h5", g.Text(text), g.Group(children))
 }
 
-// H6 returns an element with name "h6", the given text content, and the given children.
 func H6(text string, children ...g.Node) g.NodeFunc {
 	return g.El("h6", g.Text(text), g.Group(children))
 }

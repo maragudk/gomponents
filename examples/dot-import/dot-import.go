@@ -40,5 +40,5 @@ func Navbar(currentPath string) g.Node {
 }
 
 func NavbarLink(href, name, currentPath string) g.Node {
-	return A(href, Classes{"is-active": currentPath == href}, g.Text(name))
+	return A(Href(href), Classes{"is-active": currentPath == href}, g.Text(name))
 }

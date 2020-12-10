@@ -78,7 +78,7 @@ func Navbar(currentPath string) g.Node {
 }
 
 func NavbarLink(href, name, currentPath string) g.Node {
-	return A(href, c.Classes{"is-active": currentPath == href}, g.Text(name))
+	return A(Href(href), c.Classes{"is-active": currentPath == href}, g.Text(name))
 }
 ```
 
@@ -129,7 +129,7 @@ func Navbar(currentPath string) g.Node {
 }
 
 func NavbarLink(href, name, currentPath string) g.Node {
-	return A(href, c.Classes{"is-active": currentPath == href}, g.Text(name))
+	return A(Href(href), c.Classes{"is-active": currentPath == href}, g.Text(name))
 }
 ```
 
