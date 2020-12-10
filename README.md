@@ -8,19 +8,19 @@ gomponents aims to make it easy to build HTML5 pages of reusable components,
 without the use of a template language. Think server-side-rendered React,
 but without the virtual DOM and diffing.
 
-The implementation is still incomplete, but usable. The API may change until version 1 is reached.
+The implementation is very usable, but the API may change until version 1 is reached.
 
 Check out the blog post [gomponents: declarative view components in Go](https://www.maragu.dk/blog/gomponents-declarative-view-components-in-go/)
 for background.
 
 ## Features
 
+- Build reusable view components
 - Write declarative HTML5 in Go without all the strings, so you get
   - Type safety
   - Auto-completion
   - Nice formatting with `gofmt`
-- Simple API that's easy to learn and use
-- Build reusable view components
+- Simple API that's easy to learn and use (you know most already if you know HTML)
 - No external dependencies
 
 ## Usage
@@ -31,7 +31,8 @@ Get the library using `go get`:
 go get -u github.com/maragudk/gomponents
 ```
 
-Then do something like this:
+The preferred way to use gomponents is with so-called dot-imports (note the dot before the `gomponents/html` import),
+to give you that smooth, native HTML feel:
 
 ```go
 package main
@@ -40,47 +41,51 @@ import (
 	"net/http"
 
 	g "github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/attr"
-	"github.com/maragudk/gomponents/el"
+	c "github.com/maragudk/gomponents/components"
+	. "github.com/maragudk/gomponents/html"
 )
 
 func main() {
-	_ = http.ListenAndServe("localhost:8080", handler())
+	_ = http.ListenAndServe("localhost:8080", http.HandlerFunc(handler))
 }
 
-func handler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		page := Page("Hi!", r.URL.Path)
-		_ = page.Render(w)
-	}
+func handler(w http.ResponseWriter, r *http.Request) {
+	_ = Page("Hi!", r.URL.Path).Render(w)
 }
 
-func Page(title, path string) g.Node {
-	return el.Document(
-		el.HTML(
-			g.Attr("lang", "en"),
-			el.Head(
-				el.Title(title),
-				el.Style(g.Attr("type", "text/css"), g.Raw(".is-active{font-weight: bold}")),
+func Page(title, currentPath string) g.Node {
+	return Document(
+		HTML(
+			Lang("en"),
+			Head(
+				TitleEl(title),
+				StyleEl(Type("text/css"), g.Raw(".is-active{ font-weight: bold }")),
 			),
-			el.Body(
-				Navbar(path),
-				el.H1(title),
-				el.P(g.Textf("Welcome to the page at %v.", path)),
+			Body(
+				Navbar(currentPath),
+				H1(title),
+				P(g.Textf("Welcome to the page at %v.", currentPath)),
 			),
 		),
 	)
 }
 
-func Navbar(path string) g.Node {
-	return g.El("nav",
-		el.A("/", attr.Classes{"is-active": path == "/"}, g.Text("Home")),
-		el.A("/about", attr.Classes{"is-active": path == "/about"}, g.Text("About")),
+func Navbar(currentPath string) g.Node {
+	return Nav(
+		NavbarLink("/", "Home", currentPath),
+		NavbarLink("/about", "About", currentPath),
 	)
+}
+
+func NavbarLink(href, name, currentPath string) g.Node {
+	return A(href, c.Classes{"is-active": currentPath == href}, g.Text(name))
 }
 ```
 
-You could also use a page template to simplify your code a bit:
+Some people don't like dot-imports, and luckily it's completely optional.
+If you don't like dot-imports, just use regular imports.
+
+You could also use the provided HTML5 document template to simplify your code a bit:
 
 ```go
 package main
@@ -89,41 +94,52 @@ import (
 	"net/http"
 
 	g "github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/attr"
-	c "github.com/maragudk/gomponents/components"
-	"github.com/maragudk/gomponents/el"
+	. "github.com/maragudk/gomponents/components"
+	. "github.com/maragudk/gomponents/html"
 )
 
 func main() {
-	_ = http.ListenAndServe("localhost:8080", handler())
+	_ = http.ListenAndServe("localhost:8080", http.HandlerFunc(handler))
 }
 
-func handler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		page := Page("Hi!", r.URL.Path)
-		_ = page.Render(w)
-	}
+func handler(w http.ResponseWriter, r *http.Request) {
+	_ = Page("Hi!", r.URL.Path).Render(w)
 }
 
-func Page(title, path string) g.Node {
-	return c.HTML5(c.DocumentProps{
-		Title:       title,
-		Language:    "en",
-		Head:        []g.Node{el.Style(g.Attr("type", "text/css"), g.Raw(".is-active{font-weight: bold}"))},
-		Body:        []g.Node{
-			Navbar(path),
-			el.H1(title),
-			el.P(g.Textf("Welcome to the page at %v.", path)),
+func Page(title, currentPath string) g.Node {
+	return HTML5(HTML5Props{
+		Title:    title,
+		Language: "en",
+		Head: []g.Node{
+			StyleEl(Type("text/css"), g.Raw(".is-active{ font-weight: bold }")),
+		},
+		Body: []g.Node{
+			Navbar(currentPath),
+			H1(title),
+			P(g.Textf("Welcome to the page at %v.", currentPath)),
 		},
 	})
 }
 
-func Navbar(path string) g.Node {
-	return g.El("nav",
-		el.A("/", attr.Classes{"is-active": path == "/"}, g.Text("Home")),
-		el.A("/about", attr.Classes{"is-active": path == "/about"}, g.Text("About")),
+func Navbar(currentPath string) g.Node {
+	return Nav(
+		NavbarLink("/", "Home", currentPath),
+		NavbarLink("/about", "About", currentPath),
 	)
+}
+
+func NavbarLink(href, name, currentPath string) g.Node {
+	return A(href, Classes{"is-active": currentPath == href}, g.Text(name))
 }
 ```
 
 For more complete examples, see [the examples directory](examples/).
+
+### What's up with the specially named elements and attributes?
+
+Unfortunately, there are three main name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
+respectively, to be able to co-exist in the same package in Go:
+
+- `form` (`FormEl`/`FormAttr`)
+- `style` (`StyleEl`/`StyleAttr`)
+- `title` (`TitleEl`/`TitleAttr`)

@@ -1,8 +1,48 @@
-package attr
+package html
 
 import (
 	g "github.com/maragudk/gomponents"
 )
+
+func Async() g.Node {
+	return g.Attr("async")
+}
+
+func AutoFocus() g.Node {
+	return g.Attr("autofocus")
+}
+
+func AutoPlay() g.Node {
+	return g.Attr("autoplay")
+}
+
+func Controls() g.Node {
+	return g.Attr("controls")
+}
+
+func Defer() g.Node {
+	return g.Attr("defer")
+}
+
+func Disabled() g.Node {
+	return g.Attr("disabled")
+}
+
+func Multiple() g.Node {
+	return g.Attr("multiple")
+}
+
+func ReadOnly() g.Node {
+	return g.Attr("readonly")
+}
+
+func Required() g.Node {
+	return g.Attr("required")
+}
+
+func Selected() g.Node {
+	return g.Attr("selected")
+}
 
 func Accept(v string) g.Node {
 	return g.Attr("accept", v)
@@ -28,7 +68,7 @@ func Content(v string) g.Node {
 	return g.Attr("content", v)
 }
 
-func Form(v string) g.Node {
+func FormAttr(v string) g.Node {
 	return g.Attr("form", v)
 }
 
@@ -92,7 +132,7 @@ func Src(v string) g.Node {
 	return g.Attr("src", v)
 }
 
-func Style(v string) g.Node {
+func StyleAttr(v string) g.Node {
 	return g.Attr("style", v)
 }
 
@@ -104,7 +144,7 @@ func Target(v string) g.Node {
 	return g.Attr("target", v)
 }
 
-func Title(v string) g.Node {
+func TitleAttr(v string) g.Node {
 	return g.Attr("title", v)
 }
 

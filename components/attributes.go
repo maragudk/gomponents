@@ -1,6 +1,4 @@
-// Package attr provides shortcuts and helpers to common HTML attributes.
-// See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes for a list of attributes.
-package attr
+package components
 
 import (
 	"io"
@@ -8,6 +6,7 @@ import (
 	"strings"
 
 	g "github.com/maragudk/gomponents"
+	"github.com/maragudk/gomponents/html"
 )
 
 // Classes is a map of strings to booleans, which Renders to an attribute with name "class".
@@ -23,7 +22,7 @@ func (c Classes) Render(w io.Writer) error {
 		}
 	}
 	sort.Strings(included)
-	return g.Attr("class", strings.Join(included, " ")).Render(w)
+	return html.Class(strings.Join(included, " ")).Render(w)
 }
 
 func (c Classes) Type() g.NodeType {

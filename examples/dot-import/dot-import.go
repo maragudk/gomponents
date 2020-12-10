@@ -3,9 +3,9 @@ package main
 import (
 	"net/http"
 
-	. "github.com/maragudk/gomponents"
+	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/components"
-	. "github.com/maragudk/gomponents/el"
+	. "github.com/maragudk/gomponents/html"
 )
 
 func main() {
@@ -13,25 +13,32 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	p := page(props{
-		title: r.URL.Path,
-		path:  r.URL.Path,
-	})
-	_ = p.Render(w)
+	page := Page("Hi!", r.URL.Path)
+	_ = page.Render(w)
 }
 
-type props struct {
-	title string
-	path  string
-}
-
-func page(p props) Node {
-	return HTML5(DocumentProps{
-		Title:    p.title,
+func Page(title, currentPath string) g.Node {
+	return HTML5(HTML5Props{
+		Title:    title,
 		Language: "en",
-		Body: []Node{
-			H1(p.title),
-			P(Textf("Welcome to the page at %v.", p.path)),
+		Head: []g.Node{
+			StyleEl(Type("text/css"), g.Raw(".is-active{ font-weight: bold }")),
+		},
+		Body: []g.Node{
+			Navbar(currentPath),
+			H1(title),
+			P(g.Textf("Welcome to the page at %v.", currentPath)),
 		},
 	})
+}
+
+func Navbar(currentPath string) g.Node {
+	return Nav(
+		NavbarLink("/", "Home", currentPath),
+		NavbarLink("/about", "About", currentPath),
+	)
+}
+
+func NavbarLink(href, name, currentPath string) g.Node {
+	return A(href, Classes{"is-active": currentPath == href}, g.Text(name))
 }
