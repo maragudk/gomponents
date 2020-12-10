@@ -41,18 +41,16 @@ import (
 	"net/http"
 
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	. "github.com/maragudk/gomponents/html"
 )
 
 func main() {
-	_ = http.ListenAndServe("localhost:8080", handler())
+	_ = http.ListenAndServe("localhost:8080", http.HandlerFunc(handler))
 }
 
-func handler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		page := Page("Hi!", r.URL.Path)
-		_ = page.Render(w)
-	}
+func handler(w http.ResponseWriter, r *http.Request) {
+	_ = Page("Hi!", r.URL.Path).Render(w)
 }
 
 func Page(title, currentPath string) g.Node {
@@ -80,9 +78,8 @@ func Navbar(currentPath string) g.Node {
 }
 
 func NavbarLink(href, name, currentPath string) g.Node {
-	return A(href, Classes{"is-active": currentPath == href}, g.Text(name))
+	return A(href, c.Classes{"is-active": currentPath == href}, g.Text(name))
 }
-
 ```
 
 Some people don't like dot-imports, and luckily it's completely optional.
@@ -106,12 +103,11 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	page := Page("Hi!", r.URL.Path)
-	_ = page.Render(w)
+	_ = Page("Hi!", r.URL.Path).Render(w)
 }
 
 func Page(title, currentPath string) g.Node {
-	return HTML5(DocumentProps{
+	return HTML5(HTML5Props{
 		Title:    title,
 		Language: "en",
 		Head: []g.Node{
@@ -135,7 +131,6 @@ func Navbar(currentPath string) g.Node {
 func NavbarLink(href, name, currentPath string) g.Node {
 	return A(href, Classes{"is-active": currentPath == href}, g.Text(name))
 }
-
 ```
 
 For more complete examples, see [the examples directory](examples/).
