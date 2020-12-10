@@ -2,11 +2,10 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	g "github.com/maragudk/gomponents"
 	c "github.com/maragudk/gomponents/components"
-	h "github.com/maragudk/gomponents/html"
+	. "github.com/maragudk/gomponents/html"
 )
 
 func main() {
@@ -14,11 +13,10 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	p := page(props{
+	_ = Page(props{
 		title: r.URL.Path,
 		path:  r.URL.Path,
-	})
-	_ = p.Render(w)
+	}).Render(w)
 }
 
 type props struct {
@@ -26,46 +24,49 @@ type props struct {
 	path  string
 }
 
-func page(p props) g.Node {
-	return h.Doctype(
-		h.HTML(h.Lang("en"),
-			h.Head(
-				h.TitleEl(p.title),
-				h.StyleEl(h.Type("text/css"),
-					g.Raw(".is-active{font-weight: bold}"),
-					g.Raw("ul.nav { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }"),
-					g.Raw("ul.nav li { display: block;  padding: 8px; float: left; }"),
-				),
+// Page is a whole document to output.
+func Page(p props) g.Node {
+	return c.HTML5(c.HTML5Props{
+		Title:    p.title,
+		Language: "en",
+		Head: []g.Node{
+			StyleEl(Type("text/css"),
+				g.Raw("html { font-family: sans-serif; }"),
+				g.Raw("ul { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }"),
+				g.Raw("ul li { display: block; padding: 8px; float: left; }"),
+				g.Raw(".is-active { font-weight: bold; }"),
 			),
-			h.Body(
-				navbar(navbarProps{path: p.path}),
-				h.Hr(),
-				h.H1(p.title),
-				h.P(g.Textf("Welcome to the page at %v.", p.path)),
-				h.P(g.Textf("Rendered at %v", time.Now())),
-			),
+		},
+		Body: []g.Node{
+			Navbar(p.path, []PageLink{
+				{Path: "/foo", Name: "Foo"},
+				{Path: "/bar", Name: "Bar"},
+			}),
+			H1(p.title),
+			P(g.Textf("Welcome to the page at %v.", p.path)),
+		},
+	})
+}
+
+type PageLink struct {
+	Path string
+	Name string
+}
+
+func Navbar(currentPath string, links []PageLink) g.Node {
+	return Div(
+		Ul(
+			NavbarLink("/", "Home", currentPath),
+
+			g.Group(g.Map(len(links), func(i int) g.Node {
+				return NavbarLink(links[i].Path, links[i].Name, currentPath)
+			})),
 		),
+
+		Hr(),
 	)
 }
 
-type navbarProps struct {
-	path string
-}
-
-func navbar(props navbarProps) g.Node {
-	items := []struct {
-		path string
-		text string
-	}{
-		{"/", "Home"},
-		{"/foo", "Foo"},
-		{"/bar", "Bar"},
-	}
-	lis := g.Map(len(items), func(i int) g.Node {
-		item := items[i]
-		return h.Li(
-			h.A(h.Href(item.path), c.Classes(map[string]bool{"is-active": props.path == item.path}), g.Text(item.text)),
-		)
-	})
-	return h.Ul(h.Class("nav"), g.Group(lis))
+func NavbarLink(href, name, currentPath string) g.Node {
+	return Li(A(Href(href), c.Classes{"is-active": currentPath == href}, g.Text(name)))
 }
