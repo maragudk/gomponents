@@ -11,7 +11,7 @@ import (
 
 func TestHTML5(t *testing.T) {
 	t.Run("returns an html5 document template", func(t *testing.T) {
-		e := HTML5(DocumentProps{
+		e := HTML5(HTML5Props{
 			Title:       "Hat",
 			Description: "Love hats.",
 			Language:    "en",
@@ -23,7 +23,7 @@ func TestHTML5(t *testing.T) {
 	})
 
 	t.Run("returns no language, description, and extra head/body elements if empty", func(t *testing.T) {
-		e := HTML5(DocumentProps{
+		e := HTML5(HTML5Props{
 			Title: "Hat",
 		})
 

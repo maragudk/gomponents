@@ -18,7 +18,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Page(title, currentPath string) g.Node {
-	return HTML5(DocumentProps{
+	return HTML5(HTML5Props{
 		Title:    title,
 		Language: "en",
 		Head: []g.Node{

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	h "github.com/maragudk/gomponents/html"
 )
 
@@ -63,7 +64,7 @@ func navbar(props navbarProps) g.Node {
 	lis := g.Map(len(items), func(i int) g.Node {
 		item := items[i]
 		return h.Li(
-			h.A(item.path, h.Classes(map[string]bool{"is-active": props.path == item.path}), g.Text(item.text)),
+			h.A(item.path, c.Classes(map[string]bool{"is-active": props.path == item.path}), g.Text(item.text)),
 		)
 	})
 	return h.Ul(h.Class("nav"), g.Group(lis))
