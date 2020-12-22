@@ -81,6 +81,7 @@ func Content(v string) g.Node {
 	return g.Attr("content", v)
 }
 
+// DataAttr attributes automatically have their name prefixed with "data-".
 func DataAttr(name, v string) g.Node {
 	return g.Attr("data-"+name, v)
 }
