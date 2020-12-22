@@ -222,15 +222,28 @@ func Group(children []Node) Node {
 // Example:
 // 	items := []string{"hat", "partyhat"}
 //
-// 	lis := g.Map(len(items), func(i int) g.Node {
-// 		return g.El("li", g.Text(items[i]))
+// 	lis := Map(len(items), func(i int) Node {
+// 		return El("li", Text(items[i]))
 // 	})
 //
-// 	list := g.El("ul", lis...)
+// 	list := El("ul", lis...)
 func Map(length int, cb func(i int) Node) []Node {
 	var nodes []Node
 	for i := 0; i < length; i++ {
 		nodes = append(nodes, cb(i))
 	}
 	return nodes
+}
+
+// If condition is true, return the given Node. Otherwise, return nil.
+// This helper function is good for inlining elements conditionally.
+// Example:
+// 	El("div",
+//		If(showMessage, El("span", "You lost your hat.")),
+//	)
+func If(condition bool, n Node) Node {
+	if condition {
+		return n
+	}
+	return nil
 }
