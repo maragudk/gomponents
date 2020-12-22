@@ -207,3 +207,15 @@ func TestMap(t *testing.T) {
 		assert.Equal(t, `<ul><li>hat</li><li>partyhat</li><li>turtlehat</li></ul>`, list)
 	})
 }
+
+func TestIf(t *testing.T) {
+	t.Run("returns node if condition is true", func(t *testing.T) {
+		n := g.El("div", g.If(true, g.El("span")))
+		assert.Equal(t, "<div><span></span></div>", n)
+	})
+
+	t.Run("returns nil if condition is false", func(t *testing.T) {
+		n := g.El("div", g.If(false, g.El("span")))
+		assert.Equal(t, "<div></div>", n)
+	})
+}
