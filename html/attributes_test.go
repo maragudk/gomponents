@@ -57,6 +57,7 @@ func TestSimpleAttributes(t *testing.T) {
 		"preload":      Preload,
 		"placeholder":  Placeholder,
 		"rel":          Rel,
+		"role":         Role,
 		"rows":         Rows,
 		"src":          Src,
 		"style":        StyleAttr,
@@ -74,4 +75,11 @@ func TestSimpleAttributes(t *testing.T) {
 			assert.Equal(t, fmt.Sprintf(`<div %v="hat"></div>`, name), n)
 		})
 	}
+}
+
+func TestAria(t *testing.T) {
+	t.Run("returns an attribute which name is prefixed with aria-", func(t *testing.T) {
+		n := Aria("selected", "true")
+		assert.Equal(t, ` aria-selected="true"`, n)
+	})
 }
