@@ -83,3 +83,10 @@ func TestAria(t *testing.T) {
 		assert.Equal(t, ` aria-selected="true"`, n)
 	})
 }
+
+func TestDataAttr(t *testing.T) {
+	t.Run("returns an attribute which name is prefixed with data-", func(t *testing.T) {
+		n := DataAttr("id", "partyhat")
+		assert.Equal(t, ` data-id="partyhat"`, n)
+	})
+}

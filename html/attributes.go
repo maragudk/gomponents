@@ -81,6 +81,10 @@ func Content(v string) g.Node {
 	return g.Attr("content", v)
 }
 
+func DataAttr(name, v string) g.Node {
+	return g.Attr("data-"+name, v)
+}
+
 func For(v string) g.Node {
 	return g.Attr("for", v)
 }
