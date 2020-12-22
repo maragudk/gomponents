@@ -41,7 +41,7 @@ func TestSimpleElements(t *testing.T) {
 		"cite":       Cite,
 		"code":       Code,
 		"colgroup":   ColGroup,
-		"data":       Data,
+		"data":       DataEl,
 		"datalist":   DataList,
 		"details":    Details,
 		"dialog":     Dialog,

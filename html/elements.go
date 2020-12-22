@@ -83,7 +83,7 @@ func ColGroup(children ...g.Node) g.NodeFunc {
 	return g.El("colgroup", children...)
 }
 
-func Data(children ...g.Node) g.NodeFunc {
+func DataEl(children ...g.Node) g.NodeFunc {
 	return g.El("data", children...)
 }
 

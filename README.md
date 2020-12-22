@@ -137,9 +137,10 @@ For more complete examples, see [the examples directory](examples/).
 
 ### What's up with the specially named elements and attributes?
 
-Unfortunately, there are three main name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
+Unfortunately, there are four main name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
 respectively, to be able to co-exist in the same package in Go:
 
+- `data` (`DataEl`/`DataAttr`)
 - `form` (`FormEl`/`FormAttr`)
 - `style` (`StyleEl`/`StyleAttr`)
 - `title` (`TitleEl`/`TitleAttr`)
