@@ -56,6 +56,11 @@ func Alt(v string) g.Node {
 	return g.Attr("alt", v)
 }
 
+// Aria attributes automatically have their name prefixed with "aria-".
+func Aria(name, v string) g.Node {
+	return g.Attr("aria-"+name, v)
+}
+
 func AutoComplete(v string) g.Node {
 	return g.Attr("autocomplete", v)
 }
@@ -138,6 +143,10 @@ func Placeholder(v string) g.Node {
 
 func Rel(v string) g.Node {
 	return g.Attr("rel", v)
+}
+
+func Role(v string) g.Node {
+	return g.Attr("role", v)
 }
 
 func Rows(v string) g.Node {
