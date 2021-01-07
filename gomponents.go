@@ -62,8 +62,8 @@ func (n NodeFunc) String() string {
 // https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
 // If an element is a void kind, non-attribute children nodes are ignored.
 // Use this if no convenience creator exists.
-func El(name string, children ...Node) NodeFunc {
-	return func(w2 io.Writer) error {
+func El(name string, children ...Node) Node {
+	return NodeFunc(func(w2 io.Writer) error {
 		w := &statefulWriter{w: w2}
 
 		w.Write([]byte("<" + name))
@@ -84,7 +84,7 @@ func El(name string, children ...Node) NodeFunc {
 
 		w.Write([]byte("</" + name + ">"))
 		return w.err
-	}
+	})
 }
 
 func isVoidKind(name string) bool {
@@ -176,27 +176,27 @@ func (a *attr) String() string {
 }
 
 // Text creates a text DOM Node that Renders the escaped string t.
-func Text(t string) NodeFunc {
-	return func(w io.Writer) error {
+func Text(t string) Node {
+	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(template.HTMLEscapeString(t)))
 		return err
-	}
+	})
 }
 
 // Textf creates a text DOM Node that Renders the interpolated and escaped string t.
-func Textf(format string, a ...interface{}) NodeFunc {
-	return func(w io.Writer) error {
+func Textf(format string, a ...interface{}) Node {
+	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(template.HTMLEscapeString(fmt.Sprintf(format, a...))))
 		return err
-	}
+	})
 }
 
 // Raw creates a text DOM Node that just Renders the unescaped string t.
-func Raw(t string) NodeFunc {
-	return func(w io.Writer) error {
+func Raw(t string) Node {
+	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(t))
 		return err
-	}
+	})
 }
 
 type group struct {
