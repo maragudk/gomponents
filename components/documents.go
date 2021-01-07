@@ -17,7 +17,7 @@ type HTML5Props struct {
 }
 
 // HTML5 document template.
-func HTML5(p HTML5Props) g.NodeFunc {
+func HTML5(p HTML5Props) g.Node {
 	var lang, description g.Node
 	if p.Language != "" {
 		lang = Lang(p.Language)

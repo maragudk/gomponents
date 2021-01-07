@@ -28,7 +28,7 @@ func TestDoctype(t *testing.T) {
 }
 
 func TestSimpleElements(t *testing.T) {
-	cases := map[string]func(...g.Node) g.NodeFunc{
+	cases := map[string]func(...g.Node) g.Node{
 		"a":          A,
 		"address":    Address,
 		"article":    Article,
@@ -99,7 +99,7 @@ func TestSimpleElements(t *testing.T) {
 }
 
 func TestSimpleVoidKindElements(t *testing.T) {
-	cases := map[string]func(...g.Node) g.NodeFunc{
+	cases := map[string]func(...g.Node) g.Node{
 		"area":   Area,
 		"base":   Base,
 		"br":     Br,
@@ -124,7 +124,7 @@ func TestSimpleVoidKindElements(t *testing.T) {
 }
 
 func TestTextElements(t *testing.T) {
-	cases := map[string]func(string, ...g.Node) g.NodeFunc{
+	cases := map[string]func(string, ...g.Node) g.Node{
 		"abbr":       Abbr,
 		"b":          B,
 		"caption":    Caption,
