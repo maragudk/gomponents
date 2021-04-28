@@ -18,20 +18,13 @@ type HTML5Props struct {
 
 // HTML5 document template.
 func HTML5(p HTML5Props) g.Node {
-	var lang, description g.Node
-	if p.Language != "" {
-		lang = Lang(p.Language)
-	}
-	if p.Description != "" {
-		description = Meta(Name("description"), Content(p.Description))
-	}
 	return Doctype(
-		HTML(lang,
+		HTML(g.If(p.Language != "", Lang(p.Language)),
 			Head(
 				Meta(Charset("utf-8")),
 				Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
 				TitleEl(p.Title),
-				description,
+				g.If(p.Description != "", Meta(Name("description"), Content(p.Description))),
 				g.Group(p.Head),
 			),
 			Body(g.Group(p.Body)),
