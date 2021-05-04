@@ -42,7 +42,7 @@ func Page(p props) g.Node {
 				{Path: "/foo", Name: "Foo"},
 				{Path: "/bar", Name: "Bar"},
 			}),
-			H1(p.title),
+			H1(g.Text(p.title)),
 			P(g.Textf("Welcome to the page at %v.", p.path)),
 		},
 	})
