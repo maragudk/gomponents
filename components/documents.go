@@ -23,7 +23,7 @@ func HTML5(p HTML5Props) g.Node {
 			Head(
 				Meta(Charset("utf-8")),
 				Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
-				TitleEl(p.Title),
+				TitleEl(g.Text(p.Title)),
 				g.If(p.Description != "", Meta(Name("description"), Content(p.Description))),
 				g.Group(p.Head),
 			),

@@ -307,122 +307,122 @@ func Wbr(children ...g.Node) g.Node {
 	return g.El("wbr", children...)
 }
 
-func Abbr(text string, children ...g.Node) g.Node {
-	return g.El("abbr", g.Text(text), g.Group(children))
+func Abbr(children ...g.Node) g.Node {
+	return g.El("abbr", g.Group(children))
 }
 
-func B(text string, children ...g.Node) g.Node {
-	return g.El("b", g.Text(text), g.Group(children))
+func B(children ...g.Node) g.Node {
+	return g.El("b", g.Group(children))
 }
 
-func Caption(text string, children ...g.Node) g.Node {
-	return g.El("caption", g.Text(text), g.Group(children))
+func Caption(children ...g.Node) g.Node {
+	return g.El("caption", g.Group(children))
 }
 
-func Dd(text string, children ...g.Node) g.Node {
-	return g.El("dd", g.Text(text), g.Group(children))
+func Dd(children ...g.Node) g.Node {
+	return g.El("dd", g.Group(children))
 }
 
-func Del(text string, children ...g.Node) g.Node {
-	return g.El("del", g.Text(text), g.Group(children))
+func Del(children ...g.Node) g.Node {
+	return g.El("del", g.Group(children))
 }
 
-func Dfn(text string, children ...g.Node) g.Node {
-	return g.El("dfn", g.Text(text), g.Group(children))
+func Dfn(children ...g.Node) g.Node {
+	return g.El("dfn", g.Group(children))
 }
 
-func Dt(text string, children ...g.Node) g.Node {
-	return g.El("dt", g.Text(text), g.Group(children))
+func Dt(children ...g.Node) g.Node {
+	return g.El("dt", g.Group(children))
 }
 
-func Em(text string, children ...g.Node) g.Node {
-	return g.El("em", g.Text(text), g.Group(children))
+func Em(children ...g.Node) g.Node {
+	return g.El("em", g.Group(children))
 }
 
-func FigCaption(text string, children ...g.Node) g.Node {
-	return g.El("figcaption", g.Text(text), g.Group(children))
+func FigCaption(children ...g.Node) g.Node {
+	return g.El("figcaption", g.Group(children))
 }
 
-func H1(text string, children ...g.Node) g.Node {
-	return g.El("h1", g.Text(text), g.Group(children))
+func H1(children ...g.Node) g.Node {
+	return g.El("h1", g.Group(children))
 }
 
-func H2(text string, children ...g.Node) g.Node {
-	return g.El("h2", g.Text(text), g.Group(children))
+func H2(children ...g.Node) g.Node {
+	return g.El("h2", g.Group(children))
 }
 
-func H3(text string, children ...g.Node) g.Node {
-	return g.El("h3", g.Text(text), g.Group(children))
+func H3(children ...g.Node) g.Node {
+	return g.El("h3", g.Group(children))
 }
 
-func H4(text string, children ...g.Node) g.Node {
-	return g.El("h4", g.Text(text), g.Group(children))
+func H4(children ...g.Node) g.Node {
+	return g.El("h4", g.Group(children))
 }
 
-func H5(text string, children ...g.Node) g.Node {
-	return g.El("h5", g.Text(text), g.Group(children))
+func H5(children ...g.Node) g.Node {
+	return g.El("h5", g.Group(children))
 }
 
-func H6(text string, children ...g.Node) g.Node {
-	return g.El("h6", g.Text(text), g.Group(children))
+func H6(children ...g.Node) g.Node {
+	return g.El("h6", g.Group(children))
 }
 
-func I(text string, children ...g.Node) g.Node {
-	return g.El("i", g.Text(text), g.Group(children))
+func I(children ...g.Node) g.Node {
+	return g.El("i", g.Group(children))
 }
 
-func Ins(text string, children ...g.Node) g.Node {
-	return g.El("ins", g.Text(text), g.Group(children))
+func Ins(children ...g.Node) g.Node {
+	return g.El("ins", g.Group(children))
 }
 
-func Kbd(text string, children ...g.Node) g.Node {
-	return g.El("kbd", g.Text(text), g.Group(children))
+func Kbd(children ...g.Node) g.Node {
+	return g.El("kbd", g.Group(children))
 }
 
-func Mark(text string, children ...g.Node) g.Node {
-	return g.El("mark", g.Text(text), g.Group(children))
+func Mark(children ...g.Node) g.Node {
+	return g.El("mark", g.Group(children))
 }
 
-func Q(text string, children ...g.Node) g.Node {
-	return g.El("q", g.Text(text), g.Group(children))
+func Q(children ...g.Node) g.Node {
+	return g.El("q", g.Group(children))
 }
 
-func S(text string, children ...g.Node) g.Node {
-	return g.El("s", g.Text(text), g.Group(children))
+func S(children ...g.Node) g.Node {
+	return g.El("s", g.Group(children))
 }
 
-func Samp(text string, children ...g.Node) g.Node {
-	return g.El("samp", g.Text(text), g.Group(children))
+func Samp(children ...g.Node) g.Node {
+	return g.El("samp", g.Group(children))
 }
 
-func Small(text string, children ...g.Node) g.Node {
-	return g.El("small", g.Text(text), g.Group(children))
+func Small(children ...g.Node) g.Node {
+	return g.El("small", g.Group(children))
 }
 
-func Strong(text string, children ...g.Node) g.Node {
-	return g.El("strong", g.Text(text), g.Group(children))
+func Strong(children ...g.Node) g.Node {
+	return g.El("strong", g.Group(children))
 }
 
-func Sub(text string, children ...g.Node) g.Node {
-	return g.El("sub", g.Text(text), g.Group(children))
+func Sub(children ...g.Node) g.Node {
+	return g.El("sub", g.Group(children))
 }
 
-func Sup(text string, children ...g.Node) g.Node {
-	return g.El("sup", g.Text(text), g.Group(children))
+func Sup(children ...g.Node) g.Node {
+	return g.El("sup", g.Group(children))
 }
 
-func Time(text string, children ...g.Node) g.Node {
-	return g.El("time", g.Text(text), g.Group(children))
+func Time(children ...g.Node) g.Node {
+	return g.El("time", g.Group(children))
 }
 
-func TitleEl(title string, children ...g.Node) g.Node {
-	return g.El("title", g.Text(title), g.Group(children))
+func TitleEl(children ...g.Node) g.Node {
+	return g.El("title", g.Group(children))
 }
 
-func U(text string, children ...g.Node) g.Node {
-	return g.El("u", g.Text(text), g.Group(children))
+func U(children ...g.Node) g.Node {
+	return g.El("u", g.Group(children))
 }
 
-func Var(text string, children ...g.Node) g.Node {
-	return g.El("var", g.Text(text), g.Group(children))
+func Var(children ...g.Node) g.Node {
+	return g.El("var", g.Group(children))
 }
