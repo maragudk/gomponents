@@ -58,12 +58,12 @@ func Page(title, currentPath string) g.Node {
 		HTML(
 			Lang("en"),
 			Head(
-				TitleEl(title),
+				TitleEl(g.Text(title)),
 				StyleEl(Type("text/css"), g.Raw(".is-active{ font-weight: bold }")),
 			),
 			Body(
 				Navbar(currentPath),
-				H1(title),
+				H1(g.Text(title)),
 				P(g.Textf("Welcome to the page at %v.", currentPath)),
 			),
 		),
@@ -115,7 +115,7 @@ func Page(title, currentPath string) g.Node {
 		},
 		Body: []g.Node{
 			Navbar(currentPath),
-			H1(title),
+			H1(g.Text(title)),
 			P(g.Textf("Welcome to the page at %v.", currentPath)),
 		},
 	})
