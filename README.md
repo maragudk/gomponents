@@ -1,17 +1,17 @@
-# gomponents
+# Tired of complex template languages?
 
 [![GoDoc](https://godoc.org/github.com/maragudk/gomponents?status.svg)](https://godoc.org/github.com/maragudk/gomponents)
 [![codecov](https://codecov.io/gh/maragudk/gomponents/branch/master/graph/badge.svg)](https://codecov.io/gh/maragudk/gomponents)
 
-gomponents are declarative view components in Go, that can render to HTML5.
-gomponents aims to make it easy to build HTML5 pages of reusable components,
-without the use of a template language. Think server-side-rendered React,
-but without the virtual DOM and diffing.
+Try view components in pure Go.
 
-The implementation is very usable, but the API may change until version 1 is reached.
+_gomponents_ are view components written in pure Go.
+They render to HTML 5, and make it easy for you to build reusable components.
+So you can focus on building your app instead of learning yet another templating language.
 
-Check out the blog post [gomponents: declarative view components in Go](https://www.maragu.dk/blog/gomponents-declarative-view-components-in-go/)
-for background.
+The API may change until version 1 is reached.
+
+Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
 
 ## Features
 
