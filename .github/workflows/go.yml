@@ -11,20 +11,19 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.15
-      id: go
-
     - name: Check out
       uses: actions/checkout@v2
+
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.16
 
     - name: Get dependencies
       run: go get -v -t -d ./...
 
     - name: Build
-      run: go build -v .
+      run: go build -v ./...
 
     - name: Test
       run: go test -v -coverprofile=coverage.txt ./...
@@ -42,4 +41,4 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.30
+          version: latest
