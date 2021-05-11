@@ -147,6 +147,15 @@ func TestEl(t *testing.T) {
 	})
 }
 
+func BenchmarkEl(b *testing.B) {
+	b.Run("normal elements", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			e := g.El("div")
+			_ = e.Render(&strings.Builder{})
+		}
+	})
+}
+
 type erroringWriter struct{}
 
 func (w *erroringWriter) Write(p []byte) (n int, err error) {
