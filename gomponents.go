@@ -66,6 +66,8 @@ func El(name string, children ...Node) Node {
 	return NodeFunc(func(w2 io.Writer) error {
 		w := &statefulWriter{w: w2}
 
+		name = template.HTMLEscapeString(name)
+
 		w.Write([]byte("<" + name))
 
 		for _, c := range children {
@@ -157,10 +159,10 @@ type attr struct {
 
 func (a *attr) Render(w io.Writer) error {
 	if a.value == nil {
-		_, err := w.Write([]byte(" " + a.name))
+		_, err := w.Write([]byte(" " + template.HTMLEscapeString(a.name)))
 		return err
 	}
-	_, err := w.Write([]byte(" " + a.name + `="` + *a.value + `"`))
+	_, err := w.Write([]byte(" " + template.HTMLEscapeString(a.name) + `="` + template.HTMLEscapeString(*a.value) + `"`))
 	return err
 }
 
