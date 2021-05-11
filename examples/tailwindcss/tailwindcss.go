@@ -51,10 +51,10 @@ func Page(title, path string, body g.Node) g.Node {
 		Title:    title,
 		Language: "en",
 		Head: []g.Node{
-			Link(Rel("stylesheet"), Href("https://unpkg.com/tailwindcss@^2.1.x/dist/base.min.css")),
-			Link(Rel("stylesheet"), Href("https://unpkg.com/tailwindcss@^2.1.x/dist/components.min.css")),
-			Link(Rel("stylesheet"), Href("https://unpkg.com/@tailwindcss/typography@0.4.x/dist/typography.min.css")),
-			Link(Rel("stylesheet"), Href("https://unpkg.com/tailwindcss@^2.1.x/dist/utilities.min.css")),
+			Link(Rel("stylesheet"), Href("https://unpkg.com/tailwindcss@2.1.2/dist/base.min.css")),
+			Link(Rel("stylesheet"), Href("https://unpkg.com/tailwindcss@2.1.2/dist/components.min.css")),
+			Link(Rel("stylesheet"), Href("https://unpkg.com/@tailwindcss/typography@0.4.0/dist/typography.min.css")),
+			Link(Rel("stylesheet"), Href("https://unpkg.com/tailwindcss@2.1.2/dist/utilities.min.css")),
 		},
 		Body: []g.Node{
 			Navbar(path, []PageLink{
