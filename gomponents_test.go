@@ -54,6 +54,11 @@ func TestAttr(t *testing.T) {
 			t.FailNow()
 		}
 	})
+
+	t.Run("escapes attribute values", func(t *testing.T) {
+		a := g.Attr(`id`, `hat"><script`)
+		assert.Equal(t, ` id="hat&#34;&gt;&lt;script"`, a)
+	})
 }
 
 func BenchmarkAttr(b *testing.B) {
@@ -129,6 +134,15 @@ func TestEl(t *testing.T) {
 		e := g.El("div")
 		err := e.Render(&erroringWriter{})
 		assert.Error(t, err)
+	})
+}
+
+func BenchmarkEl(b *testing.B) {
+	b.Run("normal elements", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			e := g.El("div")
+			_ = e.Render(&strings.Builder{})
+		}
 	})
 }
 

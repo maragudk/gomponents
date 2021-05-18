@@ -160,7 +160,7 @@ func (a *attr) Render(w io.Writer) error {
 		_, err := w.Write([]byte(" " + a.name))
 		return err
 	}
-	_, err := w.Write([]byte(" " + a.name + `="` + *a.value + `"`))
+	_, err := w.Write([]byte(" " + a.name + `="` + template.HTMLEscapeString(*a.value) + `"`))
 	return err
 }
 
