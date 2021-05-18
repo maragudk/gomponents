@@ -55,14 +55,9 @@ func TestAttr(t *testing.T) {
 		}
 	})
 
-	t.Run("escapes attribute names", func(t *testing.T) {
-		a := g.Attr(`"><script`)
-		assert.Equal(t, ` &#34;&gt;&lt;script`, a)
-	})
-
-	t.Run("escapes attribute names and values", func(t *testing.T) {
-		a := g.Attr(`"><script`, `hat"><script`)
-		assert.Equal(t, ` &#34;&gt;&lt;script="hat&#34;&gt;&lt;script"`, a)
+	t.Run("escapes attribute values", func(t *testing.T) {
+		a := g.Attr(`id`, `hat"><script`)
+		assert.Equal(t, ` id="hat&#34;&gt;&lt;script"`, a)
 	})
 }
 
@@ -139,11 +134,6 @@ func TestEl(t *testing.T) {
 		e := g.El("div")
 		err := e.Render(&erroringWriter{})
 		assert.Error(t, err)
-	})
-
-	t.Run("escapes tag names", func(t *testing.T) {
-		e := g.El(`div><script`)
-		assert.Equal(t, `<div&gt;&lt;script></div&gt;&lt;script>`, e)
 	})
 }
 
