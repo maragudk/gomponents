@@ -1,4 +1,4 @@
-// Package gomponents provides declarative view components in Go, that can render to HTML5.
+// Package gomponents provides view components in Go, that render to HTML 5.
 // The primary interface is a Node, which has a single function Render, which should render
 // the Node to a string. Furthermore, NodeFunc is a function which implements the Node interface
 // by calling itself on Render.
@@ -219,14 +219,6 @@ func Group(children []Node) Node {
 }
 
 // Map something enumerable to a list of Nodes.
-// Example:
-// 	items := []string{"hat", "partyhat"}
-//
-// 	lis := Map(len(items), func(i int) Node {
-// 		return El("li", Text(items[i]))
-// 	})
-//
-// 	list := El("ul", lis...)
 func Map(length int, cb func(i int) Node) []Node {
 	var nodes []Node
 	for i := 0; i < length; i++ {
@@ -237,10 +229,6 @@ func Map(length int, cb func(i int) Node) []Node {
 
 // If condition is true, return the given Node. Otherwise, return nil.
 // This helper function is good for inlining elements conditionally.
-// Example:
-// 	El("div",
-//		If(showMessage, El("span", "You lost your hat.")),
-//	)
 func If(condition bool, n Node) Node {
 	if condition {
 		return n
