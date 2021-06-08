@@ -1,6 +1,7 @@
 package components_test
 
 import (
+	"os"
 	"testing"
 
 	g "github.com/maragudk/gomponents"
@@ -29,4 +30,10 @@ func TestClasses(t *testing.T) {
 			t.FailNow()
 		}
 	})
+}
+
+func ExampleClasses() {
+	e := g.El("div", c.Classes{"party-hat": true, "boring-hat": false})
+	_ = e.Render(os.Stdout)
+	// Output: <div class="party-hat"></div>
 }

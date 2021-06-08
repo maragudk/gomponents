@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -77,6 +78,18 @@ func BenchmarkAttr(b *testing.B) {
 	})
 }
 
+func ExampleAttr_bool() {
+	e := g.El("input", g.Attr("required"))
+	_ = e.Render(os.Stdout)
+	// Output: <input required>
+}
+
+func ExampleAttr_name_value() {
+	e := g.El("div", g.Attr("id", "hat"))
+	_ = e.Render(os.Stdout)
+	// Output: <div id="hat"></div>
+}
+
 type outsider struct{}
 
 func (o outsider) String() string {
@@ -146,6 +159,12 @@ func BenchmarkEl(b *testing.B) {
 	})
 }
 
+func ExampleEl() {
+	e := g.El("div", g.El("span"))
+	_ = e.Render(os.Stdout)
+	// Output: <div><span></span></div>
+}
+
 type erroringWriter struct{}
 
 func (w *erroringWriter) Write(p []byte) (n int, err error) {
@@ -159,6 +178,12 @@ func TestText(t *testing.T) {
 	})
 }
 
+func ExampleText() {
+	e := g.El("span", g.Text("Party hats > normal hats."))
+	_ = e.Render(os.Stdout)
+	// Output: <span>Party hats &gt; normal hats.</span>
+}
+
 func TestTextf(t *testing.T) {
 	t.Run("renders interpolated and escaped text", func(t *testing.T) {
 		e := g.Textf("<%v>", "div")
@@ -166,11 +191,23 @@ func TestTextf(t *testing.T) {
 	})
 }
 
+func ExampleTextf() {
+	e := g.El("span", g.Textf("%v party hats > %v normal hats.", 2, 3))
+	_ = e.Render(os.Stdout)
+	// Output: <span>2 party hats &gt; 3 normal hats.</span>
+}
+
 func TestRaw(t *testing.T) {
 	t.Run("renders raw text", func(t *testing.T) {
 		e := g.Raw("<div>")
 		assert.Equal(t, "<div>", e)
 	})
+}
+
+func ExampleRaw() {
+	e := g.El("span", g.Raw("<strong>Party</strong> hats &gt; normal hats."))
+	_ = e.Render(os.Stdout)
+	// Output: <span><strong>Party</strong> hats &gt; normal hats.</span>
 }
 
 func TestGroup(t *testing.T) {
@@ -222,6 +259,15 @@ func TestMap(t *testing.T) {
 	})
 }
 
+func ExampleMap() {
+	items := []string{"party hat", "super hat"}
+	e := g.El("ul", g.Group(g.Map(len(items), func(i int) g.Node {
+		return g.El("li", g.Text(items[i]))
+	})))
+	_ = e.Render(os.Stdout)
+	// Output: <ul><li>party hat</li><li>super hat</li></ul>
+}
+
 func TestIf(t *testing.T) {
 	t.Run("returns node if condition is true", func(t *testing.T) {
 		n := g.El("div", g.If(true, g.El("span")))
@@ -232,4 +278,14 @@ func TestIf(t *testing.T) {
 		n := g.El("div", g.If(false, g.El("span")))
 		assert.Equal(t, "<div></div>", n)
 	})
+}
+
+func ExampleIf() {
+	showMessage := true
+	e := g.El("div",
+		g.If(showMessage, g.El("span", g.Text("You lost your hat!"))),
+		g.If(!showMessage, g.El("span", g.Text("No messages."))),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <div><span>You lost your hat!</span></div>
 }
