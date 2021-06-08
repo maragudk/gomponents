@@ -61,6 +61,10 @@ func Aria(name, v string) g.Node {
 	return g.Attr("aria-"+name, v)
 }
 
+func As(v string) g.Node {
+	return g.Attr("as", v)
+}
+
 func AutoComplete(v string) g.Node {
 	return g.Attr("autocomplete", v)
 }

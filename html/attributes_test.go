@@ -36,6 +36,7 @@ func TestSimpleAttributes(t *testing.T) {
 		"accept":       Accept,
 		"action":       Action,
 		"alt":          Alt,
+		"as":           As,
 		"autocomplete": AutoComplete,
 		"charset":      Charset,
 		"class":        Class,
