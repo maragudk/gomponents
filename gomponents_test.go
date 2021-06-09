@@ -205,9 +205,11 @@ func TestRaw(t *testing.T) {
 }
 
 func ExampleRaw() {
-	e := g.El("span", g.Raw("<strong>Party</strong> hats &gt; normal hats."))
+	e := g.El("span",
+		g.Raw(`<button onclick="javascript:alert('Party time!')">Party hats</button> &gt; normal hats.`),
+	)
 	_ = e.Render(os.Stdout)
-	// Output: <span><strong>Party</strong> hats &gt; normal hats.</span>
+	// Output: <span><button onclick="javascript:alert('Party time!')">Party hats</button> &gt; normal hats.</span>
 }
 
 func TestGroup(t *testing.T) {
