@@ -28,8 +28,20 @@ func Disabled() g.Node {
 	return g.Attr("disabled")
 }
 
+func Loop() g.Node {
+	return g.Attr("loop")
+}
+
 func Multiple() g.Node {
 	return g.Attr("multiple")
+}
+
+func Muted() g.Node {
+	return g.Attr("muted")
+}
+
+func PlaysInline() g.Node {
+	return g.Attr("playsinline")
 }
 
 func ReadOnly() g.Node {
@@ -142,12 +154,16 @@ func Pattern(v string) g.Node {
 	return g.Attr("pattern", v)
 }
 
-func Preload(v string) g.Node {
-	return g.Attr("preload", v)
-}
-
 func Placeholder(v string) g.Node {
 	return g.Attr("placeholder", v)
+}
+
+func Poster(v string) g.Node {
+	return g.Attr("poster", v)
+}
+
+func Preload(v string) g.Node {
+	return g.Attr("preload", v)
 }
 
 func Rel(v string) g.Node {

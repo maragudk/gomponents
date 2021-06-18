@@ -11,16 +11,19 @@ import (
 
 func TestBooleanAttributes(t *testing.T) {
 	cases := map[string]func() g.Node{
-		"async":     Async,
-		"autofocus": AutoFocus,
-		"autoplay":  AutoPlay,
-		"controls":  Controls,
-		"defer":     Defer,
-		"disabled":  Disabled,
-		"multiple":  Multiple,
-		"readonly":  ReadOnly,
-		"required":  Required,
-		"selected":  Selected,
+		"async":       Async,
+		"autofocus":   AutoFocus,
+		"autoplay":    AutoPlay,
+		"controls":    Controls,
+		"defer":       Defer,
+		"disabled":    Disabled,
+		"loop":        Loop,
+		"multiple":    Multiple,
+		"muted":       Muted,
+		"playsinline": PlaysInline,
+		"readonly":    ReadOnly,
+		"required":    Required,
+		"selected":    Selected,
 	}
 
 	for name, fn := range cases {
@@ -55,8 +58,9 @@ func TestSimpleAttributes(t *testing.T) {
 		"minlength":    MinLength,
 		"name":         Name,
 		"pattern":      Pattern,
-		"preload":      Preload,
 		"placeholder":  Placeholder,
+		"poster":       Poster,
+		"preload":      Preload,
 		"rel":          Rel,
 		"role":         Role,
 		"rows":         Rows,

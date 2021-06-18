@@ -118,6 +118,7 @@ func TestSimpleElements(t *testing.T) {
 		"u":          U,
 		"ul":         Ul,
 		"var":        Var,
+		"video":      Video,
 	}
 
 	for name, fn := range cases {
