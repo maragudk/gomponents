@@ -14,6 +14,8 @@ The API may change until version 1 is reached.
 
 Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
 
+Made in 🇩🇰 by [maragu](https://www.maragu.dk), maker of [online Go courses](https://www.golang.dk/).
+
 ## Features
 
 - Build reusable view components
