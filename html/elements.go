@@ -426,3 +426,7 @@ func U(children ...g.Node) g.Node {
 func Var(children ...g.Node) g.Node {
 	return g.El("var", g.Group(children))
 }
+
+func Video(children ...g.Node) g.Node {
+	return g.El("video", g.Group(children))
+}
