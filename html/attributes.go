@@ -126,6 +126,10 @@ func Lang(v string) g.Node {
 	return g.Attr("lang", v)
 }
 
+func Loading(v string) g.Node {
+	return g.Attr("loading", v)
+}
+
 func Max(v string) g.Node {
 	return g.Attr("max", v)
 }
@@ -180,6 +184,10 @@ func Rows(v string) g.Node {
 
 func Src(v string) g.Node {
 	return g.Attr("src", v)
+}
+
+func SrcSet(v string) g.Node {
+	return g.Attr("srcset", v)
 }
 
 func StyleAttr(v string) g.Node {
