@@ -17,16 +17,13 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.16
-
-    - name: Get dependencies
-      run: go get -v -t -d ./...
+        go-version: ^1.17
 
     - name: Build
       run: go build -v ./...
 
     - name: Test
-      run: go test -v -coverprofile=coverage.txt ./...
+      run: go test -v -coverprofile=coverage.txt -shuffle on ./...
 
     - name: Coverage
       uses: codecov/codecov-action@v1.0.13
