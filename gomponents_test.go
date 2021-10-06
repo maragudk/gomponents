@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	g "github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/assert"
+	"github.com/maragudk/gomponents/internal/assert"
 )
 
 func TestNodeFunc(t *testing.T) {
