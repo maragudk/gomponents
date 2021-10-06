@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	g "github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/assert"
 	. "github.com/maragudk/gomponents/html"
+	"github.com/maragudk/gomponents/internal/assert"
 )
 
 type erroringWriter struct{}
