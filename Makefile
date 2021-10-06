@@ -10,5 +10,5 @@ lint:
 	golangci-lint run
 
 test:
-	go test -coverprofile=cover.out ./...
+	go test -coverprofile=cover.out -shuffle on ./...
 
