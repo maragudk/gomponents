@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	g "github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/assert"
 	c "github.com/maragudk/gomponents/components"
+	"github.com/maragudk/gomponents/internal/assert"
 )
 
 func TestInputHidden(t *testing.T) {
