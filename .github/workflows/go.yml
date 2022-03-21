@@ -26,11 +26,11 @@ jobs:
 
       - name: Test
         if: ${{ matrix.go != '1.16' }}
-        run: go test -v -p 1 -shuffle on ./...
+        run: go test -v -coverprofile=coverage.txt -shuffle on ./...
 
       - name: Test
         if: ${{ matrix.go == '1.16' }}
-        run: go test -v -p 1 ./...
+        run: go test -v -coverprofile=coverage.txt ./...
 
       - name: Coverage
         uses: codecov/codecov-action@v2
