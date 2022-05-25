@@ -291,3 +291,37 @@ func ExampleIf() {
 	_ = e.Render(os.Stdout)
 	// Output: <div><span>You lost your hat!</span></div>
 }
+
+func TestIfFunc(t *testing.T) {
+	t.Run("returns the result of the callback function if condition is true", func(t *testing.T) {
+		n := g.El("div", g.IfFunc(true, func() g.Node { return g.El("span") }))
+		assert.Equal(t, "<div><span></span></div>", n)
+	})
+	t.Run("returns nil if condition is false", func(t *testing.T) {
+		n := g.El("div", g.IfFunc(false, func() g.Node { return g.El("span") }))
+		assert.Equal(t, "<div></div>", n)
+	})
+}
+
+func ExampleIfFunc_nil() {
+	var message *string
+	e := g.El("div",
+		g.IfFunc(message != nil, func() g.Node {
+			return g.El("span", g.Text(*message))
+		}),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <div></div>
+}
+
+func ExampleIfFunc_not_nil() {
+	message := "Your hat is gone!"
+	messagePtr := &message
+	e := g.El("div",
+		g.IfFunc(messagePtr != nil, func() g.Node {
+			return g.El("span", g.Text(*messagePtr))
+		}),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <div><span>Your hat is gone!</span></div>
+}

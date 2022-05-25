@@ -235,3 +235,12 @@ func If(condition bool, n Node) Node {
 	}
 	return nil
 }
+
+// IfFunc is like If, except it takes a callback function that returns a Node instead of a Node directly.
+// Great when the condition is a nil check and the function uses the value that's not nil.
+func IfFunc(condition bool, cb func() Node) Node {
+	if condition {
+		return cb()
+	}
+	return nil
+}
