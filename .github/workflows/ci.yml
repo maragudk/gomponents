@@ -1,4 +1,4 @@
-name: Go
+name: CI
 
 on:
   push:
@@ -6,17 +6,28 @@ on:
   pull_request:
     branches: [ master ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        go: [ "1.16", "1.17", "1.18" ]
-    steps:
-      - uses: actions/checkout@v2
+        go:
+          - 1.16
+          - 1.17
+          - 1.18
 
-      - uses: actions/setup-go@v2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
           check-latest: true
@@ -39,8 +50,8 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Check out
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Lint
         uses: golangci/golangci-lint-action@v2
