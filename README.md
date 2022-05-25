@@ -1,7 +1,7 @@
 # Tired of complex template languages?
 
 [![GoDoc](https://godoc.org/github.com/maragudk/gomponents?status.svg)](https://godoc.org/github.com/maragudk/gomponents)
-[![Go](https://github.com/maragudk/gomponents/actions/workflows/go.yml/badge.svg)](https://github.com/maragudk/gomponents/actions/workflows/go.yml)
+[![Go](https://github.com/maragudk/gomponents/actions/workflows/ci.yml/badge.svg)](https://github.com/maragudk/gomponents/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/maragudk/gomponents/branch/master/graph/badge.svg)](https://codecov.io/gh/maragudk/gomponents)
 
 Try view components in pure Go.
