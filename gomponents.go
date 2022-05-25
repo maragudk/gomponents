@@ -1,10 +1,16 @@
 // Package gomponents provides view components in Go, that render to HTML 5.
-// The primary interface is a Node, which has a single function Render, which should render
-// the Node to a string. Furthermore, NodeFunc is a function which implements the Node interface
-// by calling itself on Render.
+//
+// The primary interface is a Node. It describes a function Render, which should render the Node
+// to the given writer as a string.
+//
 // All DOM elements and attributes can be created by using the El and Attr functions.
-// The package also provides a lot of convenience functions for creating elements and attributes
-// with the most commonly used parameters. If they don't suffice, a fallback to El and Attr is always possible.
+// The functions Text, Textf, and Raw can be used to create text nodes.
+// See also helper functions Group, Map, and If.
+//
+// For basic HTML elements and attributes, see the package html.
+// For higher-level HTML components, see the package components.
+// For SVG elements and attributes, see the package svg.
+// For HTTP helpers, see the package http.
 package gomponents
 
 import (
