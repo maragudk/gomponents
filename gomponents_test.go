@@ -291,3 +291,23 @@ func ExampleIf() {
 	_ = e.Render(os.Stdout)
 	// Output: <div><span>You lost your hat!</span></div>
 }
+
+func TestFunc(t *testing.T) {
+	t.Run("Func is a function type that is also a Node", func(t *testing.T) {
+		n := g.Func(func() g.Node {
+			return g.El("div")
+		})
+		assert.Equal(t, "<div></div>", n)
+	})
+}
+
+func ExampleIf_func() {
+	var message *string
+	e := g.El("div",
+		g.If(message != nil, g.Func(func() g.Node {
+			return g.El("span", g.Text(*message))
+		})),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <div></div>
+}

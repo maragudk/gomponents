@@ -235,3 +235,12 @@ func If(condition bool, n Node) Node {
 	}
 	return nil
 }
+
+// Func is a function that returns a Node that is itself also a Node.
+// Used with If, it enables lazy evaluation of the node to return, depending on the condition passed to If.
+type Func func() Node
+
+// Render implements Node.
+func (f Func) Render(w io.Writer) error {
+	return f().Render(w)
+}
