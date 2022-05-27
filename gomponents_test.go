@@ -294,10 +294,21 @@ func ExampleIf() {
 
 func TestLazy(t *testing.T) {
 	t.Run("Lazy is a function type that is also a Node", func(t *testing.T) {
-		n := g.Lazy(func() g.Node {
-			return g.El("div")
-		})
-		assert.Equal(t, "<div></div>", n)
+		n := g.El("div",
+			g.Lazy(func() g.Node {
+				return g.El("span")
+			}),
+		)
+		assert.Equal(t, "<div><span></span></div>", n)
+	})
+
+	t.Run("Lazy also works for attribute type nodes", func(t *testing.T) {
+		n := g.El("div",
+			g.Lazy(func() g.Node {
+				return g.Attr("class", "foo")
+			}),
+		)
+		assert.Equal(t, "<input disabled>", n)
 	})
 }
 
