@@ -292,19 +292,19 @@ func ExampleIf() {
 	// Output: <div><span>You lost your hat!</span></div>
 }
 
-func TestFunc(t *testing.T) {
-	t.Run("Func is a function type that is also a Node", func(t *testing.T) {
-		n := g.Func(func() g.Node {
+func TestLazy(t *testing.T) {
+	t.Run("Lazy is a function type that is also a Node", func(t *testing.T) {
+		n := g.Lazy(func() g.Node {
 			return g.El("div")
 		})
 		assert.Equal(t, "<div></div>", n)
 	})
 }
 
-func ExampleIf_func() {
+func ExampleIf_lazy() {
 	var message *string
 	e := g.El("div",
-		g.If(message != nil, g.Func(func() g.Node {
+		g.If(message != nil, g.Lazy(func() g.Node {
 			return g.El("span", g.Text(*message))
 		})),
 	)
