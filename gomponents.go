@@ -20,16 +20,13 @@ import (
 	"strings"
 )
 
-// voidElements don't have end tags and must be treated differently in the rendering.
-// See https://dev.w3.org/html5/spec-LC/syntax.html#void-elements
-var voidElements = []string{"area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"}
-
 // Node is a DOM node that can Render itself to a io.Writer.
 type Node interface {
 	Render(w io.Writer) error
 }
 
-// NodeType describes what type of Node it is, currently either an element or an attribute.
+// NodeType describes what type of Node it is, currently either an ElementType or an AttributeType.
+// This decides where a Node should be rendered.
 // Nodes default to being ElementType.
 type NodeType int
 
@@ -38,19 +35,21 @@ const (
 	AttributeType
 )
 
-// nodeTypeDescriber can be implemented by Nodes to let callers know whether the Node is an ElementType or an AttributeType.
-// This is used for rendering.
+// nodeTypeDescriber can be implemented by Nodes to let callers know whether the Node is
+// an ElementType or an AttributeType. This is used for rendering.
 type nodeTypeDescriber interface {
 	Type() NodeType
 }
 
-// NodeFunc is render function that is also a Node of ElementType.
+// NodeFunc is a render function that is also a Node of ElementType.
 type NodeFunc func(io.Writer) error
 
+// Render satisfies Node.
 func (n NodeFunc) Render(w io.Writer) error {
 	return n(w)
 }
 
+// Type satisfies nodeTypeDescriber.
 func (n NodeFunc) Type() NodeType {
 	return ElementType
 }
@@ -66,7 +65,7 @@ func (n NodeFunc) String() string {
 // See https://dev.w3.org/html5/spec-LC/syntax.html#elements-0 for how elements are rendered.
 // No tags are ever omitted from normal tags, even though it's allowed for elements given at
 // https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
-// If an element is a void kind, non-attribute children nodes are ignored.
+// If an element is a void element, non-attribute children nodes are ignored.
 // Use this if no convenience creator exists.
 func El(name string, children ...Node) Node {
 	return NodeFunc(func(w2 io.Writer) error {
@@ -80,7 +79,7 @@ func El(name string, children ...Node) Node {
 
 		w.Write([]byte(">"))
 
-		if isVoidKind(name) {
+		if isVoidElement(name) {
 			return w.err
 		}
 
@@ -91,15 +90,6 @@ func El(name string, children ...Node) Node {
 		w.Write([]byte("</" + name + ">"))
 		return w.err
 	})
-}
-
-func isVoidKind(name string) bool {
-	for _, e := range voidElements {
-		if name == e {
-			return true
-		}
-	}
-	return false
 }
 
 // renderChild c to the given writer w if the node type is t.
@@ -140,6 +130,32 @@ func (w *statefulWriter) Write(p []byte) {
 	_, w.err = w.w.Write(p)
 }
 
+// voidElements don't have end tags and must be treated differently in the rendering.
+// See https://dev.w3.org/html5/spec-LC/syntax.html#void-elements
+var voidElements = map[string]struct{}{
+	"area":    {},
+	"base":    {},
+	"br":      {},
+	"col":     {},
+	"command": {},
+	"embed":   {},
+	"hr":      {},
+	"img":     {},
+	"input":   {},
+	"keygen":  {},
+	"link":    {},
+	"meta":    {},
+	"param":   {},
+	"source":  {},
+	"track":   {},
+	"wbr":     {},
+}
+
+func isVoidElement(name string) bool {
+	_, ok := voidElements[name]
+	return ok
+}
+
 // Attr creates an attribute DOM Node with a name and optional value.
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
@@ -161,6 +177,7 @@ type attr struct {
 	value *string
 }
 
+// Render satisfies Node.
 func (a *attr) Render(w io.Writer) error {
 	if a.value == nil {
 		_, err := w.Write([]byte(" " + a.name))
@@ -170,6 +187,7 @@ func (a *attr) Render(w io.Writer) error {
 	return err
 }
 
+// Type satisfies nodeTypeDescriber.
 func (a *attr) Type() NodeType {
 	return AttributeType
 }
@@ -209,10 +227,12 @@ type group struct {
 	children []Node
 }
 
+// String satisfies fmt.Stringer.
 func (g group) String() string {
 	panic("cannot render group directly")
 }
 
+// Render satisfies Node.
 func (g group) Render(io.Writer) error {
 	panic("cannot render group directly")
 }
