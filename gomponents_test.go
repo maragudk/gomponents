@@ -251,8 +251,8 @@ func TestGroup(t *testing.T) {
 func TestMap(t *testing.T) {
 	t.Run("maps slices to nodes", func(t *testing.T) {
 		items := []string{"hat", "partyhat", "turtlehat"}
-		lis := g.Map(len(items), func(i int) g.Node {
-			return g.El("li", g.Text(items[i]))
+		lis := g.Map(items, func(item string, _ int) g.Node {
+			return g.El("li", g.Text(item))
 		})
 
 		list := g.El("ul", lis...)
@@ -262,10 +262,12 @@ func TestMap(t *testing.T) {
 }
 
 func ExampleMap() {
-	items := []string{"party hat", "super hat"}
-	e := g.El("ul", g.Group(g.Map(len(items), func(i int) g.Node {
-		return g.El("li", g.Text(items[i]))
-	})))
+	e := g.El("ul", g.Group(g.Map(
+		[]string{"party hat", "super hat"},
+		func(item string, _ int) g.Node {
+			return g.El("li", g.Text(item))
+		},
+	)))
 	_ = e.Render(os.Stdout)
 	// Output: <ul><li>party hat</li><li>super hat</li></ul>
 }

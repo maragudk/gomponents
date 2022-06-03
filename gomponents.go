@@ -245,10 +245,10 @@ func Group(children []Node) Node {
 }
 
 // Map something enumerable to a list of Nodes.
-func Map(length int, cb func(i int) Node) []Node {
+func Map[T any](items []T, mapper func(T, int) Node) []Node {
 	var nodes []Node
-	for i := 0; i < length; i++ {
-		nodes = append(nodes, cb(i))
+	for i, item := range items {
+		nodes = append(nodes, mapper(item, i))
 	}
 	return nodes
 }
