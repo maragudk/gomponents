@@ -244,15 +244,6 @@ func Group(children []Node) Node {
 	return group{children: children}
 }
 
-// Map something enumerable to a list of Nodes.
-func Map(length int, cb func(i int) Node) []Node {
-	var nodes []Node
-	for i := 0; i < length; i++ {
-		nodes = append(nodes, cb(i))
-	}
-	return nodes
-}
-
 // If condition is true, return the given Node. Otherwise, return nil.
 // This helper function is good for inlining elements conditionally.
 func If(condition bool, n Node) Node {
