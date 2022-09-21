@@ -2,9 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -21,6 +23,7 @@ jobs:
           - 1.16
           - 1.17
           - 1.18
+          - 1.19
 
     steps:
       - name: Checkout
