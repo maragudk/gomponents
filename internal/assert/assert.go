@@ -15,7 +15,7 @@ func Equal(t *testing.T, expected string, actual g.Node) {
 	var b strings.Builder
 	_ = actual.Render(&b)
 	if expected != b.String() {
-		t.Fatalf(`expected "%v" but got "%v"`, expected, actual)
+		t.Fatalf(`expected "%v" but got "%v"`, expected, b.String())
 	}
 }
 
