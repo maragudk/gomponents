@@ -133,7 +133,7 @@ func TestEl(t *testing.T) {
 		assert.Equal(t, `<div class="hat"><br></div>`, e)
 	})
 
-	t.Run("renders outside if node does not implement placer", func(t *testing.T) {
+	t.Run("renders outside if node does not implement nodeTypeDescriber", func(t *testing.T) {
 		e := g.El("div", outsider{})
 		assert.Equal(t, `<div>outsider</div>`, e)
 	})
@@ -246,28 +246,6 @@ func TestGroup(t *testing.T) {
 			t.FailNow()
 		}
 	})
-}
-
-func TestMap(t *testing.T) {
-	t.Run("maps slices to nodes", func(t *testing.T) {
-		items := []string{"hat", "partyhat", "turtlehat"}
-		lis := g.Map(len(items), func(i int) g.Node {
-			return g.El("li", g.Text(items[i]))
-		})
-
-		list := g.El("ul", lis...)
-
-		assert.Equal(t, `<ul><li>hat</li><li>partyhat</li><li>turtlehat</li></ul>`, list)
-	})
-}
-
-func ExampleMap() {
-	items := []string{"party hat", "super hat"}
-	e := g.El("ul", g.Group(g.Map(len(items), func(i int) g.Node {
-		return g.El("li", g.Text(items[i]))
-	})))
-	_ = e.Render(os.Stdout)
-	// Output: <ul><li>party hat</li><li>super hat</li></ul>
 }
 
 func TestIf(t *testing.T) {

@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package main
 
 import (
@@ -58,8 +61,8 @@ func Navbar(currentPath string, links []PageLink) g.Node {
 		Ul(
 			NavbarLink("/", "Home", currentPath),
 
-			g.Group(g.Map(len(links), func(i int) g.Node {
-				return NavbarLink(links[i].Path, links[i].Name, currentPath)
+			g.Group(g.Map(links, func(pl PageLink) g.Node {
+				return NavbarLink(pl.Path, pl.Name, currentPath)
 			})),
 		),
 
