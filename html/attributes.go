@@ -217,3 +217,7 @@ func Value(v string) g.Node {
 func Width(v string) g.Node {
 	return g.Attr("width", v)
 }
+
+func EncType(v string) g.Node {
+	return g.Attr("enctype", v)
+}

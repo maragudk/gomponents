@@ -45,6 +45,7 @@ func TestSimpleAttributes(t *testing.T) {
 		"class":        Class,
 		"cols":         Cols,
 		"content":      Content,
+		"enctype":      EncType,
 		"for":          For,
 		"form":         FormAttr,
 		"height":       Height,
