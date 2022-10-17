@@ -117,7 +117,7 @@ func renderChild(w *statefulWriter, c Node, t NodeType) {
 	}
 }
 
-// statefulWriter only writes if no errors have occured earlier in its lifetime.
+// statefulWriter only writes if no errors have occurred earlier in its lifetime.
 type statefulWriter struct {
 	w   io.Writer
 	err error
