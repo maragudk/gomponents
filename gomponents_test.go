@@ -212,6 +212,21 @@ func ExampleRaw() {
 	// Output: <span><button onclick="javascript:alert('Party time!')">Party hats</button> &gt; normal hats.</span>
 }
 
+func TestRawf(t *testing.T) {
+	t.Run("renders interpolated and raw text", func(t *testing.T) {
+		e := g.Rawf("<%v>", "div")
+		assert.Equal(t, "<div>", e)
+	})
+}
+
+func ExampleRawf() {
+	e := g.El("span",
+		g.Rawf(`<button onclick="javascript:alert('%v')">Party hats</button> &gt; normal hats.`, "Party time!"),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <span><button onclick="javascript:alert('Party time!')">Party hats</button> &gt; normal hats.</span>
+}
+
 func TestGroup(t *testing.T) {
 	t.Run("groups multiple nodes into one", func(t *testing.T) {
 		children := []g.Node{g.El("br", g.Attr("id", "hat")), g.El("hr")}

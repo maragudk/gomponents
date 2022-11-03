@@ -207,7 +207,7 @@ func Text(t string) Node {
 	})
 }
 
-// Textf creates a text DOM Node that Renders the interpolated and escaped string t.
+// Textf creates a text DOM Node that Renders the interpolated and escaped string format.
 func Textf(format string, a ...interface{}) Node {
 	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(template.HTMLEscapeString(fmt.Sprintf(format, a...))))
@@ -219,6 +219,14 @@ func Textf(format string, a ...interface{}) Node {
 func Raw(t string) Node {
 	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(t))
+		return err
+	})
+}
+
+// Rawf creates a text DOM Node that just Renders the interpolated and unescaped string format.
+func Rawf(format string, a ...interface{}) Node {
+	return NodeFunc(func(w io.Writer) error {
+		_, err := w.Write([]byte(fmt.Sprintf(format, a...)))
 		return err
 	})
 }
