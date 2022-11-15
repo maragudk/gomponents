@@ -11,12 +11,13 @@ import (
 
 func TestSimpleAttributes(t *testing.T) {
 	cases := map[string]func(string) g.Node{
-		"clip-rule": ClipRule,
-		"d":         D,
-		"fill":      Fill,
-		"fill-rule": FillRule,
-		"stroke":    Stroke,
-		"viewBox":   ViewBox,
+		"clip-rule":    ClipRule,
+		"d":            D,
+		"fill":         Fill,
+		"fill-rule":    FillRule,
+		"stroke":       Stroke,
+		"stroke-width": StrokeWidth,
+		"viewBox":      ViewBox,
 	}
 
 	for name, fn := range cases {

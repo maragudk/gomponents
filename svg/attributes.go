@@ -24,6 +24,10 @@ func Stroke(v string) g.Node {
 	return g.Attr("stroke", v)
 }
 
+func StrokeWidth(v string) g.Node {
+	return g.Attr("stroke-width", v)
+}
+
 func ViewBox(v string) g.Node {
 	return g.Attr("viewBox", v)
 }
