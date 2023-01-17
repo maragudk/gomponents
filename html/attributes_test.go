@@ -70,6 +70,7 @@ func TestSimpleAttributes(t *testing.T) {
 		"rowspan":      RowSpan,
 		"src":          Src,
 		"srcset":       SrcSet,
+		"step":         Step,
 		"style":        StyleAttr,
 		"tabindex":     TabIndex,
 		"target":       Target,
