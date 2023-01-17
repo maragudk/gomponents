@@ -93,6 +93,10 @@ func Cols(v string) g.Node {
 	return g.Attr("cols", v)
 }
 
+func ColSpan(v string) g.Node {
+	return g.Attr("colspan", v)
+}
+
 func Content(v string) g.Node {
 	return g.Attr("content", v)
 }
@@ -180,6 +184,10 @@ func Role(v string) g.Node {
 
 func Rows(v string) g.Node {
 	return g.Attr("rows", v)
+}
+
+func RowSpan(v string) g.Node {
+	return g.Attr("rowspan", v)
 }
 
 func Src(v string) g.Node {
