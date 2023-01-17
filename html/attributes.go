@@ -198,6 +198,10 @@ func SrcSet(v string) g.Node {
 	return g.Attr("srcset", v)
 }
 
+func Step(v string) g.Node {
+	return g.Attr("step", v)
+}
+
 func StyleAttr(v string) g.Node {
 	return g.Attr("style", v)
 }
