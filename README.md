@@ -25,14 +25,16 @@ Made in 🇩🇰 by [maragu](https://www.maragu.dk), maker of [online Go courses
   - Auto-completion
   - Nice formatting with `gofmt`
 - Simple API that's easy to learn and use (you know most already if you know HTML)
+- Useful helpers like `Text` and `Textf` that insert HTML-escaped text, `Map` for mapping data to components,
+  and `If` for conditional rendering.
 - No external dependencies
 
 ## Usage
 
 Get the library using `go get`:
 
-```shell script
-go get -u github.com/maragudk/gomponents
+```shell
+go get github.com/maragudk/gomponents
 ```
 
 The preferred way to use gomponents is with so-called dot-imports (note the dot before the `gomponents/html` import),
