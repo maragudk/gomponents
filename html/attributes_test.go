@@ -14,6 +14,7 @@ func TestBooleanAttributes(t *testing.T) {
 		"async":       Async,
 		"autofocus":   AutoFocus,
 		"autoplay":    AutoPlay,
+		"checked":     Checked,
 		"controls":    Controls,
 		"defer":       Defer,
 		"disabled":    Disabled,

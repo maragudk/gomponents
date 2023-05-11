@@ -16,6 +16,10 @@ func AutoPlay() g.Node {
 	return g.Attr("autoplay")
 }
 
+func Checked() g.Node {
+	return g.Attr("checked")
+}
+
 func Controls() g.Node {
 	return g.Attr("controls")
 }
