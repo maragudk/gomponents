@@ -4,8 +4,8 @@
 // to the given writer as a string.
 //
 // All DOM elements and attributes can be created by using the El and Attr functions.
-// The functions Text, Textf, Raw, and Rawf can be used to create text nodes.
-// See also helper functions Group, Map, and If.
+// The functions Text, Textf, Raw, and Rawf can be used to create text nodes, either HTML-escaped or unescaped.
+// See also helper functions Group, Map, and If for mapping data to Nodes and inserting them conditionally.
 //
 // For basic HTML elements and attributes, see the package html.
 // For higher-level HTML components, see the package components.
