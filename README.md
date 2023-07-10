@@ -24,6 +24,7 @@ Made in 🇩🇰 by [maragu](https://www.maragu.dk), maker of [online Go courses
   - Type safety
   - Auto-completion
   - Nice formatting with `gofmt`
+- Use [HTMX](https://htmx.org/) and [Hyperscript](https://hyperscript.org/) for building interactive web applications
 - Simple API that's easy to learn and use (you know most already if you know HTML)
 - Useful helpers like `Text` and `Textf` that insert HTML-escaped text, `Map` for mapping data to components,
   and `If` for conditional rendering.
