@@ -11,3 +11,12 @@ func Map[T any](ts []T, cb func(T) Node) []Node {
 	}
 	return nodes
 }
+
+// Map a map[key:string]any to a slice of Nodes.
+func MapKey[T any](ts map[string]T, cb func(string, T) Node) []Node {
+	var nodes []Node
+	for k, t := range ts {
+		nodes = append(nodes, cb(k, t))
+	}
+	return nodes
+}
