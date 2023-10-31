@@ -62,3 +62,19 @@ func (c Classes) String() string {
 	_ = c.Render(&b)
 	return b.String()
 }
+
+// Lazy is a component that calls the given function on render.
+// Used with If, it enables lazy evaluation of the node to return, depending on the condition passed to If.
+type Lazy struct {
+	Func func() g.Node
+	T    g.NodeType
+}
+
+// Render satisfies Node.
+func (l Lazy) Render(w io.Writer) error {
+	return l.Func().Render(w)
+}
+
+func (l Lazy) Type() g.NodeType {
+	return l.T
+}

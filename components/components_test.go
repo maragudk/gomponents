@@ -60,3 +60,26 @@ func ExampleClasses() {
 	_ = e.Render(os.Stdout)
 	// Output: <div class="party-hat"></div>
 }
+
+func TestLazy(t *testing.T) {
+	t.Run("can render an element", func(t *testing.T) {
+		n := g.El("div",
+			Lazy{Func: func() g.Node {
+				return g.El("span")
+			}},
+		)
+		assert.Equal(t, "<div><span></span></div>", n)
+	})
+
+	t.Run("can render an attribute", func(t *testing.T) {
+		n := g.El("input",
+			Lazy{
+				Func: func() g.Node {
+					return g.Attr("disabled")
+				},
+				T: g.AttributeType,
+			},
+		)
+		assert.Equal(t, "<input disabled>", n)
+	})
+}

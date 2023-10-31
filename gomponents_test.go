@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
 	"github.com/maragudk/gomponents/internal/assert"
 )
 
@@ -283,4 +284,29 @@ func ExampleIf() {
 	)
 	_ = e.Render(os.Stdout)
 	// Output: <div><span>You lost your hat!</span></div>
+}
+
+func ExampleIf_lazy() {
+	var message *string
+	e := g.El("div",
+		g.If(message != nil, c.Lazy{Func: func() g.Node {
+			return g.El("span", g.Text(*message))
+		}}),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <div></div>
+}
+
+func ExampleIf_lazy_attribute() {
+	var message *string
+	e := g.El("input",
+		g.If(message != nil, c.Lazy{
+			Func: func() g.Node {
+				return g.Attr("value", *message)
+			},
+			T: g.AttributeType,
+		}),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <input>
 }
