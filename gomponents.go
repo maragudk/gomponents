@@ -260,3 +260,45 @@ func If(condition bool, n Node) Node {
 	}
 	return nil
 }
+
+// Lazy returns a Node which calls the given callback function only when rendered.
+// Used with If, it enables lazy evaluation of the node to return, depending on the condition passed to If.
+// It defaults to being an ElementType, but can be set to AttributeType by passing a NodeType.
+// Even though nodeTypes is variadic, only the first NodeType is used.
+func Lazy(cb func() Node, nodeType ...NodeType) Node {
+	if cb == nil {
+		panic("lazy callback cannot be nil")
+	}
+
+	switch len(nodeType) {
+	case 0:
+		return &lazy{CB: cb}
+	case 1:
+		return &lazy{CB: cb, T: nodeType[0]}
+	default:
+		panic("lazy only accepts one node type")
+	}
+}
+
+// Lazy is returned by Lazy.
+type lazy struct {
+	CB func() Node
+	T  NodeType
+}
+
+// Render satisfies Node.
+func (l *lazy) Render(w io.Writer) error {
+	return l.CB().Render(w)
+}
+
+// Type satisfies nodeTypeDescriber.
+func (l *lazy) Type() NodeType {
+	return l.T
+}
+
+// String satisfies fmt.Stringer.
+func (l *lazy) String() string {
+	var b strings.Builder
+	_ = l.Render(&b)
+	return b.String()
+}
