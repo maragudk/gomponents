@@ -326,6 +326,15 @@ func TestLazy(t *testing.T) {
 			return nil
 		}, g.ElementType, g.AttributeType)
 	})
+
+	t.Run("satisfies fmt.Stringer", func(t *testing.T) {
+		n := g.Lazy(func() g.Node {
+			return g.El("div")
+		})
+		if _, ok := n.(fmt.Stringer); !ok {
+			t.FailNow()
+		}
+	})
 }
 
 func ExampleIf_lazy() {
