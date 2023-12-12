@@ -295,10 +295,3 @@ func (l *lazy) Render(w io.Writer) error {
 func (l *lazy) Type() NodeType {
 	return l.T
 }
-
-// String satisfies fmt.Stringer.
-func (l *lazy) String() string {
-	var b strings.Builder
-	_ = l.Render(&b)
-	return b.String()
-}
