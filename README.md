@@ -5,6 +5,8 @@
 [![codecov](https://codecov.io/gh/maragudk/gomponents/branch/main/graph/badge.svg)](https://codecov.io/gh/maragudk/gomponents)
 [![Go Report Card](https://goreportcard.com/badge/github.com/maragudk/gomponents)](https://goreportcard.com/report/github.com/maragudk/gomponents)
 
+![logo.png](logo.png)
+
 Try view components in pure Go.
 
 _gomponents_ are view components written in pure Go.
