@@ -237,12 +237,21 @@ type group struct {
 
 // String satisfies fmt.Stringer.
 func (g group) String() string {
-	panic("cannot render group directly")
+	var b strings.Builder
+	_ = g.Render(&b)
+	return b.String()
 }
 
 // Render satisfies Node.
-func (g group) Render(io.Writer) error {
-	panic("cannot render group directly")
+func (g group) Render(w io.Writer) error {
+	for _, node := range g.children {
+		err := node.Render(w)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Group multiple Nodes into one Node. Useful for concatenation of Nodes in variadic functions.
