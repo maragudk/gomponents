@@ -7,9 +7,9 @@
 [![codecov](https://codecov.io/gh/maragudk/gomponents/branch/main/graph/badge.svg)](https://codecov.io/gh/maragudk/gomponents)
 [![Go Report Card](https://goreportcard.com/badge/github.com/maragudk/gomponents)](https://goreportcard.com/report/github.com/maragudk/gomponents)
 
-Try view components in pure Go.
+Try HTML components in pure Go.
 
-_gomponents_ are view components written in pure Go.
+_gomponents_ are HTML components written in pure Go.
 They render to HTML 5, and make it easy for you to build reusable components.
 So you can focus on building your app instead of learning yet another templating language.
 
@@ -21,7 +21,7 @@ Made in 🇩🇰 by [maragu](https://www.maragu.dk), maker of [online Go courses
 
 ## Features
 
-- Build reusable view components
+- Build reusable HTML components
 - Write declarative HTML5 in Go without all the strings, so you get
   - Type safety
   - Auto-completion
