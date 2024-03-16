@@ -284,3 +284,64 @@ func ExampleIf() {
 	_ = e.Render(os.Stdout)
 	// Output: <div><span>You lost your hat!</span></div>
 }
+
+func TestLazy(t *testing.T) {
+	t.Run("panics when callback is nil", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.FailNow()
+			}
+		}()
+		g.Lazy(nil)
+	})
+
+	t.Run("calls callback on render", func(t *testing.T) {
+		n := g.Lazy(func() g.Node {
+			return g.El("div")
+		})
+		assert.Equal(t, "<div></div>", n)
+	})
+
+	t.Run("can render elements with node type passed", func(t *testing.T) {
+		n := g.El("div", g.Lazy(func() g.Node {
+			return g.El("span")
+		}, g.ElementType))
+		assert.Equal(t, "<div><span></span></div>", n)
+	})
+
+	t.Run("can render attributes", func(t *testing.T) {
+		n := g.El("input", g.Lazy(func() g.Node {
+			return g.Attr("disabled")
+		}, g.AttributeType))
+		assert.Equal(t, "<input disabled>", n)
+	})
+
+	t.Run("panics when passed multiple node types", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.FailNow()
+			}
+		}()
+		g.Lazy(func() g.Node {
+			return nil
+		}, g.ElementType, g.AttributeType)
+	})
+}
+
+func ExampleIf_lazy() {
+	type User struct {
+		Name string
+	}
+
+	var u *User
+
+	e := g.El("div",
+		// This would panic without the Lazy call.
+		g.If(u != nil, g.Lazy(func() g.Node {
+			return g.El("span", g.Text(u.Name))
+		})),
+		g.If(u == nil, g.El("span", g.Text("Anonymous"))),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <div><span>Anonymous</span></div>
+}
