@@ -17,8 +17,6 @@ The API may change until version 1 is reached.
 
 Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
 
-NEW! INCREDIBLE! [Buy the Official gomponents Marquee Element](https://maragu.gumroad.com/l/gomponents).
-
 Made in 🇩🇰 by [maragu](https://www.maragu.dk), maker of [online Go courses](https://www.golang.dk/).
 
 ## Features
