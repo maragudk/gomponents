@@ -24,6 +24,10 @@ func Controls() g.Node {
 	return g.Attr("controls")
 }
 
+func CrossOrigin(v string) g.Node {
+	return g.Attr("crossorigin", v)
+}
+
 func Defer() g.Node {
 	return g.Attr("defer")
 }
@@ -128,6 +132,10 @@ func Href(v string) g.Node {
 
 func ID(v string) g.Node {
 	return g.Attr("id", v)
+}
+
+func Integrity(v string) g.Node {
+	return g.Attr("integrity", v)
 }
 
 func Lang(v string) g.Node {
