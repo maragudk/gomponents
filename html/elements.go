@@ -111,6 +111,11 @@ func Embed(children ...g.Node) g.Node {
 	return g.El("embed", children...)
 }
 
+func Form(children ...g.Node) g.Node {
+	return g.El("form", children...)
+}
+
+// Deprecated: Use [Form] instead.
 func FormEl(children ...g.Node) g.Node {
 	return g.El("form", children...)
 }
