@@ -109,7 +109,14 @@ func Content(v string) g.Node {
 	return g.Attr("content", v)
 }
 
+// Data attributes automatically have their name prefixed with "data-".
+func Data(name, v string) g.Node {
+	return g.Attr("data-"+name, v)
+}
+
 // DataAttr attributes automatically have their name prefixed with "data-".
+//
+// Deprecated: Use [Data] instead.
 func DataAttr(name, v string) g.Node {
 	return g.Attr("data-"+name, v)
 }
@@ -138,8 +145,16 @@ func Integrity(v string) g.Node {
 	return g.Attr("integrity", v)
 }
 
+func LabelAttr(v string) g.Node {
+	return g.Attr("label", v)
+}
+
 func Lang(v string) g.Node {
 	return g.Attr("lang", v)
+}
+
+func List(v string) g.Node {
+	return g.Attr("list", v)
 }
 
 func Loading(v string) g.Node {
@@ -214,6 +229,11 @@ func Step(v string) g.Node {
 	return g.Attr("step", v)
 }
 
+func Style(v string) g.Node {
+	return g.Attr("style", v)
+}
+
+// Deprecated: Use [Style] instead.
 func StyleAttr(v string) g.Node {
 	return g.Attr("style", v)
 }
@@ -226,6 +246,11 @@ func Target(v string) g.Node {
 	return g.Attr("target", v)
 }
 
+func Title(v string) g.Node {
+	return g.Attr("title", v)
+}
+
+// Deprecated: Use [Title] instead.
 func TitleAttr(v string) g.Node {
 	return g.Attr("title", v)
 }
