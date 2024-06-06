@@ -145,8 +145,16 @@ func Integrity(v string) g.Node {
 	return g.Attr("integrity", v)
 }
 
+func LabelAttr(v string) g.Node {
+	return g.Attr("label", v)
+}
+
 func Lang(v string) g.Node {
 	return g.Attr("lang", v)
+}
+
+func List(v string) g.Node {
+	return g.Attr("list", v)
 }
 
 func Loading(v string) g.Node {
