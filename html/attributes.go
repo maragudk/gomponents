@@ -270,3 +270,7 @@ func Width(v string) g.Node {
 func EncType(v string) g.Node {
 	return g.Attr("enctype", v)
 }
+
+func Dir(v string) g.Node {
+	return g.Attr("dir", v)
+}
