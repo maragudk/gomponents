@@ -254,9 +254,20 @@ func Group(children []Node) Node {
 
 // If condition is true, return the given Node. Otherwise, return nil.
 // This helper function is good for inlining elements conditionally.
+// If your condition and node involve a nilable variable, use iff because
+// go will evaluate the node regardless of the condition.
 func If(condition bool, n Node) Node {
 	if condition {
 		return n
+	}
+	return nil
+}
+
+// Iff execute the function f if condition is true, otherwise return nil.
+// it is the preferred way to conditionally render a node if the node involves a nilable variable.
+func Iff(condition bool, f func() Node) Node {
+	if condition {
+		return f()
 	}
 	return nil
 }
