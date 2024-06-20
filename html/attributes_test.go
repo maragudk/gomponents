@@ -54,6 +54,7 @@ func TestSimpleAttributes(t *testing.T) {
 		{Name: "colspan", Func: ColSpan},
 		{Name: "content", Func: Content},
 		{Name: "crossorigin", Func: CrossOrigin},
+		{Name: "datetime", Func: DateTime},
 		{Name: "enctype", Func: EncType},
 		{Name: "dir", Func: Dir},
 		{Name: "for", Func: For},
