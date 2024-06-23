@@ -28,6 +28,10 @@ func CrossOrigin(v string) g.Node {
 	return g.Attr("crossorigin", v)
 }
 
+func DateTime(v string) g.Node {
+	return g.Attr("datetime", v)
+}
+
 func Defer() g.Node {
 	return g.Attr("defer")
 }

@@ -284,3 +284,32 @@ func ExampleIf() {
 	_ = e.Render(os.Stdout)
 	// Output: <div><span>You lost your hat!</span></div>
 }
+
+func TestIff(t *testing.T) {
+	t.Run("returns node if condition is true", func(t *testing.T) {
+		n := g.El("div", g.Iff(true, func() g.Node {
+			return g.El("span")
+		}))
+		assert.Equal(t, "<div><span></span></div>", n)
+	})
+
+	t.Run("returns nil if condition is false", func(t *testing.T) {
+		n := g.El("div", g.Iff(false, func() g.Node {
+			return g.El("span")
+		}))
+		assert.Equal(t, "<div></div>", n)
+	})
+}
+
+func ExampleIff() {
+	var nillableVariable *struct {
+		str string
+	}
+	e := g.El("div",
+		g.Iff(nillableVariable != nil, func() g.Node {
+			return g.Text(nillableVariable.str)
+		}),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <div></div>
+}
