@@ -289,12 +289,12 @@ func attribute(w io.Writer, a xml.Attr) {
 		return
 	}
 
-	if after, found := strings.CutPrefix(a.Name.Local, "aria-"); found {
+	if after, found := cutPrefix(a.Name.Local, "aria-"); found {
 		w.Write([]byte(fmt.Sprintf(`Aria("%s", "%s")`, after, a.Value)))
 		return
 	}
 
-	if after, found := strings.CutPrefix(a.Name.Local, "data-"); found {
+	if after, found := cutPrefix(a.Name.Local, "data-"); found {
 		w.Write([]byte(fmt.Sprintf(`Data("%s", "%s")`, after, a.Value)))
 		return
 	}
@@ -339,4 +339,11 @@ func newline(w io.Writer, indent int) {
 	for x := 0; x < indent; x++ {
 		w.Write([]byte("\t"))
 	}
+}
+
+func cutPrefix(s, prefix string) (after string, found bool) {
+	if strings.HasPrefix(s, prefix) {
+		return s[len(prefix):], true
+	}
+	return s, false
 }
