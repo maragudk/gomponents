@@ -203,7 +203,7 @@ func main() {
 
 func convert(r io.Reader, w io.Writer, packageName string) {
 
-	w.Write([]byte(fmt.Sprintf(`package %s
+	write(w, fmt.Sprintf(`package %s
 
 import (
 	g "github.com/maragudk/gomponents"
@@ -211,7 +211,7 @@ import (
 )
 
 func Page() g.Node {
-	return `, packageName)))
+	return `, packageName))
 
 	dec := xml.NewDecoder(r)
 	dec.Strict = false
@@ -237,19 +237,19 @@ func Page() g.Node {
 		tok, err = dec.Token()
 	}
 
-	w.Write([]byte("\n}\n"))
+	write(w, "\n}\n")
 }
 
 func element(w io.Writer, dec *xml.Decoder, startEl xml.StartElement, indent int) {
 	newline(w, indent)
 	if el, ok := elements[startEl.Name.Local]; ok {
-		w.Write([]byte(el + "("))
+		write(w, el+"(")
 	} else {
-		w.Write([]byte(fmt.Sprintf(`g.El("%s", `, startEl.Name.Local)))
+		write(w, fmt.Sprintf(`g.El("%s", `, startEl.Name.Local))
 	}
 	for _, a := range startEl.Attr {
 		attribute(w, a)
-		w.Write([]byte(", "))
+		write(w, ", ")
 	}
 	hasNested := false
 	tok, err := dec.Token()
@@ -268,7 +268,7 @@ func element(w io.Writer, dec *xml.Decoder, startEl xml.StartElement, indent int
 			if hasNested {
 				newline(w, indent)
 			}
-			w.Write([]byte("),"))
+			write(w, "),")
 			return
 		default:
 			panic(fmt.Sprintf("unexpected token: %T", tok))
@@ -280,26 +280,26 @@ func element(w io.Writer, dec *xml.Decoder, startEl xml.StartElement, indent int
 
 func attribute(w io.Writer, a xml.Attr) {
 	if attr, ok := boolAttrs[a.Name.Local]; ok {
-		w.Write([]byte(attr + "()"))
+		write(w, attr+"()")
 		return
 	}
 
 	if attr, ok := simpleAttr[a.Name.Local]; ok {
-		w.Write([]byte(fmt.Sprintf(`%s("%s")`, attr, a.Value)))
+		write(w, fmt.Sprintf(`%s("%s")`, attr, a.Value))
 		return
 	}
 
 	if after, found := cutPrefix(a.Name.Local, "aria-"); found {
-		w.Write([]byte(fmt.Sprintf(`Aria("%s", "%s")`, after, a.Value)))
+		write(w, fmt.Sprintf(`Aria("%s", "%s")`, after, a.Value))
 		return
 	}
 
 	if after, found := cutPrefix(a.Name.Local, "data-"); found {
-		w.Write([]byte(fmt.Sprintf(`Data("%s", "%s")`, after, a.Value)))
+		write(w, fmt.Sprintf(`Data("%s", "%s")`, after, a.Value))
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf(`g.Attr("%s", "%s")`, a.Name.Local, a.Value)))
+	write(w, fmt.Sprintf(`g.Attr("%s", "%s")`, a.Name.Local, a.Value))
 }
 
 func text(w io.Writer, text string, indent int) {
@@ -307,11 +307,11 @@ func text(w io.Writer, text string, indent int) {
 		return
 	}
 	newline(w, indent)
-	w.Write([]byte(fmt.Sprintf(`g.Text("%s"),`, text)))
+	write(w, fmt.Sprintf(`g.Text("%s"),`, text))
 }
 
 func doctype(w io.Writer, dec *xml.Decoder) {
-	w.Write([]byte("Doctype("))
+	write(w, "Doctype(")
 	hasNested := false
 	tok, err := dec.Token()
 	for !errors.Is(err, io.EOF) {
@@ -331,13 +331,13 @@ func doctype(w io.Writer, dec *xml.Decoder) {
 	if hasNested {
 		newline(w, 1)
 	}
-	w.Write([]byte(")"))
+	write(w, ")")
 }
 
 func newline(w io.Writer, indent int) {
-	w.Write([]byte("\n"))
+	write(w, "\n")
 	for x := 0; x < indent; x++ {
-		w.Write([]byte("\t"))
+		write(w, "\t")
 	}
 }
 
@@ -346,4 +346,11 @@ func cutPrefix(s, prefix string) (after string, found bool) {
 		return s[len(prefix):], true
 	}
 	return s, false
+}
+
+func write(w io.Writer, s string) {
+	_, err := w.Write([]byte(s))
+	if err != nil {
+		panic(err)
+	}
 }
