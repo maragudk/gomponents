@@ -28,7 +28,7 @@ Made in 🇩🇰 by [maragu](https://www.maragu.dk), maker of [online Go courses
   - Nice formatting with `gofmt`
 - Simple API that's easy to learn and use (you know most already if you know HTML)
 - Useful helpers like `Text` and `Textf` that insert HTML-escaped text, `Map` for mapping data to components,
-  and `If` for conditional rendering.
+  and `If`/`Iff` for conditional rendering.
 - No external dependencies
 
 ## Usage
