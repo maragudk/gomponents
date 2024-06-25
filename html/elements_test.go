@@ -79,6 +79,7 @@ func TestSimpleElements(t *testing.T) {
 		{Name: "ins", Func: Ins},
 		{Name: "kbd", Func: Kbd},
 		{Name: "label", Func: Label},
+		{Name: "label", Func: LabelEl},
 		{Name: "legend", Func: Legend},
 		{Name: "li", Func: Li},
 		{Name: "main", Func: Main},
