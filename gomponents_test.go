@@ -277,10 +277,12 @@ func TestIf(t *testing.T) {
 
 func ExampleIf() {
 	showMessage := true
+
 	e := g.El("div",
 		g.If(showMessage, g.El("span", g.Text("You lost your hat!"))),
 		g.If(!showMessage, g.El("span", g.Text("No messages."))),
 	)
+
 	_ = e.Render(os.Stdout)
 	// Output: <div><span>You lost your hat!</span></div>
 }
@@ -302,14 +304,18 @@ func TestIff(t *testing.T) {
 }
 
 func ExampleIff() {
-	var nillableVariable *struct {
-		str string
+	type User struct {
+		Name string
 	}
+	var user *User
+
 	e := g.El("div",
-		g.Iff(nillableVariable != nil, func() g.Node {
-			return g.Text(nillableVariable.str)
+		// This would panic using just If
+		g.Iff(user != nil, func() g.Node {
+			return g.Text(user.Name)
 		}),
 	)
+
 	_ = e.Render(os.Stdout)
 	// Output: <div></div>
 }
