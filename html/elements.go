@@ -168,6 +168,11 @@ func Label(children ...g.Node) g.Node {
 	return g.El("label", children...)
 }
 
+// Deprecated: Use [Label] instead.
+func LabelEl(children ...g.Node) g.Node {
+	return g.El("label", children...)
+}
+
 func Legend(children ...g.Node) g.Node {
 	return g.El("legend", children...)
 }
