@@ -1,5 +1,7 @@
 // Package html provides common HTML elements and attributes.
+//
 // See https://developer.mozilla.org/en-US/docs/Web/HTML/Element for a list of elements.
+//
 // See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes for a list of attributes.
 package html
 
@@ -9,7 +11,7 @@ import (
 	g "github.com/maragudk/gomponents"
 )
 
-// Doctype returns a special kind of Node that prefixes its sibling with the string "<!doctype html>".
+// Doctype returns a special kind of [g.Node] that prefixes its sibling with the string "<!doctype html>".
 func Doctype(sibling g.Node) g.Node {
 	return g.NodeFunc(func(w io.Writer) error {
 		if _, err := w.Write([]byte("<!doctype html>")); err != nil {

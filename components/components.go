@@ -10,7 +10,7 @@ import (
 	. "github.com/maragudk/gomponents/html"
 )
 
-// HTML5Props for HTML5.
+// HTML5Props for [HTML5].
 // Title is set no matter what, Description and Language elements only if the strings are non-empty.
 type HTML5Props struct {
 	Title       string
@@ -41,6 +41,7 @@ func HTML5(p HTML5Props) g.Node {
 // for which the corresponding map value is true.
 type Classes map[string]bool
 
+// Render satisfies [g.Node].
 func (c Classes) Render(w io.Writer) error {
 	var included []string
 	for c, include := range c {
@@ -56,7 +57,7 @@ func (c Classes) Type() g.NodeType {
 	return g.AttributeType
 }
 
-// String satisfies fmt.Stringer.
+// String satisfies [fmt.Stringer].
 func (c Classes) String() string {
 	var b strings.Builder
 	_ = c.Render(&b)

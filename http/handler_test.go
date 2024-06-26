@@ -112,3 +112,11 @@ func get(t *testing.T, h http.Handler) (int, string) {
 	}
 	return result.StatusCode, string(body)
 }
+
+func ExampleAdapt() {
+	h := ghttp.Adapt(func(w http.ResponseWriter, r *http.Request) (g.Node, error) {
+		return g.El("div"), nil
+	})
+	mux := http.NewServeMux()
+	mux.Handle("/", h)
+}
