@@ -1,15 +1,18 @@
-// Package gomponents provides view components in Go, that render to HTML 5.
+// Package gomponents provides HTML components in Go, that render to HTML 5.
 //
-// The primary interface is a Node. It describes a function Render, which should render the Node
+// The primary interface is a [Node]. It describes a function Render, which should render the [Node]
 // to the given writer as a string.
 //
-// All DOM elements and attributes can be created by using the El and Attr functions.
-// The functions Text, Textf, Raw, and Rawf can be used to create text nodes, either HTML-escaped or unescaped.
-// See also helper functions Group, Map, and If for mapping data to Nodes and inserting them conditionally.
+// All DOM elements and attributes can be created by using the [El] and [Attr] functions.
+// The functions [Text], [Textf], [Raw], and [Rawf] can be used to create text nodes, either HTML-escaped or unescaped.
+// See also helper functions [Group], [Map], [If], and [Iff] for mapping data to nodes and inserting them conditionally.
 //
 // For basic HTML elements and attributes, see the package html.
+//
 // For higher-level HTML components, see the package components.
+//
 // For SVG elements and attributes, see the package svg.
+//
 // For HTTP helpers, see the package http.
 package gomponents
 
@@ -20,14 +23,14 @@ import (
 	"strings"
 )
 
-// Node is a DOM node that can Render itself to a io.Writer.
+// Node is a DOM node that can Render itself to a [io.Writer].
 type Node interface {
 	Render(w io.Writer) error
 }
 
-// NodeType describes what type of Node it is, currently either an ElementType or an AttributeType.
-// This decides where a Node should be rendered.
-// Nodes default to being ElementType.
+// NodeType describes what type of [Node] it is, currently either an [ElementType] or an [AttributeType].
+// This decides where a [Node] should be rendered.
+// Nodes default to being [ElementType].
 type NodeType int
 
 const (
@@ -35,16 +38,17 @@ const (
 	AttributeType
 )
 
-// nodeTypeDescriber can be implemented by Nodes to let callers know whether the Node is
-// an ElementType or an AttributeType. This is used for rendering.
+// nodeTypeDescriber can be implemented by Nodes to let callers know whether the [Node] is
+// an [ElementType] or an [AttributeType].
+// See [NodeType].
 type nodeTypeDescriber interface {
 	Type() NodeType
 }
 
-// NodeFunc is a render function that is also a Node of ElementType.
+// NodeFunc is a render function that is also a [Node] of [ElementType].
 type NodeFunc func(io.Writer) error
 
-// Render satisfies Node.
+// Render satisfies [Node].
 func (n NodeFunc) Render(w io.Writer) error {
 	return n(w)
 }
@@ -54,19 +58,19 @@ func (n NodeFunc) Type() NodeType {
 	return ElementType
 }
 
-// String satisfies fmt.Stringer.
+// String satisfies [fmt.Stringer].
 func (n NodeFunc) String() string {
 	var b strings.Builder
 	_ = n.Render(&b)
 	return b.String()
 }
 
-// El creates an element DOM Node with a name and child Nodes.
+// El creates an element DOM [Node] with a name and child Nodes.
 // See https://dev.w3.org/html5/spec-LC/syntax.html#elements-0 for how elements are rendered.
 // No tags are ever omitted from normal tags, even though it's allowed for elements given at
 // https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
 // If an element is a void element, non-attribute children nodes are ignored.
-// Use this if no convenience creator exists.
+// Use this if no convenience creator exists in the html package.
 func El(name string, children ...Node) Node {
 	return NodeFunc(func(w io.Writer) error {
 		return render(w, &name, children...)
@@ -167,11 +171,11 @@ func isVoidElement(name string) bool {
 	return ok
 }
 
-// Attr creates an attribute DOM Node with a name and optional value.
+// Attr creates an attribute DOM [Node] with a name and optional value.
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
-// More than one value make Attr panic.
-// Use this if no convenience creator exists.
+// More than one value make [Attr] panic.
+// Use this if no convenience creator exists in the html package.
 func Attr(name string, value ...string) Node {
 	switch len(value) {
 	case 0:
@@ -188,7 +192,7 @@ type attr struct {
 	value *string
 }
 
-// Render satisfies Node.
+// Render satisfies [Node].
 func (a *attr) Render(w io.Writer) error {
 	if a.value == nil {
 		_, err := w.Write([]byte(" " + a.name))
@@ -198,19 +202,19 @@ func (a *attr) Render(w io.Writer) error {
 	return err
 }
 
-// Type satisfies nodeTypeDescriber.
+// Type satisfies [nodeTypeDescriber].
 func (a *attr) Type() NodeType {
 	return AttributeType
 }
 
-// String satisfies fmt.Stringer.
+// String satisfies [fmt.Stringer].
 func (a *attr) String() string {
 	var b strings.Builder
 	_ = a.Render(&b)
 	return b.String()
 }
 
-// Text creates a text DOM Node that Renders the escaped string t.
+// Text creates a text DOM [Node] that Renders the escaped string t.
 func Text(t string) Node {
 	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(template.HTMLEscapeString(t)))
@@ -218,7 +222,7 @@ func Text(t string) Node {
 	})
 }
 
-// Textf creates a text DOM Node that Renders the interpolated and escaped string format.
+// Textf creates a text DOM [Node] that Renders the interpolated and escaped string format.
 func Textf(format string, a ...interface{}) Node {
 	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(template.HTMLEscapeString(fmt.Sprintf(format, a...))))
@@ -226,7 +230,7 @@ func Textf(format string, a ...interface{}) Node {
 	})
 }
 
-// Raw creates a text DOM Node that just Renders the unescaped string t.
+// Raw creates a text DOM [Node] that just Renders the unescaped string t.
 func Raw(t string) Node {
 	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(t))
@@ -234,7 +238,7 @@ func Raw(t string) Node {
 	})
 }
 
-// Rawf creates a text DOM Node that just Renders the interpolated and unescaped string format.
+// Rawf creates a text DOM [Node] that just Renders the interpolated and unescaped string format.
 func Rawf(format string, a ...interface{}) Node {
 	return NodeFunc(func(w io.Writer) error {
 		_, err := w.Write([]byte(fmt.Sprintf(format, a...)))
@@ -288,9 +292,9 @@ func Fragment(children ...Node) Node {
 	return fragment{children}
 }
 
-// If condition is true, return the given Node. Otherwise, return nil.
+// If condition is true, return the given [Node]. Otherwise, return nil.
 // This helper function is good for inlining elements conditionally.
-// If it's important that the given Node is only evaluated if condition is true
+// If it's important that the given [Node] is only evaluated if condition is true
 // (for example, when using nilable variables), use [Iff] instead.
 func If(condition bool, n Node) Node {
 	if condition {
