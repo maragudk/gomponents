@@ -40,6 +40,10 @@ func Disabled() g.Node {
 	return g.Attr("disabled")
 }
 
+func Draggable(v string) g.Node {
+	return g.Attr("draggable", v)
+}
+
 func Loop() g.Node {
 	return g.Attr("loop")
 }
