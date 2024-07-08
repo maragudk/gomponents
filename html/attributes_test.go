@@ -55,6 +55,7 @@ func TestSimpleAttributes(t *testing.T) {
 		{Name: "content", Func: Content},
 		{Name: "crossorigin", Func: CrossOrigin},
 		{Name: "datetime", Func: DateTime},
+		{Name: "draggable", Func: Draggable},
 		{Name: "enctype", Func: EncType},
 		{Name: "dir", Func: Dir},
 		{Name: "for", Func: For},
