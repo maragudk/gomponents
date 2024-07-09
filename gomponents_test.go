@@ -234,33 +234,70 @@ func TestGroup(t *testing.T) {
 		assert.Equal(t, `<div class="foo"><img><br id="hat"><hr></div>`, e)
 	})
 
-	t.Run("panics on direct render", func(t *testing.T) {
-		e := g.Group(nil)
-		panicked := false
-		defer func() {
-			if err := recover(); err != nil {
-				panicked = true
-			}
-		}()
-		_ = e.Render(nil)
-		if !panicked {
-			t.FailNow()
-		}
+	t.Run("ignores attributes at the first level", func(t *testing.T) {
+		children := []g.Node{g.Attr("class", "hat"), g.El("div"), g.El("span")}
+		e := g.Group(children)
+		assert.Equal(t, "<div></div><span></span>", e)
 	})
 
-	t.Run("panics on direct string", func(t *testing.T) {
-		e := g.Group(nil).(fmt.Stringer)
-		panicked := false
-		defer func() {
-			if err := recover(); err != nil {
-				panicked = true
-			}
-		}()
-		_ = e.String()
-		if !panicked {
+	t.Run("does not ignore attributes at the second level", func(t *testing.T) {
+		children := []g.Node{g.El("div", g.Attr("class", "hat")), g.El("span")}
+		e := g.Group(children)
+		assert.Equal(t, `<div class="hat"></div><span></span>`, e)
+	})
+
+	t.Run("can render a group child node including attributes", func(t *testing.T) {
+		children := []g.Node{g.Attr("id", "hat"), g.El("div"), g.El("span")}
+		e := g.El("div", g.Group(children))
+		assert.Equal(t, `<div id="hat"><div></div><span></span></div>`, e)
+	})
+
+	t.Run("implements fmt.Stringer", func(t *testing.T) {
+		children := []g.Node{g.El("div"), g.El("span")}
+		e := g.Group(children)
+		if e, ok := e.(fmt.Stringer); !ok || e.String() != "<div></div><span></span>" {
 			t.FailNow()
 		}
 	})
+}
+
+func TestFragment(t *testing.T) {
+	t.Run("groups multiple nodes into one", func(t *testing.T) {
+		n := g.Fragment(g.El("div"), g.El("span"))
+		assert.Equal(t, "<div></div><span></span>", n)
+	})
+
+	t.Run("ignores attributes at the first level", func(t *testing.T) {
+		n := g.Fragment(g.Attr("class", "hat"), g.El("div"), g.El("span"))
+		assert.Equal(t, "<div></div><span></span>", n)
+	})
+
+	t.Run("does not ignore attributes at the second level", func(t *testing.T) {
+		n := g.Fragment(g.El("div", g.Attr("class", "hat")), g.El("span"))
+		assert.Equal(t, `<div class="hat"></div><span></span>`, n)
+	})
+
+	t.Run("can render a fragment child node", func(t *testing.T) {
+		n := g.El("div", g.Fragment(g.El("div"), g.El("span")))
+		assert.Equal(t, "<div><div></div><span></span></div>", n)
+	})
+
+	t.Run("implements fmt.Stringer", func(t *testing.T) {
+		n := g.Fragment(g.El("div"), g.El("span"))
+		if n, ok := n.(fmt.Stringer); !ok || n.String() != "<div></div><span></span>" {
+			t.FailNow()
+		}
+	})
+}
+
+func ExampleFragment() {
+	f := g.Fragment(
+		g.El("div"),
+		g.El("span"),
+	)
+
+	_ = f.Render(os.Stdout)
+	// Output: <div></div><span></span>
 }
 
 func TestIf(t *testing.T) {
