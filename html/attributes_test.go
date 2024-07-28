@@ -120,3 +120,10 @@ func TestData(t *testing.T) {
 		assert.Equal(t, ` data-id="partyhat"`, n)
 	})
 }
+
+func TestHreff(t *testing.T) {
+	t.Run("formats href value", func(t *testing.T) {
+		assert.Equal(t, ` href="no-args"`, Hreff("no-args"))
+		assert.Equal(t, ` href="/prefix/123/suffix/test"`, Hreff("/prefix/%d/suffix/%s", 123, "test"))
+	})
+}

@@ -1,6 +1,8 @@
 package html
 
 import (
+	"fmt"
+
 	g "github.com/maragudk/gomponents"
 )
 
@@ -143,6 +145,10 @@ func Height(v string) g.Node {
 
 func Href(v string) g.Node {
 	return g.Attr("href", v)
+}
+
+func Hreff(format string, a ...any) g.Node {
+	return g.Attr("href", fmt.Sprintf(format, a...))
 }
 
 func ID(v string) g.Node {
