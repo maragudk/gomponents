@@ -49,6 +49,7 @@ func TestSimpleAttributes(t *testing.T) {
 		{Name: "as", Func: As},
 		{Name: "autocomplete", Func: AutoComplete},
 		{Name: "charset", Func: Charset},
+		{Name: "cite", Func: CiteAttr},
 		{Name: "class", Func: Class},
 		{Name: "cols", Func: Cols},
 		{Name: "colspan", Func: ColSpan},

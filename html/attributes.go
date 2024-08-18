@@ -101,6 +101,10 @@ func Charset(v string) g.Node {
 	return g.Attr("charset", v)
 }
 
+func CiteAttr(v string) g.Node {
+	return g.Attr("cite", v)
+}
+
 func Class(v string) g.Node {
 	return g.Attr("class", v)
 }

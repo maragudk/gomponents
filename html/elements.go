@@ -73,6 +73,11 @@ func Cite(children ...g.Node) g.Node {
 	return g.El("cite", children...)
 }
 
+// Deprecated: Use [Cite] instead.
+func CiteEl(children ...g.Node) g.Node {
+	return Cite(children...)
+}
+
 func Code(children ...g.Node) g.Node {
 	return g.El("code", children...)
 }
