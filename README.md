@@ -149,7 +149,7 @@ Unfortunately, there are six main name clashes in HTML elements and attributes, 
 to be able to co-exist in the same package in Go. I've chosen one or the other based on what I think is the common usage.
 In either case, the less-used variant also exists in the codebase:
 
-- `cite` (`CiteEl`/`Cite`, `CiteAttr` also exists)
+- `cite` (`Cite`/`CiteAttr`, `CiteEl` also exists)
 - `data` (`DataEl`/`Data`, `DataAttr` also exists)
 - `form` (`Form`/`FormAttr`, `FormEl` also exists)
 - `label` (`Label`/`LabelAttr`, `LabelEl` also exists)
