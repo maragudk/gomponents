@@ -155,3 +155,11 @@ In either case, the less-used variant also exists in the codebase:
 - `label` (`Label`/`LabelAttr`, `LabelEl` also exists)
 - `style` (`StyleEl`/`Style`, `StyleAttr` also exists)
 - `title` (`TitleEl`/`Title`, `TitleAttr` also exists)
+
+For SVG, there are also name clashes, so they use a different naming scheme:
+
+- `clipPath` (`ClipPathEl`/`ClipPath`, `ClipPathAttr` also exists)
+- `mask` (`MaskEl`/`Mask`, `MaskAttr` also exists)
+- `filter` (`FilterEl`/`Filter`, `FilterAttr` also exists)
+- `style` (`StyleEl`/`Style`, `StyleAttr` also exists)
+

@@ -124,7 +124,7 @@ func CalcMode(v string) g.Node {
 	return g.Attr("calcMode", v)
 }
 
-func ClipPath(v string) g.Node {
+func ClipPathAttr(v string) g.Node {
 	return g.Attr("clip-path", v)
 }
 
@@ -196,7 +196,7 @@ func Exponent(v string) g.Node {
 	return g.Attr("exponent", v)
 }
 
-func Filter(v string) g.Node {
+func FilterAttr(v string) g.Node {
 	return g.Attr("filter", v)
 }
 
@@ -352,7 +352,7 @@ func MarkerWidth(v string) g.Node {
 	return g.Attr("markerWidth", v)
 }
 
-func Mask(v string) g.Node {
+func MaskAttr(v string) g.Node {
 	return g.Attr("mask", v)
 }
 
@@ -363,8 +363,6 @@ func MaskContentUnits(v string) g.Node {
 func MaskUnits(v string) g.Node {
 	return g.Attr("maskUnits", v)
 }
-
-// ... existing code ...
 
 func Max(v string) g.Node {
 	return g.Attr("max", v)
@@ -582,7 +580,7 @@ func StrokeWidth(v string) g.Node {
 	return g.Attr("stroke-width", v)
 }
 
-func Style(v string) g.Node {
+func StyleAttr(v string) g.Node {
 	return g.Attr("style", v)
 }
 
