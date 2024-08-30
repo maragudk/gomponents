@@ -154,6 +154,10 @@ func FilterEl(children ...g.Node) g.Node {
 	return g.El("filter", children...)
 }
 
+func Filter(children ...g.Node) g.Node {
+	return FilterEl(children...)
+}
+
 func ForeignObject(children ...g.Node) g.Node {
 	return g.El("foreignObject", children...)
 }
@@ -180,6 +184,10 @@ func Marker(children ...g.Node) g.Node {
 
 func MaskEl(children ...g.Node) g.Node {
 	return g.El("mask", children...)
+}
+
+func Mask(children ...g.Node) g.Node {
+	return MaskEl(children...)
 }
 
 func Metadata(children ...g.Node) g.Node {
@@ -224,6 +232,10 @@ func Stop(children ...g.Node) g.Node {
 
 func StyleEl(children ...g.Node) g.Node {
 	return g.El("style", children...)
+}
+
+func Style(children ...g.Node) g.Node {
+	return StyleEl(children...)
 }
 
 func Switch(children ...g.Node) g.Node {
