@@ -246,6 +246,15 @@ func Rawf(format string, a ...interface{}) Node {
 	})
 }
 
+// Map a slice of anything to a slice of Nodes.
+func Map[T any](ts []T, cb func(T) Node) []Node {
+	var nodes []Node
+	for _, t := range ts {
+		nodes = append(nodes, cb(t))
+	}
+	return nodes
+}
+
 type group struct {
 	children []Node
 }
