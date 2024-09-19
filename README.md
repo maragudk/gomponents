@@ -22,13 +22,17 @@ Made in 🇩🇰 by [maragu](https://www.maragu.dk), maker of [online Go courses
 ## Features
 
 - Build reusable HTML components
-- Write declarative HTML5 in Go without all the strings, so you get
-  - Type safety
-  - Auto-completion
-  - Nice formatting with `gofmt`
+- Write declarative HTML 5 in Go without all the strings, so you get
+  - Type safety from the compiler
+  - Auto-completion from the IDE
+  - Easy debugging with the standard Go debugger
+  - Automatic formatting with `gofmt`/`goimports`
 - Simple API that's easy to learn and use (you know most already if you know HTML)
-- Useful helpers like `Text` and `Textf` that insert HTML-escaped text, `Map` for mapping data to components,
-  and `If`/`Iff` for conditional rendering.
+- Useful helpers like
+  - `Text` and `Textf` that insert HTML-escaped text,
+  - `Raw` and `Rawf` for inserting raw strings,
+  - `Map` for mapping data to components and `Group` for grouping components,
+  - and `If`/`Iff` for conditional rendering.
 - No external dependencies
 
 ## Usage
@@ -71,7 +75,9 @@ For a more complete example, see [the examples directory](internal/examples/).
 ### What's up with the specially named elements and attributes?
 
 Unfortunately, there are six main name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
-to be able to co-exist in the same package in Go. I've chosen one or the other based on what I think is the common usage.
+to be able to co-exist in the same package in Go.
+
+I've chosen one or the other based on what I think is the common usage.
 In either case, the less-used variant also exists in the codebase:
 
 - `cite` (`Cite`/`CiteAttr`, `CiteEl` also exists)
