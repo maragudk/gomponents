@@ -45,6 +45,7 @@ func TestSimpleElements(t *testing.T) {
 		{Name: "canvas", Func: Canvas},
 		{Name: "caption", Func: Caption},
 		{Name: "cite", Func: Cite},
+		{Name: "cite", Func: CiteEl},
 		{Name: "code", Func: Code},
 		{Name: "colgroup", Func: ColGroup},
 		{Name: "data", Func: DataEl},

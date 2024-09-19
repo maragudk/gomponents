@@ -145,10 +145,11 @@ For more complete examples, see [the examples directory](examples/).
 
 ### What's up with the specially named elements and attributes?
 
-Unfortunately, there are five main name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
+Unfortunately, there are six main name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
 to be able to co-exist in the same package in Go. I've chosen one or the other based on what I think is the common usage.
 In either case, the less-used variant also exists in the codebase:
 
+- `cite` (`Cite`/`CiteAttr`, `CiteEl` also exists)
 - `data` (`DataEl`/`Data`, `DataAttr` also exists)
 - `form` (`Form`/`FormAttr`, `FormEl` also exists)
 - `label` (`Label`/`LabelAttr`, `LabelEl` also exists)

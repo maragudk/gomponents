@@ -73,6 +73,11 @@ func Cite(children ...g.Node) g.Node {
 	return g.El("cite", children...)
 }
 
+// Deprecated: Use [Cite] instead.
+func CiteEl(children ...g.Node) g.Node {
+	return Cite(children...)
+}
+
 func Code(children ...g.Node) g.Node {
 	return g.El("code", children...)
 }
@@ -119,7 +124,7 @@ func Form(children ...g.Node) g.Node {
 
 // Deprecated: Use [Form] instead.
 func FormEl(children ...g.Node) g.Node {
-	return g.El("form", children...)
+	return Form(children...)
 }
 
 func FieldSet(children ...g.Node) g.Node {
@@ -172,7 +177,7 @@ func Label(children ...g.Node) g.Node {
 
 // Deprecated: Use [Label] instead.
 func LabelEl(children ...g.Node) g.Node {
-	return g.El("label", children...)
+	return Label(children...)
 }
 
 func Legend(children ...g.Node) g.Node {

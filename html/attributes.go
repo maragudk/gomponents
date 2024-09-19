@@ -40,6 +40,10 @@ func Disabled() g.Node {
 	return g.Attr("disabled")
 }
 
+func Draggable(v string) g.Node {
+	return g.Attr("draggable", v)
+}
+
 func Loop() g.Node {
 	return g.Attr("loop")
 }
@@ -97,6 +101,10 @@ func Charset(v string) g.Node {
 	return g.Attr("charset", v)
 }
 
+func CiteAttr(v string) g.Node {
+	return g.Attr("cite", v)
+}
+
 func Class(v string) g.Node {
 	return g.Attr("class", v)
 }
@@ -122,7 +130,7 @@ func Data(name, v string) g.Node {
 //
 // Deprecated: Use [Data] instead.
 func DataAttr(name, v string) g.Node {
-	return g.Attr("data-"+name, v)
+	return Data(name, v)
 }
 
 func For(v string) g.Node {
@@ -239,7 +247,7 @@ func Style(v string) g.Node {
 
 // Deprecated: Use [Style] instead.
 func StyleAttr(v string) g.Node {
-	return g.Attr("style", v)
+	return Style(v)
 }
 
 func TabIndex(v string) g.Node {
@@ -256,7 +264,7 @@ func Title(v string) g.Node {
 
 // Deprecated: Use [Title] instead.
 func TitleAttr(v string) g.Node {
-	return g.Attr("title", v)
+	return Title(v)
 }
 
 func Type(v string) g.Node {
