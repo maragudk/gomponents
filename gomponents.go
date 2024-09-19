@@ -111,8 +111,8 @@ func renderChild(w *statefulWriter, c Node, t NodeType) {
 		return
 	}
 
-	// Rendering group like this is still important even though a group can now render itself,
-	// since otherwise attributes would be ignored at the first level.
+	// Rendering groups like this is still important even though a group can render itself,
+	// since otherwise attributes will sometimes be ignored.
 	if g, ok := c.(group); ok {
 		for _, groupC := range g.children {
 			renderChild(w, groupC, t)
