@@ -72,10 +72,16 @@ func (n NodeFunc) String() string {
 // If an element is a void element, non-attribute children nodes are ignored.
 // Use this if no convenience creator exists in the html package.
 func El(name string, children ...Node) Node {
-	return NodeFunc(func(w2 io.Writer) error {
-		w := &statefulWriter{w: w2}
+	return NodeFunc(func(w io.Writer) error {
+		return render(w, &name, children...)
+	})
+}
 
-		w.Write([]byte("<" + name))
+func render(w2 io.Writer, name *string, children ...Node) error {
+	w := &statefulWriter{w: w2}
+
+	if name != nil {
+		w.Write([]byte("<" + *name))
 
 		for _, c := range children {
 			renderChild(w, c, AttributeType)
@@ -83,17 +89,20 @@ func El(name string, children ...Node) Node {
 
 		w.Write([]byte(">"))
 
-		if isVoidElement(name) {
+		if isVoidElement(*name) {
 			return w.err
 		}
+	}
 
-		for _, c := range children {
-			renderChild(w, c, ElementType)
-		}
+	for _, c := range children {
+		renderChild(w, c, ElementType)
+	}
 
-		w.Write([]byte("</" + name + ">"))
-		return w.err
-	})
+	if name != nil {
+		w.Write([]byte("</" + *name + ">"))
+	}
+
+	return w.err
 }
 
 // renderChild c to the given writer w if the node type is t.
@@ -102,6 +111,8 @@ func renderChild(w *statefulWriter, c Node, t NodeType) {
 		return
 	}
 
+	// Rendering groups like this is still important even though a group can render itself,
+	// since otherwise attributes will sometimes be ignored.
 	if g, ok := c.(group); ok {
 		for _, groupC := range g.children {
 			renderChild(w, groupC, t)
@@ -241,17 +252,19 @@ type group struct {
 
 // String satisfies [fmt.Stringer].
 func (g group) String() string {
-	panic("cannot render group directly")
+	var b strings.Builder
+	_ = g.Render(&b)
+	return b.String()
 }
 
 // Render satisfies [Node].
-func (g group) Render(io.Writer) error {
-	panic("cannot render group directly")
+func (g group) Render(w io.Writer) error {
+	return render(w, nil, g.children...)
 }
 
-// Group multiple Nodes into one Node. Useful for concatenation of Nodes in variadic functions.
-// The resulting Node cannot Render directly, trying it will panic.
-// Render must happen through a parent element created with El or a helper.
+// Group a slice of Nodes into one Node. Useful for grouping the result of [Map] into one [Node].
+// A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
+// to not produce invalid HTML.
 func Group(children []Node) Node {
 	return group{children: children}
 }
