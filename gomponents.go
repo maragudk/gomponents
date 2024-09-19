@@ -263,10 +263,19 @@ func (g group) Render(w io.Writer) error {
 }
 
 // Group a slice of Nodes into one Node. Useful for grouping the result of [Map] into one [Node].
+// As a convenience, and to look more like the other functions,
+// [Group] can also take multiple [Node]s as variadic arguments after the slice.
 // A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
 // to not produce invalid HTML.
-func Group(children []Node) Node {
-	return group{children: children}
+func Group(children []Node, moreChildren ...Node) Node {
+	var cs []Node
+	if len(children) > 0 {
+		cs = append(cs, children...)
+	}
+	if len(moreChildren) > 0 {
+		cs = append(cs, moreChildren...)
+	}
+	return group{children: cs}
 }
 
 // If condition is true, return the given [Node]. Otherwise, return nil.

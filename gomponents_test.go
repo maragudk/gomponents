@@ -259,11 +259,22 @@ func TestGroup(t *testing.T) {
 			t.FailNow()
 		}
 	})
+
+	t.Run("works with variadic arguments", func(t *testing.T) {
+		e := g.Group(nil, g.El("div"), g.El("span"))
+		assert.Equal(t, "<div></div><span></span>", e)
+	})
 }
 
 func ExampleGroup() {
 	children := []g.Node{g.El("div"), g.El("span")}
 	e := g.Group(children)
+	_ = e.Render(os.Stdout)
+	// Output: <div></div><span></span>
+}
+
+func ExampleGroup_variadic() {
+	e := g.Group(nil, g.El("div"), g.El("span"))
 	_ = e.Render(os.Stdout)
 	// Output: <div></div><span></span>
 }
