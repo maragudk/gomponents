@@ -20,8 +20,6 @@ jobs:
     strategy:
       matrix:
         go:
-          - "1.16"
-          - "1.17"
           - "1.18"
           - "1.19"
           - "1.20"
@@ -43,12 +41,7 @@ jobs:
         run: go build -v ./...
 
       - name: Test
-        if: ${{ matrix.go != '1.16' }}
         run: go test -v -coverprofile=coverage.txt -shuffle on ./...
-
-      - name: Test
-        if: ${{ matrix.go == '1.16' }}
-        run: go test -v -coverprofile=coverage.txt ./...
 
       - name: Coverage
         uses: codecov/codecov-action@v3
