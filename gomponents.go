@@ -269,29 +269,6 @@ func Group(children []Node) Node {
 	return group{children: children}
 }
 
-type fragment struct {
-	children []Node
-}
-
-// String satisfies [fmt.Stringer].
-func (f fragment) String() string {
-	var b strings.Builder
-	_ = f.Render(&b)
-	return b.String()
-}
-
-// Render satisfies [Node].
-func (f fragment) Render(w io.Writer) error {
-	return render(w, nil, f.children...)
-}
-
-// Fragment is multiple nodes concatenated. It's a lot like [Group], except it's variadic.
-// It's useful in situations where you want to return an HTML fragment without a parent element.
-// Note that if any of the direct children are [AttributeType], they will be ignored, to not produce invalid HTML.
-func Fragment(children ...Node) Node {
-	return fragment{children}
-}
-
 // If condition is true, return the given [Node]. Otherwise, return nil.
 // This helper function is good for inlining elements conditionally.
 // If it's important that the given [Node] is only evaluated if condition is true
