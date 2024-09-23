@@ -237,14 +237,20 @@ func TestMap(t *testing.T) {
 		list := g.El("ul", lis...)
 
 		assert.Equal(t, `<ul><li>hat</li><li>partyhat</li><li>turtlehat</li></ul>`, list)
+		if len(lis) != 3 {
+			t.FailNow()
+		}
+		assert.Equal(t, `<li>hat</li>`, lis[0])
+		assert.Equal(t, `<li>partyhat</li>`, lis[1])
+		assert.Equal(t, `<li>turtlehat</li>`, lis[2])
 	})
 }
 
 func ExampleMap() {
 	items := []string{"party hat", "super hat"}
-	e := g.El("ul", g.Group(g.Map(items, func(i string) g.Node {
+	e := g.El("ul", g.Map(items, func(i string) g.Node {
 		return g.El("li", g.Text(i))
-	})))
+	}))
 	_ = e.Render(os.Stdout)
 	// Output: <ul><li>party hat</li><li>super hat</li></ul>
 }
@@ -277,14 +283,21 @@ func TestGroup(t *testing.T) {
 	t.Run("implements fmt.Stringer", func(t *testing.T) {
 		children := []g.Node{g.El("div"), g.El("span")}
 		e := g.Group(children)
-		if e, ok := e.(fmt.Stringer); !ok || e.String() != "<div></div><span></span>" {
+		if e, ok := any(e).(fmt.Stringer); !ok || e.String() != "<div></div><span></span>" {
 			t.FailNow()
 		}
 	})
 
-	t.Run("works with variadic arguments", func(t *testing.T) {
-		e := g.Group(nil, g.El("div"), g.El("span"))
+	t.Run("works with variadic-ish arguments", func(t *testing.T) {
+		e := g.Group{g.El("div"), g.El("span")}
 		assert.Equal(t, "<div></div><span></span>", e)
+	})
+
+	t.Run("can have children accessed by index like a regular slice", func(t *testing.T) {
+		children := []g.Node{g.El("div"), g.El("span")}
+		g := g.Group(children)
+		assert.Equal(t, "<div></div>", g[0])
+		assert.Equal(t, "<span></span>", g[1])
 	})
 }
 
@@ -295,8 +308,8 @@ func ExampleGroup() {
 	// Output: <div></div><span></span>
 }
 
-func ExampleGroup_variadic() {
-	e := g.Group(nil, g.El("div"), g.El("span"))
+func ExampleGroup_variadicish() {
+	e := g.Group{g.El("div"), g.El("span")}
 	_ = e.Render(os.Stdout)
 	// Output: <div></div><span></span>
 }
