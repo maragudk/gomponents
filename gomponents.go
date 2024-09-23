@@ -246,7 +246,7 @@ func Rawf(format string, a ...interface{}) Node {
 	})
 }
 
-// Map a slice of anything to a [Group].
+// Map a slice of anything to a [Group] (which is just a slice of [Node]s).
 func Map[T any](ts []T, cb func(T) Node) Group {
 	var nodes []Node
 	for _, t := range ts {
@@ -255,7 +255,7 @@ func Map[T any](ts []T, cb func(T) Node) Group {
 	return nodes
 }
 
-// Group a slice of [Node]s into one Node.
+// Group a slice of [Node]s into one Node, but is still usable like a regular slice of [Node]s.
 // A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
 // to not produce invalid HTML.
 type Group []Node

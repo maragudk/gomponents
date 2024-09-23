@@ -228,7 +228,7 @@ func ExampleRawf() {
 }
 
 func TestMap(t *testing.T) {
-	t.Run("maps slices to nodes", func(t *testing.T) {
+	t.Run("maps slices to a group", func(t *testing.T) {
 		items := []string{"hat", "partyhat", "turtlehat"}
 		lis := g.Map(items, func(i string) g.Node {
 			return g.El("li", g.Text(i))
@@ -268,16 +268,10 @@ func TestGroup(t *testing.T) {
 		assert.Equal(t, "<div></div><span></span>", e)
 	})
 
-	t.Run("does not ignore attributes at the second level", func(t *testing.T) {
-		children := []g.Node{g.El("div", g.Attr("class", "hat")), g.El("span")}
+	t.Run("does not ignore attributes at the second level and below", func(t *testing.T) {
+		children := []g.Node{g.El("div", g.Attr("class", "hat"), g.El("hr", g.Attr("id", "partyhat"))), g.El("span")}
 		e := g.Group(children)
-		assert.Equal(t, `<div class="hat"></div><span></span>`, e)
-	})
-
-	t.Run("can render a group child node including attributes", func(t *testing.T) {
-		children := []g.Node{g.Attr("id", "hat"), g.El("div"), g.El("span")}
-		e := g.El("div", g.Group(children))
-		assert.Equal(t, `<div id="hat"><div></div><span></span></div>`, e)
+		assert.Equal(t, `<div class="hat"><hr id="partyhat"></div><span></span>`, e)
 	})
 
 	t.Run("implements fmt.Stringer", func(t *testing.T) {
@@ -288,16 +282,11 @@ func TestGroup(t *testing.T) {
 		}
 	})
 
-	t.Run("works with variadic-ish arguments", func(t *testing.T) {
+	t.Run("can be used like a regular slice", func(t *testing.T) {
 		e := g.Group{g.El("div"), g.El("span")}
 		assert.Equal(t, "<div></div><span></span>", e)
-	})
-
-	t.Run("can have children accessed by index like a regular slice", func(t *testing.T) {
-		children := []g.Node{g.El("div"), g.El("span")}
-		g := g.Group(children)
-		assert.Equal(t, "<div></div>", g[0])
-		assert.Equal(t, "<span></span>", g[1])
+		assert.Equal(t, "<div></div>", e[0])
+		assert.Equal(t, "<span></span>", e[1])
 	})
 }
 
@@ -308,7 +297,7 @@ func ExampleGroup() {
 	// Output: <div></div><span></span>
 }
 
-func ExampleGroup_variadicish() {
+func ExampleGroup_slice() {
 	e := g.Group{g.El("div"), g.El("span")}
 	_ = e.Render(os.Stdout)
 	// Output: <div></div><span></span>
