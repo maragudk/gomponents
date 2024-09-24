@@ -6,7 +6,7 @@
 // All DOM elements and attributes can be created by using the [El] and [Attr] functions.
 // The functions [Text], [Textf], [Raw], and [Rawf] can be used to create text nodes, either HTML-escaped or unescaped.
 // See also helper functions [Map], [If], and [Iff] for mapping data to nodes and inserting them conditionally.
-// There's also the [Group] type, which is a slice of [Node]s that can be rendered as one [Node].
+// There's also the [Group] type, which is a slice of [Node]-s that can be rendered as one [Node].
 //
 // For basic HTML elements and attributes, see the package html.
 //
@@ -247,7 +247,7 @@ func Rawf(format string, a ...interface{}) Node {
 	})
 }
 
-// Map a slice of anything to a [Group] (which is just a slice of [Node]s).
+// Map a slice of anything to a [Group] (which is just a slice of [Node]-s).
 func Map[T any](ts []T, cb func(T) Node) Group {
 	var nodes []Node
 	for _, t := range ts {
@@ -256,7 +256,7 @@ func Map[T any](ts []T, cb func(T) Node) Group {
 	return nodes
 }
 
-// Group a slice of [Node]s into one Node, while still being usable like a regular slice of [Node]s.
+// Group a slice of [Node]-s into one Node, while still being usable like a regular slice of [Node]-s.
 // A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
 // to not produce invalid HTML.
 type Group []Node
