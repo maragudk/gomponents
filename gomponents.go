@@ -113,8 +113,8 @@ func renderChild(w *statefulWriter, c Node, t NodeType) {
 
 	// Rendering groups like this is still important even though a group can render itself,
 	// since otherwise attributes will sometimes be ignored.
-	if g, ok := c.(group); ok {
-		for _, groupC := range g.children {
+	if g, ok := c.(Group); ok {
+		for _, groupC := range g {
 			renderChild(w, groupC, t)
 		}
 		return
@@ -246,8 +246,8 @@ func Rawf(format string, a ...interface{}) Node {
 	})
 }
 
-// Map a slice of anything to a slice of Nodes.
-func Map[T any](ts []T, cb func(T) Node) []Node {
+// Map a slice of anything to a [Group] (which is just a slice of [Node]s).
+func Map[T any](ts []T, cb func(T) Node) Group {
 	var nodes []Node
 	for _, t := range ts {
 		nodes = append(nodes, cb(t))
@@ -255,27 +255,21 @@ func Map[T any](ts []T, cb func(T) Node) []Node {
 	return nodes
 }
 
-type group struct {
-	children []Node
-}
+// Group a slice of [Node]s into one Node, while still being usable like a regular slice of [Node]s.
+// A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
+// to not produce invalid HTML.
+type Group []Node
 
 // String satisfies [fmt.Stringer].
-func (g group) String() string {
+func (g Group) String() string {
 	var b strings.Builder
 	_ = g.Render(&b)
 	return b.String()
 }
 
 // Render satisfies [Node].
-func (g group) Render(w io.Writer) error {
-	return render(w, nil, g.children...)
-}
-
-// Group a slice of Nodes into one Node. Useful for grouping the result of [Map] into one [Node].
-// A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
-// to not produce invalid HTML.
-func Group(children []Node) Node {
-	return group{children: children}
+func (g Group) Render(w io.Writer) error {
+	return render(w, nil, g...)
 }
 
 // If condition is true, return the given [Node]. Otherwise, return nil.
