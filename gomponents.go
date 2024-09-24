@@ -1,11 +1,12 @@
 // Package gomponents provides HTML components in Go, that render to HTML 5.
 //
-// The primary interface is a [Node]. It describes a function Render, which should render the [Node]
+// The primary interface is a [Node]. It defines a function Render, which should render the [Node]
 // to the given writer as a string.
 //
 // All DOM elements and attributes can be created by using the [El] and [Attr] functions.
 // The functions [Text], [Textf], [Raw], and [Rawf] can be used to create text nodes, either HTML-escaped or unescaped.
-// See also helper functions [Group], [Map], [If], and [Iff] for mapping data to nodes and inserting them conditionally.
+// See also helper functions [Map], [If], and [Iff] for mapping data to nodes and inserting them conditionally.
+// There's also the [Group] type, which is a slice of [Node]s that can be rendered as one [Node].
 //
 // For basic HTML elements and attributes, see the package html.
 //
