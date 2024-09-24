@@ -13,8 +13,8 @@ func HomePage(items []string) Node {
 
 		P(Raw(`Have a look at the <a href="https://github.com/maragudk/gomponents/tree/main/internal/examples/app">source code</a> to see how it’s structured.`)),
 
-		Ul(Group(Map(items, func(s string) Node {
+		Ul(Map(items, func(s string) Node {
 			return Li(Text(s))
-		}))),
+		})),
 	)
 }
