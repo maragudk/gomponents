@@ -228,7 +228,7 @@ func ExampleRawf() {
 }
 
 func TestMap(t *testing.T) {
-	t.Run("maps slices to a group", func(t *testing.T) {
+	t.Run("maps a slice to a group", func(t *testing.T) {
 		items := []string{"hat", "partyhat", "turtlehat"}
 		lis := g.Map(items, func(i string) g.Node {
 			return g.El("li", g.Text(i))
