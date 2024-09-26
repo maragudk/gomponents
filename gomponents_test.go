@@ -255,6 +255,18 @@ func ExampleMap() {
 	// Output: <ul><li>party hat</li><li>super hat</li></ul>
 }
 
+func ExampleMap_index() {
+	items := []string{"party hat", "super hat"}
+	var index int
+	e := g.El("ul", g.Map(items, func(i string) g.Node {
+		e := g.El("li", g.Textf("%v: %v", index, i))
+		index++
+		return e
+	}))
+	_ = e.Render(os.Stdout)
+	// Output: <ul><li>0: party hat</li><li>1: super hat</li></ul>
+}
+
 func TestGroup(t *testing.T) {
 	t.Run("groups multiple nodes into one", func(t *testing.T) {
 		children := []g.Node{g.El("br", g.Attr("id", "hat")), g.El("hr")}
