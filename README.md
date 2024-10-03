@@ -13,7 +13,9 @@ _gomponents_ are HTML components written in pure Go.
 They render to HTML 5, and make it easy for you to build reusable components.
 So you can focus on building your app instead of learning yet another templating language.
 
-The API may change until version 1 is reached.
+```shell
+go get maragu.dev/gomponents
+```
 
 Made with ✨sparkles✨ by [maragu](https://www.maragu.dev/).
 
