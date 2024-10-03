@@ -1,3 +1,3 @@
-module "github.com/maragudk/gomponents"
+module "maragu.dev/gomponents"
 
 go 1.18

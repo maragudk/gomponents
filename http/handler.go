@@ -4,7 +4,7 @@ package http
 import (
 	"net/http"
 
-	g "github.com/maragudk/gomponents"
+	g "maragu.dev/gomponents"
 )
 
 // Handler is like [http.Handler] but returns a [g.Node] and an error.

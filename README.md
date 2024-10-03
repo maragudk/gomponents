@@ -2,10 +2,10 @@
 
 <img src="logo.png" alt="Logo" width="300" align="right"/>
 
-[![GoDoc](https://pkg.go.dev/badge/github.com/maragudk/gomponents)](https://pkg.go.dev/github.com/maragudk/gomponents)
+[![GoDoc](https://pkg.go.dev/badge/maragu.dev/gomponents)](https://pkg.go.dev/maragu.dev/gomponents)
 [![Go](https://github.com/maragudk/gomponents/actions/workflows/ci.yml/badge.svg)](https://github.com/maragudk/gomponents/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/maragudk/gomponents/branch/main/graph/badge.svg)](https://codecov.io/gh/maragudk/gomponents)
-[![Go Report Card](https://goreportcard.com/badge/github.com/maragudk/gomponents)](https://goreportcard.com/report/github.com/maragudk/gomponents)
+[![Go Report Card](https://goreportcard.com/badge/maragu.dev/gomponents)](https://goreportcard.com/report/maragu.dev/gomponents)
 
 Try HTML components in pure Go.
 
@@ -40,7 +40,7 @@ Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
 ## Usage
 
 ```shell
-go get github.com/maragudk/gomponents
+go get maragu.dev/gomponents
 ```
 
 The preferred way to use gomponents is with so-called dot-imports (note the dot before the imports),
@@ -50,9 +50,9 @@ to give you that smooth, native HTML feel:
 package main
 
 import (
-	. "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/components"
-	. "github.com/maragudk/gomponents/html"
+	. "maragu.dev/gomponents"
+	. "maragu.dev/gomponents/components"
+	. "maragu.dev/gomponents/html"
 )
 
 func Navbar(authenticated bool, currentPath string) Node {

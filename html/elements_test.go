@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/html"
-	"github.com/maragudk/gomponents/internal/assert"
+	g "maragu.dev/gomponents"
+	. "maragu.dev/gomponents/html"
+	"maragu.dev/gomponents/internal/assert"
 )
 
 type erroringWriter struct{}
