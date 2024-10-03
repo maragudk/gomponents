@@ -8,6 +8,6 @@ import (
 
 func main() {
 	if err := http.Start(); err != nil {
-		slog.Info("Error", 1, "error", err)
+		slog.Info("Error starting", "error", err)
 	}
 }
