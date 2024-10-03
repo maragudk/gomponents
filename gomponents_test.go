@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	g "github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/internal/assert"
+	g "maragu.dev/gomponents"
+	"maragu.dev/gomponents/internal/assert"
 )
 
 func TestNodeFunc(t *testing.T) {

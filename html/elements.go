@@ -8,7 +8,7 @@ package html
 import (
 	"io"
 
-	g "github.com/maragudk/gomponents"
+	g "maragu.dev/gomponents"
 )
 
 // Doctype returns a special kind of [g.Node] that prefixes its sibling with the string "<!doctype html>".

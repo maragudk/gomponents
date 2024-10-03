@@ -1,7 +1,7 @@
 package html
 
 import (
-	g "github.com/maragudk/gomponents"
+	g "maragu.dev/gomponents"
 )
 
 func Async() g.Node {
