@@ -15,11 +15,13 @@ So you can focus on building your app instead of learning yet another templating
 
 The API may change until version 1 is reached.
 
-Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
+Made with ✨sparkles✨ by [maragu](https://www.maragu.dev/).
 
-Made in 🇩🇰 by [maragu](https://www.maragu.dk), maker of [online Go courses](https://www.golang.dk/).
+Does your company depend on this project? [Contact me at markus@maragu.dk](mailto:markus@maragu.dk?Subject=Supporting%20your%20project) to discuss options for a one-time or recurring invoice to ensure its continued thriving.
 
 ## Features
+
+Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
 
 - Build reusable HTML components
 - Write declarative HTML 5 in Go without all the strings, so you get
