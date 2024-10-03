@@ -3,14 +3,14 @@ package http
 import (
 	"net/http"
 
-	g "github.com/maragudk/gomponents"
-	ghttp "github.com/maragudk/gomponents/http"
+	. "maragu.dev/gomponents"
+	ghttp "maragu.dev/gomponents/http"
 
 	"app/html"
 )
 
 func Home(mux *http.ServeMux) {
-	mux.Handle("GET /", ghttp.Adapt(func(w http.ResponseWriter, r *http.Request) (g.Node, error) {
+	mux.Handle("GET /", ghttp.Adapt(func(w http.ResponseWriter, r *http.Request) (Node, error) {
 		// Let's pretend this comes from a db or something.
 		items := []string{"Super", "Duper", "Nice"}
 		return html.HomePage(items), nil
@@ -18,7 +18,7 @@ func Home(mux *http.ServeMux) {
 }
 
 func About(mux *http.ServeMux) {
-	mux.Handle("GET /about", ghttp.Adapt(func(w http.ResponseWriter, r *http.Request) (g.Node, error) {
+	mux.Handle("GET /about", ghttp.Adapt(func(w http.ResponseWriter, r *http.Request) (Node, error) {
 		return html.AboutPage(), nil
 	}))
 }

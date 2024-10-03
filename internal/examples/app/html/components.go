@@ -1,9 +1,9 @@
 package html
 
 import (
-	. "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/components"
-	. "github.com/maragudk/gomponents/html"
+	. "maragu.dev/gomponents"
+	. "maragu.dev/gomponents/components"
+	. "maragu.dev/gomponents/html"
 )
 
 func page(title string, children ...Node) Node {
