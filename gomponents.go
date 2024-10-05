@@ -295,3 +295,19 @@ func Iff(condition bool, f func() Node) Node {
 	}
 	return nil
 }
+
+// WithNodes adds the given nodes as children of the element calling it.
+// This helper function is designed to simplify the process of adding multiple child elements
+// to a container element, like `Div` or other layout elements.
+//
+// Usage example:
+//
+//	func exampleContainer(children ...Node) Node {
+//	  return Div(
+//	    Class("flex flex-col gap-4 bg-red-500"),
+//	    WithNodes(children),
+//	  )
+//	}
+func WithNodes(nodes Group) Node {
+	return Map(nodes, func(a Node) Node { return a })
+}

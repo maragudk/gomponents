@@ -371,3 +371,13 @@ func ExampleIff() {
 	_ = e.Render(os.Stdout)
 	// Output: <div></div>
 }
+
+func TestWithNodes(t *testing.T) {
+	t.Run("adds nodes sequentially as children of caller", func(t *testing.T) {
+		n := g.El("div", g.WithNodes(g.Group{
+			g.El("span"),
+			g.El("strong", g.Text("example")),
+		}))
+		assert.Equal(t, "<div><span></span><strong>example</strong></div>", n)
+	})
+}
