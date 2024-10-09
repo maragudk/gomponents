@@ -1,6 +1,6 @@
 # Tired of complex template languages?
 
-<img src="logo.png" alt="Logo" width="300" align="right"/>
+<img src="logo.png" alt="Logo" width="300" align="right">
 
 [![GoDoc](https://pkg.go.dev/badge/maragu.dev/gomponents)](https://pkg.go.dev/maragu.dev/gomponents)
 [![Go](https://github.com/maragudk/gomponents/actions/workflows/ci.yml/badge.svg)](https://github.com/maragudk/gomponents/actions/workflows/ci.yml)
@@ -14,7 +14,7 @@ They render to HTML 5, and make it easy for you to build reusable components.
 So you can focus on building your app instead of learning yet another templating language.
 
 ```shell
-go get maragu.dev/gomponents
+go get maragu.dev/gomponents@v1.0.0-beta1
 ```
 
 Made with ✨sparkles✨ by [maragu](https://www.maragu.dev/).
@@ -42,7 +42,7 @@ Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
 ## Usage
 
 ```shell
-go get maragu.dev/gomponents
+go get maragu.dev/gomponents@v1.0.0-beta1
 ```
 
 The preferred way to use gomponents is with so-called dot-imports (note the dot before the imports),
