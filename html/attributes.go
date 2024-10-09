@@ -72,6 +72,14 @@ func Selected() g.Node {
 	return g.Attr("selected")
 }
 
+func Hidden() g.Node {
+	return g.Attr("hidden")
+}
+
+func HiddenUntilFound() g.Node {
+	return g.Attr("hidden", "until-found")
+}
+
 func Accept(v string) g.Node {
 	return g.Attr("accept", v)
 }

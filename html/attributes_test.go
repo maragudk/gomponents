@@ -21,6 +21,8 @@ func TestBooleanAttributes(t *testing.T) {
 		{Name: "controls", Func: Controls},
 		{Name: "defer", Func: Defer},
 		{Name: "disabled", Func: Disabled},
+		{Name: "hidden", Func: Hidden},
+		{Name: "hidden=\"until-found\"", Func: HiddenUntilFound},
 		{Name: "loop", Func: Loop},
 		{Name: "multiple", Func: Multiple},
 		{Name: "muted", Func: Muted},
