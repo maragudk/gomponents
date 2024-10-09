@@ -1,6 +1,6 @@
 # Tired of complex template languages?
 
-<img src="logo.png" alt="Logo" width="300" align="right"/>
+<img src="logo.png" alt="Logo" width="300" align="right">
 
 [![GoDoc](https://pkg.go.dev/badge/maragu.dev/gomponents)](https://pkg.go.dev/maragu.dev/gomponents)
 [![Go](https://github.com/maragudk/gomponents/actions/workflows/ci.yml/badge.svg)](https://github.com/maragudk/gomponents/actions/workflows/ci.yml)
