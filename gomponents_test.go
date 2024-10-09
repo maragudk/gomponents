@@ -36,16 +36,12 @@ func TestAttr(t *testing.T) {
 	})
 
 	t.Run("panics with more than two arguments", func(t *testing.T) {
-		called := false
 		defer func() {
-			if err := recover(); err != nil {
-				called = true
+			if rec := recover(); rec == nil {
+				t.FailNow()
 			}
 		}()
 		g.Attr("name", "value", "what is this?")
-		if !called {
-			t.FailNow()
-		}
 	})
 
 	t.Run("implements fmt.Stringer", func(t *testing.T) {
