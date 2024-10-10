@@ -145,6 +145,10 @@ func Height(v string) g.Node {
 	return g.Attr("height", v)
 }
 
+func Hidden(v string) g.Node {
+	return g.Attr("hidden", v)
+}
+
 func Href(v string) g.Node {
 	return g.Attr("href", v)
 }

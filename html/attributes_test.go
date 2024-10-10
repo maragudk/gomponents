@@ -62,6 +62,7 @@ func TestSimpleAttributes(t *testing.T) {
 		{Name: "for", Func: For},
 		{Name: "form", Func: FormAttr},
 		{Name: "height", Func: Height},
+		{Name: "hidden", Func: Hidden},
 		{Name: "href", Func: Href},
 		{Name: "id", Func: ID},
 		{Name: "integrity", Func: Integrity},
