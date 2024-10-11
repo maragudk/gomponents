@@ -70,13 +70,13 @@ func NavbarLink(href, name, currentPath string) Node {
 }
 ```
 
-Some people don't like dot-imports, and luckily it's completely optional.
+(Some people don't like dot-imports, and luckily it's completely optional.)
 
 For a more complete example, see [the examples directory](internal/examples/).
 
 ### What's up with the specially named elements and attributes?
 
-Unfortunately, there are six main name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
+Unfortunately, there are some name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
 to be able to co-exist in the same package in Go.
 
 I've chosen one or the other based on what I think is the common usage.
