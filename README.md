@@ -14,7 +14,7 @@ They render to HTML 5, and make it easy for you to build reusable components.
 So you can focus on building your app instead of learning yet another templating language.
 
 ```shell
-go get maragu.dev/gomponents@v1.0.0-beta1
+go get maragu.dev/gomponents
 ```
 
 Made with ✨sparkles✨ by [maragu](https://www.maragu.dev/).
@@ -38,15 +38,13 @@ Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
   - `Map` for mapping data to components and `Group` for grouping components,
   - and `If`/`Iff` for conditional rendering.
 - No external dependencies
+- Mature and stable, no breaking changes
 
 ## Usage
 
 ```shell
-go get maragu.dev/gomponents@v1.0.0-beta1
+go get maragu.dev/gomponents
 ```
-
-The preferred way to use gomponents is with so-called dot-imports (note the dot before the imports),
-to give you that smooth, native HTML feel:
 
 ```go
 package main
