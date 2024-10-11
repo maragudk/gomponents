@@ -7,3 +7,4 @@ in the sidebar, also if you have not contributed code.
 
 - Markus Wüstenberg, @markuswustenberg / @maragudk
 - Hans Raaf, @oderwat
+- Guy-Laurent Subri, @glsubri
