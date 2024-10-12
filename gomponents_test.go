@@ -75,7 +75,7 @@ func BenchmarkAttr(b *testing.B) {
 }
 
 func ExampleAttr_bool() {
-	e := g.El("input", g.Attr("required"))
+	e := g.VoidEl("input", g.Attr("required"))
 	_ = e.Render(os.Stdout)
 	// Output: <input required>
 }
@@ -104,13 +104,13 @@ func TestEl(t *testing.T) {
 	})
 
 	t.Run("renders an empty element without closing tag if it's a void kind element", func(t *testing.T) {
-		e := g.El("hr")
+		e := g.VoidEl("hr")
 		assert.Equal(t, "<hr>", e)
 
-		e = g.El("br")
+		e = g.VoidEl("br")
 		assert.Equal(t, "<br>", e)
 
-		e = g.El("img")
+		e = g.VoidEl("img")
 		assert.Equal(t, "<img>", e)
 	})
 
@@ -120,12 +120,12 @@ func TestEl(t *testing.T) {
 	})
 
 	t.Run("renders an element, attributes, and element children", func(t *testing.T) {
-		e := g.El("div", g.Attr("class", "hat"), g.El("br"))
+		e := g.El("div", g.Attr("class", "hat"), g.VoidEl("br"))
 		assert.Equal(t, `<div class="hat"><br></div>`, e)
 	})
 
 	t.Run("renders attributes at the correct place regardless of placement in parameter list", func(t *testing.T) {
-		e := g.El("div", g.El("br"), g.Attr("class", "hat"))
+		e := g.El("div", g.VoidEl("br"), g.Attr("class", "hat"))
 		assert.Equal(t, `<div class="hat"><br></div>`, e)
 	})
 
@@ -135,7 +135,7 @@ func TestEl(t *testing.T) {
 	})
 
 	t.Run("does not fail on nil node", func(t *testing.T) {
-		e := g.El("div", nil, g.El("br"), nil, g.El("br"))
+		e := g.El("div", nil, g.VoidEl("br"), nil, g.VoidEl("br"))
 		assert.Equal(t, `<div><br><br></div>`, e)
 	})
 
@@ -265,8 +265,8 @@ func ExampleMap_index() {
 
 func TestGroup(t *testing.T) {
 	t.Run("groups multiple nodes into one", func(t *testing.T) {
-		children := []g.Node{g.El("br", g.Attr("id", "hat")), g.El("hr")}
-		e := g.El("div", g.Attr("class", "foo"), g.El("img"), g.Group(children))
+		children := []g.Node{g.VoidEl("br", g.Attr("id", "hat")), g.VoidEl("hr")}
+		e := g.El("div", g.Attr("class", "foo"), g.VoidEl("img"), g.Group(children))
 		assert.Equal(t, `<div class="foo"><img><br id="hat"><hr></div>`, e)
 	})
 
@@ -277,7 +277,7 @@ func TestGroup(t *testing.T) {
 	})
 
 	t.Run("does not ignore attributes at the second level and below", func(t *testing.T) {
-		children := []g.Node{g.El("div", g.Attr("class", "hat"), g.El("hr", g.Attr("id", "partyhat"))), g.El("span")}
+		children := []g.Node{g.El("div", g.Attr("class", "hat"), g.VoidEl("hr", g.Attr("id", "partyhat"))), g.El("span")}
 		e := g.Group(children)
 		assert.Equal(t, `<div class="hat"><hr id="partyhat"></div><span></span>`, e)
 	})

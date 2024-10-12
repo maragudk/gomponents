@@ -71,11 +71,18 @@ func (n NodeFunc) String() string {
 // See https://dev.w3.org/html5/spec-LC/syntax.html#elements-0 for how elements are rendered.
 // No tags are ever omitted from normal tags, even though it's allowed for elements given at
 // https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
-// If an element is a void element, non-attribute children nodes are ignored.
 // Use this if no convenience creator exists in the html package.
 func El(name string, children ...Node) Node {
 	return NodeFunc(func(w io.Writer) error {
 		return render(w, &name, children...)
+	})
+}
+
+// VoidEl creates a void element DOM [Node] with a name and attributes Nodes.
+// non-attribute children nodes are ignored.
+func VoidEl(name string, attrs ...Node) Node {
+	return NodeFunc(func(w io.Writer) error {
+		return renderVoid(w, &name, attrs...)
 	})
 }
 
@@ -90,10 +97,6 @@ func render(w2 io.Writer, name *string, children ...Node) error {
 		}
 
 		w.Write([]byte(">"))
-
-		if isVoidElement(*name) {
-			return w.err
-		}
 	}
 
 	for _, c := range children {
@@ -102,6 +105,22 @@ func render(w2 io.Writer, name *string, children ...Node) error {
 
 	if name != nil {
 		w.Write([]byte("</" + *name + ">"))
+	}
+
+	return w.err
+}
+
+func renderVoid(w2 io.Writer, name *string, children ...Node) error {
+	w := &statefulWriter{w: w2}
+
+	if name != nil {
+		w.Write([]byte("<" + *name))
+
+		for _, c := range children {
+			renderChild(w, c, AttributeType)
+		}
+
+		w.Write([]byte(">"))
 	}
 
 	return w.err
@@ -145,32 +164,6 @@ func (w *statefulWriter) Write(p []byte) {
 		return
 	}
 	_, w.err = w.w.Write(p)
-}
-
-// voidElements don't have end tags and must be treated differently in the rendering.
-// See https://dev.w3.org/html5/spec-LC/syntax.html#void-elements
-var voidElements = map[string]struct{}{
-	"area":    {},
-	"base":    {},
-	"br":      {},
-	"col":     {},
-	"command": {},
-	"embed":   {},
-	"hr":      {},
-	"img":     {},
-	"input":   {},
-	"keygen":  {},
-	"link":    {},
-	"meta":    {},
-	"param":   {},
-	"source":  {},
-	"track":   {},
-	"wbr":     {},
-}
-
-func isVoidElement(name string) bool {
-	_, ok := voidElements[name]
-	return ok
 }
 
 // Attr creates an attribute DOM [Node] with a name and optional value.

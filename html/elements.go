@@ -30,7 +30,7 @@ func Address(children ...g.Node) g.Node {
 }
 
 func Area(children ...g.Node) g.Node {
-	return g.El("area", children...)
+	return g.VoidEl("area", children...)
 }
 
 func Article(children ...g.Node) g.Node {
@@ -46,7 +46,7 @@ func Audio(children ...g.Node) g.Node {
 }
 
 func Base(children ...g.Node) g.Node {
-	return g.El("base", children...)
+	return g.VoidEl("base", children...)
 }
 
 func BlockQuote(children ...g.Node) g.Node {
@@ -58,7 +58,7 @@ func Body(children ...g.Node) g.Node {
 }
 
 func Br(children ...g.Node) g.Node {
-	return g.El("br", children...)
+	return g.VoidEl("br", children...)
 }
 
 func Button(children ...g.Node) g.Node {
@@ -83,11 +83,15 @@ func Code(children ...g.Node) g.Node {
 }
 
 func Col(children ...g.Node) g.Node {
-	return g.El("col", children...)
+	return g.VoidEl("col", children...)
 }
 
 func ColGroup(children ...g.Node) g.Node {
 	return g.El("colgroup", children...)
+}
+
+func Command(children ...g.Node) g.Node {
+	return g.El("command", children...)
 }
 
 func DataEl(children ...g.Node) g.Node {
@@ -115,7 +119,7 @@ func Dl(children ...g.Node) g.Node {
 }
 
 func Embed(children ...g.Node) g.Node {
-	return g.El("embed", children...)
+	return g.VoidEl("embed", children...)
 }
 
 func Form(children ...g.Node) g.Node {
@@ -152,7 +156,7 @@ func HGroup(children ...g.Node) g.Node {
 }
 
 func Hr(children ...g.Node) g.Node {
-	return g.El("hr", children...)
+	return g.VoidEl("hr", children...)
 }
 
 func HTML(children ...g.Node) g.Node {
@@ -164,11 +168,15 @@ func IFrame(children ...g.Node) g.Node {
 }
 
 func Img(children ...g.Node) g.Node {
-	return g.El("img", children...)
+	return g.VoidEl("img", children...)
 }
 
 func Input(children ...g.Node) g.Node {
-	return g.El("input", children...)
+	return g.VoidEl("input", children...)
+}
+
+func Keygen(children ...g.Node) g.Node {
+	return g.VoidEl("keygen", children...)
 }
 
 func Label(children ...g.Node) g.Node {
@@ -189,7 +197,7 @@ func Li(children ...g.Node) g.Node {
 }
 
 func Link(children ...g.Node) g.Node {
-	return g.El("link", children...)
+	return g.VoidEl("link", children...)
 }
 
 func Main(children ...g.Node) g.Node {
@@ -201,7 +209,7 @@ func Menu(children ...g.Node) g.Node {
 }
 
 func Meta(children ...g.Node) g.Node {
-	return g.El("meta", children...)
+	return g.VoidEl("meta", children...)
 }
 
 func Meter(children ...g.Node) g.Node {
@@ -237,7 +245,7 @@ func P(children ...g.Node) g.Node {
 }
 
 func Param(children ...g.Node) g.Node {
-	return g.El("param", children...)
+	return g.VoidEl("param", children...)
 }
 
 func Picture(children ...g.Node) g.Node {
@@ -265,7 +273,7 @@ func Select(children ...g.Node) g.Node {
 }
 
 func Source(children ...g.Node) g.Node {
-	return g.El("source", children...)
+	return g.VoidEl("source", children...)
 }
 
 func Span(children ...g.Node) g.Node {
@@ -316,12 +324,16 @@ func Tr(children ...g.Node) g.Node {
 	return g.El("tr", children...)
 }
 
+func Track(children ...g.Node) g.Node {
+	return g.VoidEl("tr", children...)
+}
+
 func Ul(children ...g.Node) g.Node {
 	return g.El("ul", children...)
 }
 
 func Wbr(children ...g.Node) g.Node {
-	return g.El("wbr", children...)
+	return g.VoidEl("wbr", children...)
 }
 
 func Abbr(children ...g.Node) g.Node {
