@@ -71,6 +71,7 @@ func NavbarLink(href, name, currentPath string) Node {
 (Some people don't like dot-imports, and luckily it's completely optional.)
 
 For a more complete example, see [the examples directory](internal/examples/).
+There's also the [gomponents-starter-kit](https://github.com/maragudk/gomponents-starter-kit) for a full application template.
 
 ### What's up with the specially named elements and attributes?
 
