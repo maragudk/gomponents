@@ -63,3 +63,23 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+
+  test-html2gomponents:
+    name: Test HTML2Gomponents
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Build
+        run: go build -v ./cmd/html2gomponents
+
+      - name: Test
+        run: go test -v -shuffle on ./cmd/html2gomponents/...
