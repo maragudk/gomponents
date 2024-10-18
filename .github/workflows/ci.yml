@@ -72,18 +72,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Move files to root
-        run: mv cmd/html2gomponents/* .
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: stable
 
       - name: Build
-        run: go build -v .
+        run: go build -v ./...
         working-directory: cmd/html2gomponents
 
       - name: Test
-        run: go test -v -shuffle on .
+        run: go test -v -shuffle on ./...
         working-directory: cmd/html2gomponents
