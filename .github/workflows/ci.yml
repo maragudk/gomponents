@@ -82,8 +82,8 @@ jobs:
 
       - name: Build
         run: go build -v ./...
-        working-directory: ./cmd/html2gomponents
+        working-directory: cmd/html2gomponents
 
       - name: Test
         run: go test -v -shuffle on ./...
-        working-directory: ./cmd/html2gomponents
+        working-directory: cmd/html2gomponents
