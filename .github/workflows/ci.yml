@@ -65,7 +65,7 @@ jobs:
           version: latest
 
   test-html2gomponents:
-    name: Test HTML2Gomponents
+    name: Test html2gomponents
     runs-on: ubuntu-latest
 
     steps:
