@@ -71,10 +71,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            .github
-            cmd/html2gomponents
 
       - name: Move files to root
         run: mv cmd/html2gomponents/* .
@@ -82,11 +78,12 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
-          check-latest: true
+          go-version: stable
 
       - name: Build
         run: go build -v ./...
+        working-directory: ./cmd/html2gomponents
 
       - name: Test
         run: go test -v -shuffle on ./...
+        working-directory: ./cmd/html2gomponents
