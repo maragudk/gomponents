@@ -86,7 +86,7 @@ jobs:
           check-latest: true
 
       - name: Build
-        run: go build -v ./cmd/html2gomponents
+        run: go build -v ./...
 
       - name: Test
-        run: go test -v -shuffle on ./cmd/html2gomponents/...
+        run: go test -v -shuffle on ./...
