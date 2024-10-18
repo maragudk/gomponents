@@ -30,7 +30,7 @@ func TestStart(t *testing.T) {
 				t.Fatal(err)
 			}
 			if out != w.String() {
-				t.Fatalf("expected %q, got %q", out, w.String())
+				t.Fatalf("expected %v, got %v", out, w.String())
 			}
 		})
 	}

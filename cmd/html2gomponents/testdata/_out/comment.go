@@ -6,5 +6,6 @@ import (
 )
 
 func Component() Node {
-	return nil
+	// halløj
+	return Div()
 }

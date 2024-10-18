@@ -69,12 +69,11 @@ func start(r io.Reader, w2 io.Writer) error {
 	w.Write("package html\n")
 	w.Write("\n")
 	w.Write("import (\n")
-	w.Write("\t. \"maragu.dev/gomponents\"\n")
-	w.Write("\t. \"maragu.dev/gomponents/html\"\n")
+	w.Write(". \"maragu.dev/gomponents\"\n")
+	w.Write(". \"maragu.dev/gomponents/html\"\n")
 	w.Write(")\n")
 	w.Write("\n")
 	w.Write("func Component() Node {\n")
-	w.Write("\treturn ")
 
 	z := html.NewTokenizer(r)
 
@@ -89,7 +88,7 @@ loop:
 			if err := z.Err(); err != nil {
 				if errors.Is(err, io.EOF) {
 					if !hasContent {
-						w.Write("nil")
+						w.Write("return nil")
 					}
 					break loop
 				}
@@ -97,18 +96,26 @@ loop:
 			}
 
 		case html.TextToken:
-			text := string(z.Text())
-			trimmed := strings.TrimSpace(text)
-			if trimmed == "" {
+			text := strings.TrimSpace(string(z.Text()))
+			if text == "" {
 				continue
 			}
+
+			if !hasContent {
+				w.Write("return ")
+			}
+
 			hasContent = true
-			w.Write(fmt.Sprintf("Text(%q)", trimmed))
+			w.Write(fmt.Sprintf("Text(%q)", text))
 			if depth > 0 {
 				w.Write(",")
 			}
 
 		case html.StartTagToken, html.SelfClosingTagToken:
+			if !hasContent {
+				w.Write("return ")
+			}
+
 			if hasContent {
 				w.Write("\n")
 			}
@@ -127,12 +134,11 @@ loop:
 				for {
 					key, val, moreAttr := z.TagAttr()
 
-					name := string(key)
 					if attr, ok := attrs[string(key)]; ok {
 						w.Write(attr)
 					} else {
-						w.Write(strings.ToTitle(string(name[0])))
-						w.Write(name[1:])
+						w.Write(strings.ToTitle(string(key[0])))
+						w.Write(string(key[1:]))
 					}
 					w.Write("(")
 
@@ -166,7 +172,7 @@ loop:
 			}
 
 		case html.CommentToken:
-		// TODO Ignore for now
+			w.Write("// " + string(z.Text()) + "\n")
 
 		case html.DoctypeToken:
 			// TODO Ignore for now
