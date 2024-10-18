@@ -111,7 +111,10 @@ loop:
 			}
 
 		case html.CommentToken:
-			w.Write("\n\n// " + string(z.Text()) + "\n\n")
+		// TODO Ignore for now
+
+		case html.DoctypeToken:
+			// TODO Ignore for now
 		}
 	}
 
