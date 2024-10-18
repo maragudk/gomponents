@@ -1,4 +1,4 @@
-module maragu.dev/gomponents/cmd/html2go
+module maragu.dev/gomponents/cmd/html2gomponents
 
 go 1.23.2
 
