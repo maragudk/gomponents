@@ -1,3 +1,2 @@
 ignore:
-  - "examples"
-  - "internal/assert"
+  - "internal/"
