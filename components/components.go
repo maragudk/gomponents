@@ -63,3 +63,22 @@ func (c Classes) String() string {
 	_ = c.Render(&b)
 	return b.String()
 }
+
+func MergeClasses(classes ...string) g.Node {
+	each := map[string]struct{}{}
+	for _, c := range classes {
+		parts := strings.Split(c, " ")
+		for _, p := range parts {
+			each[p] = struct{}{}
+		}
+	}
+	var result []string
+	for c := range each {
+		if c == "" {
+			continue
+		}
+		result = append(result, c)
+	}
+	sort.Strings(result)
+	return Class(strings.Join(result, " "))
+}
