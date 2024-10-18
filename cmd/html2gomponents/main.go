@@ -1,0 +1,144 @@
+package main
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"go/format"
+	"io"
+	"log/slog"
+	"os"
+	"strings"
+
+	"golang.org/x/net/html"
+)
+
+func main() {
+	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	if err := start(log, os.Stdin, os.Stdout); err != nil {
+		log.Info("Error", "error", err)
+		os.Exit(1)
+	}
+}
+
+func start(log *slog.Logger, r io.Reader, w2 io.Writer) error {
+	var b bytes.Buffer
+	w := &statefulWriter{w: &b}
+
+	w.Write("package html\n")
+	w.Write("\n")
+	w.Write("import (\n")
+	w.Write("\t. \"maragu.dev/gomponents\"\n")
+	w.Write("\t. \"maragu.dev/gomponents/html\"\n")
+	w.Write(")\n")
+	w.Write("\n")
+	w.Write("func Component() Node {\n")
+	w.Write("\treturn ")
+
+	z := html.NewTokenizer(r)
+
+	var hasContent bool
+	var depth int
+loop:
+	for {
+		tt := z.Next()
+
+		switch tt {
+		case html.ErrorToken:
+			if err := z.Err(); err != nil {
+				if errors.Is(err, io.EOF) {
+					if !hasContent {
+						w.Write("nil")
+					}
+					break loop
+				}
+				return err
+			}
+
+		case html.TextToken:
+			text := string(z.Text())
+			trimmed := strings.TrimSpace(text)
+			if trimmed == "" {
+				continue
+			}
+			hasContent = true
+			w.Write(fmt.Sprintf("Text(%q)", trimmed))
+			if depth > 0 {
+				w.Write(",")
+			}
+
+		case html.StartTagToken, html.SelfClosingTagToken:
+			hasContent = true
+			name, hasAttr := z.TagName()
+			w.Write(strings.ToTitle(string(name[0])))
+			w.Write(string(name[1:]))
+			w.Write("(")
+			if hasAttr {
+				for {
+					key, val, moreAttr := z.TagAttr()
+					w.Write(strings.ToTitle(string(key[0])))
+					w.Write(string(key[1:]))
+					w.Write("(")
+					if len(val) > 0 {
+						w.Write(`"` + string(val) + `"`)
+					}
+					w.Write(")")
+					w.Write(",")
+					if !moreAttr {
+						break
+					}
+				}
+			}
+			depth++
+
+			if tt == html.SelfClosingTagToken {
+				depth--
+				w.Write(")")
+				if depth > 0 {
+					w.Write(",")
+				}
+			}
+
+		case html.EndTagToken:
+			depth--
+			w.Write(")")
+			if depth > 0 {
+				w.Write(",")
+			}
+
+		case html.CommentToken:
+			w.Write("\n\n// " + string(z.Text()) + "\n\n")
+		}
+	}
+
+	w.Write("\n}\n")
+
+	if w.err != nil {
+		return w.err
+	}
+
+	formatted, err := format.Source(b.Bytes())
+	if err != nil {
+		fmt.Println(b.String())
+		return fmt.Errorf("error formatting output: %w", err)
+	}
+
+	if _, err = w2.Write(formatted); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// statefulWriter only writes if no errors have occurred earlier in its lifetime.
+type statefulWriter struct {
+	w   io.Writer
+	err error
+}
+
+func (w *statefulWriter) Write(s string) {
+	if w.err != nil {
+		return
+	}
+	_, w.err = w.w.Write([]byte(s))
+}
