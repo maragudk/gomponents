@@ -4,8 +4,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-
-	"maragu.dev/is"
 )
 
 func TestStart(t *testing.T) {
@@ -28,8 +26,12 @@ func TestStart(t *testing.T) {
 			var w strings.Builder
 			err := start(r, &w)
 
-			is.NotError(t, err)
-			is.Equal(t, out, w.String())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if out != w.String() {
+				t.Fatalf("expected %q, got %q", out, w.String())
+			}
 		})
 	}
 }
