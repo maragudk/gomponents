@@ -15,13 +15,13 @@ import (
 
 func main() {
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	if err := start(log, os.Stdin, os.Stdout); err != nil {
+	if err := start(os.Stdin, os.Stdout); err != nil {
 		log.Info("Error", "error", err)
 		os.Exit(1)
 	}
 }
 
-func start(log *slog.Logger, r io.Reader, w2 io.Writer) error {
+func start(r io.Reader, w2 io.Writer) error {
 	var b bytes.Buffer
 	w := &statefulWriter{w: &b}
 
@@ -119,7 +119,6 @@ loop:
 
 	formatted, err := format.Source(b.Bytes())
 	if err != nil {
-		fmt.Println(b.String())
 		return fmt.Errorf("error formatting output: %w", err)
 	}
 
