@@ -6,5 +6,7 @@ import (
 )
 
 func Component() Node {
-	return A(Href("#"), Title("halløj"), Text("Halløj!"))
+	return A(Href("#"), Title("halløj"),
+		Text("Halløj!"),
+	)
 }

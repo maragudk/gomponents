@@ -68,6 +68,9 @@ loop:
 			}
 
 		case html.StartTagToken, html.SelfClosingTagToken:
+			if hasContent {
+				w.Write("\n")
+			}
 			hasContent = true
 			name, hasAttr := z.TagName()
 			w.Write(strings.ToTitle(string(name[0])))
@@ -88,12 +91,13 @@ loop:
 						break
 					}
 				}
+				w.Write("\n")
 			}
 			depth++
 
 			if tt == html.SelfClosingTagToken {
 				depth--
-				w.Write(")")
+				w.Write("\n)")
 				if depth > 0 {
 					w.Write(",")
 				}
@@ -101,7 +105,7 @@ loop:
 
 		case html.EndTagToken:
 			depth--
-			w.Write(")")
+			w.Write("\n)")
 			if depth > 0 {
 				w.Write(",")
 			}

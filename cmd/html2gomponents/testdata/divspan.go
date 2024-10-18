@@ -6,5 +6,7 @@ import (
 )
 
 func Component() Node {
-	return Div(Span())
+	return Div(
+		Span(),
+	)
 }
