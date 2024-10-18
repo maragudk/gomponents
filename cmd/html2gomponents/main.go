@@ -34,6 +34,26 @@ var attrs = map[string]string{
 	"tabindex":     "TabIndex",
 }
 
+var els = map[string]string{
+	"blockquote": "BlockQuote",
+	"colgroup":   "ColGroup",
+	"data":       "DataEl",
+	"datalist":   "DataList",
+	"fieldset":   "FieldSet",
+	"figcaption": "FigCaption",
+	"hgroup":     "HGroup",
+	"html":       "HTML",
+	"iframe":     "IFrame",
+	"noscript":   "NoScript",
+	"optgroup":   "OptGroup",
+	"style":      "StyleEl",
+	"svg":        "SVG",
+	"tbody":      "TBody",
+	"tfoot":      "TFoot",
+	"thead":      "THead",
+	"title":      "TitleEl",
+}
+
 func main() {
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	if err := start(os.Stdin, os.Stdout); err != nil {
@@ -93,27 +113,35 @@ loop:
 				w.Write("\n")
 			}
 			hasContent = true
+
 			name, hasAttr := z.TagName()
-			w.Write(strings.ToTitle(string(name[0])))
-			w.Write(string(name[1:]))
+			if el, ok := els[string(name)]; ok {
+				w.Write(el)
+			} else {
+				w.Write(strings.ToTitle(string(name[0])))
+				w.Write(string(name[1:]))
+			}
 			w.Write("(")
+
 			if hasAttr {
 				for {
 					key, val, moreAttr := z.TagAttr()
 
 					name := string(key)
 					if attr, ok := attrs[string(key)]; ok {
-						name = attr
+						w.Write(attr)
+					} else {
+						w.Write(strings.ToTitle(string(name[0])))
+						w.Write(name[1:])
 					}
-
-					w.Write(strings.ToTitle(string(name[0])))
-					w.Write(string(name[1:]))
 					w.Write("(")
+
 					if len(val) > 0 {
 						w.Write(`"` + string(val) + `"`)
 					}
-					w.Write(")")
-					w.Write(",")
+
+					w.Write("),")
+
 					if !moreAttr {
 						break
 					}
