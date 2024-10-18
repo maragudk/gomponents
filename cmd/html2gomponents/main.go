@@ -13,6 +13,27 @@ import (
 	"golang.org/x/net/html"
 )
 
+var attrs = map[string]string{
+	"autocomplete": "AutoComplete",
+	"autofocus":    "AutoFocus",
+	"autoplay":     "AutoPlay",
+	"cite":         "CiteAttr",
+	"colspan":      "ColSpan",
+	"crossorigin":  "CrossOrigin",
+	"datetime":     "DateTime",
+	"enctype":      "EncType",
+	"form":         "FormAttr",
+	"id":           "ID",
+	"label":        "LabelAttr",
+	"maxlength":    "MaxLength",
+	"minlength":    "MinLength",
+	"playsinline":  "PlaysInline",
+	"readonly":     "ReadOnly",
+	"rowspan":      "RowSpan",
+	"srcset":       "SrcSet",
+	"tabindex":     "TabIndex",
+}
+
 func main() {
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	if err := start(os.Stdin, os.Stdout); err != nil {
@@ -79,8 +100,14 @@ loop:
 			if hasAttr {
 				for {
 					key, val, moreAttr := z.TagAttr()
-					w.Write(strings.ToTitle(string(key[0])))
-					w.Write(string(key[1:]))
+
+					name := string(key)
+					if attr, ok := attrs[string(key)]; ok {
+						name = attr
+					}
+
+					w.Write(strings.ToTitle(string(name[0])))
+					w.Write(string(name[1:]))
 					w.Write("(")
 					if len(val) > 0 {
 						w.Write(`"` + string(val) + `"`)

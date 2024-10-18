@@ -7,10 +7,10 @@ import (
 
 func Component() Node {
 	return Div(
-		H1(Id("title"), Class("pretty"),
+		H1(ID("title"), Class("pretty"),
 			Text("Halløj!"),
 		),
-		H2(Id("subtitle"), Class("prettier"),
+		H2(ID("subtitle"), Class("prettier"),
 			Text("What is this?"),
 		),
 		P(Class("prettiest"),
