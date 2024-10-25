@@ -264,6 +264,10 @@ func Select(children ...g.Node) g.Node {
 	return g.El("select", children...)
 }
 
+func SlotEl(children ...g.Node) g.Node {
+	return g.El("slot", children...)
+}
+
 func Source(children ...g.Node) g.Node {
 	return g.El("source", children...)
 }
@@ -294,6 +298,10 @@ func TBody(children ...g.Node) g.Node {
 
 func Td(children ...g.Node) g.Node {
 	return g.El("td", children...)
+}
+
+func Template(children ...g.Node) g.Node {
+	return g.El("template", children...)
 }
 
 func Textarea(children ...g.Node) g.Node {
