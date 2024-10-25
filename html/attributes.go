@@ -133,7 +133,7 @@ func DataAttr(name, v string) g.Node {
 	return Data(name, v)
 }
 
-func Slot(v string) g.Node {
+func SlotAttr(v string) g.Node {
   return g.Attr("slot", v)
 }
 

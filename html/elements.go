@@ -264,7 +264,7 @@ func Select(children ...g.Node) g.Node {
 	return g.El("select", children...)
 }
 
-func Slot(children ...g.Node) g.Node {
+func SlotEl(children ...g.Node) g.Node {
 	return g.El("slot", children...)
 }
 
@@ -300,7 +300,7 @@ func Td(children ...g.Node) g.Node {
 	return g.El("td", children...)
 }
 
-func Template(children ...g.Node) g.node {
+func Template(children ...g.Node) g.Node {
 	return g.El("template", children...)
 }
 
