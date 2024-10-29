@@ -209,8 +209,8 @@ func Placeholder(v string) g.Node {
 	return g.Attr("placeholder", v)
 }
 
-func Popover() g.Node {
-	return g.Attr("popover")
+func Popover(value ...string) g.Node {
+	return g.Attr("popover", value...)
 }
 
 func PopoverTarget(v string) g.Node {
