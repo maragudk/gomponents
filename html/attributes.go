@@ -221,6 +221,10 @@ func PopoverTarget(v string) g.Node {
 	return g.Attr("popovertarget", v)
 }
 
+func PopoverTargetAction(v string) g.Node {
+	return g.Attr("popovertargetaction", v)
+}
+
 func Poster(v string) g.Node {
 	return g.Attr("poster", v)
 }

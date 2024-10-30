@@ -79,6 +79,7 @@ func TestSimpleAttributes(t *testing.T) {
 		{Name: "pattern", Func: Pattern},
 		{Name: "placeholder", Func: Placeholder},
 		{Name: "popovertarget", Func: PopoverTarget},
+		{Name: "popovertargetaction", Func: PopoverTargetAction},
 		{Name: "poster", Func: Poster},
 		{Name: "preload", Func: Preload},
 		{Name: "rel", Func: Rel},
