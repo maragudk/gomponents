@@ -133,6 +133,10 @@ func DataAttr(name, v string) g.Node {
 	return Data(name, v)
 }
 
+func SlotAttr(v string) g.Node {
+  return g.Attr("slot", v)
+}
+
 func For(v string) g.Node {
 	return g.Attr("for", v)
 }
@@ -207,6 +211,18 @@ func Pattern(v string) g.Node {
 
 func Placeholder(v string) g.Node {
 	return g.Attr("placeholder", v)
+}
+
+func Popover(value ...string) g.Node {
+	return g.Attr("popover", value...)
+}
+
+func PopoverTarget(v string) g.Node {
+	return g.Attr("popovertarget", v)
+}
+
+func PopoverTargetAction(v string) g.Node {
+	return g.Attr("popovertargetaction", v)
 }
 
 func Poster(v string) g.Node {
