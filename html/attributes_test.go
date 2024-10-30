@@ -78,6 +78,8 @@ func TestSimpleAttributes(t *testing.T) {
 		{Name: "name", Func: Name},
 		{Name: "pattern", Func: Pattern},
 		{Name: "placeholder", Func: Placeholder},
+		{Name: "popovertarget", Func: PopoverTarget},
+		{Name: "popovertargetaction", Func: PopoverTargetAction},
 		{Name: "poster", Func: Poster},
 		{Name: "preload", Func: Preload},
 		{Name: "rel", Func: Rel},
@@ -103,6 +105,37 @@ func TestSimpleAttributes(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			n := g.El("div", test.Func("hat"))
 			assert.Equal(t, fmt.Sprintf(`<div %v="hat"></div>`, test.Name), n)
+		})
+	}
+}
+
+func TestVariadicAttributes(t *testing.T) {
+	tests := []struct {
+		Name string
+		Func func(...string) g.Node
+	}{
+		{Name: "popover", Func: Popover},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name + "(no args)", func(t *testing.T) {
+			n := g.El("div", test.Func())
+			assert.Equal(t, fmt.Sprintf(`<div %v></div>`, test.Name), n)
+		})
+
+		t.Run(test.Name +"(one arg)", func(t *testing.T) {
+			n := g.El("div", test.Func("hat"))
+			assert.Equal(t, fmt.Sprintf(`<div %v="hat"></div>`, test.Name), n)
+		})
+
+		t.Run(test.Name + "(two args panics)", func(t *testing.T) {
+			defer func() {
+				if r := recover(); r == nil {
+					t.Errorf("expected a panic")
+				}
+			}()
+			n := g.El("div", test.Func("hat", "party"))
+			assert.Equal(t, "unreachable", n)
 		})
 	}
 }
