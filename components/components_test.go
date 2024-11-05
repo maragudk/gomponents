@@ -30,6 +30,19 @@ func TestHTML5(t *testing.T) {
 
 		assert.Equal(t, `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title></head><body></body></html>`, e)
 	})
+
+	t.Run("returns an html5 document template with additional HTML attributes", func(t *testing.T) {
+		e := HTML5(HTML5Props{
+			Title:       "Hat",
+			Description: "Love hats.",
+			Language:    "en",
+			Head:        []g.Node{Link(Rel("stylesheet"), Href("/hat.css"))},
+			Body:        []g.Node{Div()},
+			HTMLAttrs:   []g.Node{Class("h-full"), ID("htmlid")},
+		})
+
+		assert.Equal(t, `<!doctype html><html lang="en" class="h-full" id="htmlid"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title><meta name="description" content="Love hats."><link rel="stylesheet" href="/hat.css"></head><body><div></div></body></html>`, e)
+	})
 }
 
 func TestClasses(t *testing.T) {
