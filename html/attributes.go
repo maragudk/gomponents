@@ -141,8 +141,28 @@ func For(v string) g.Node {
 	return g.Attr("for", v)
 }
 
+func FormAction(v string) g.Node {
+	return g.Attr("formaction", v)
+}
+
 func FormAttr(v string) g.Node {
 	return g.Attr("form", v)
+}
+
+func FormEncType(v string) g.Node {
+	return g.Attr("formenctype", v)
+}
+
+func FormMethod(v string) g.Node {
+	return g.Attr("formmethod", v)
+}
+
+func FormNoValidate() g.Node {
+	return g.Attr("formnovalidate")
+}
+
+func FormTarget(v string) g.Node {
+	return g.Attr("formtarget", v)
 }
 
 func Height(v string) g.Node {
