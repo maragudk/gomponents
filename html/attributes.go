@@ -40,6 +40,10 @@ func Disabled() g.Node {
 	return g.Attr("disabled")
 }
 
+func Download(v string) g.Node {
+	return g.Attr("download", v)
+}
+
 func Draggable(v string) g.Node {
 	return g.Attr("draggable", v)
 }
@@ -251,6 +255,10 @@ func Poster(v string) g.Node {
 
 func Preload(v string) g.Node {
 	return g.Attr("preload", v)
+}
+
+func ReferrerPolicy(v string) g.Node {
+	return g.Attr("referrerpolicy", v)
 }
 
 func Rel(v string) g.Node {
