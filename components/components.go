@@ -44,7 +44,7 @@ type Classes map[string]bool
 
 // Render satisfies [g.Node].
 func (c Classes) Render(w io.Writer) error {
-	var included []string
+	included := make([]string, 0, len(c))
 	for c, include := range c {
 		if include {
 			included = append(included, c)
