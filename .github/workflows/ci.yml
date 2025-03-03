@@ -45,7 +45,7 @@ jobs:
         run: go test -v -coverprofile=coverage.txt -shuffle on ./...
 
       - name: Coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
