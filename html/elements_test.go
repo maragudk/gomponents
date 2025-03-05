@@ -3,6 +3,7 @@ package html_test
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	g "maragu.dev/gomponents"
@@ -162,5 +163,24 @@ func TestSimpleVoidKindElements(t *testing.T) {
 			n := test.Func(g.Attr("id", "hat"))
 			assert.Equal(t, fmt.Sprintf(`<%v id="hat">`, test.Name), n)
 		})
+	}
+}
+
+func BenchmarkLargeHTMLDocument(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		elements := make([]g.Node, 0, 10000)
+
+		for i := 0; i < 5000; i++ {
+			elements = append(elements,
+				Div(Class("foo")),
+				Span(Class("bar")),
+			)
+		}
+		doc := Div(elements...)
+
+		var sb strings.Builder
+		_ = doc.Render(&sb)
 	}
 }

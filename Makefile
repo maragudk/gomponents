@@ -1,6 +1,6 @@
 .PHONY: benchmark
 benchmark:
-	go test -bench=.
+	go test -bench=. ./...
 
 .PHONY: cover
 cover:
@@ -13,4 +13,3 @@ lint:
 .PHONY: test
 test:
 	go test -coverprofile=cover.out -shuffle on ./...
-
