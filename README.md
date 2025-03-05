@@ -73,6 +73,46 @@ func NavbarLink(href, name, currentPath string) Node {
 For a more complete example, see [the examples directory](internal/examples/).
 There's also the [gomponents-starter-kit](https://github.com/maragudk/gomponents-starter-kit) for a full application template.
 
+## Architecture
+
+gomponents is organized into several packages:
+
+- `gomponents`: Core interfaces and functions like `Node`, `El`, `Attr`, and helpers like `Map`, `Group`, `If`, `Text`, `Raw`.
+- `gomponents/html`: HTML elements and attributes.
+- `gomponents/components`: Higher-level components and utilities.
+- `gomponents/http`: HTTP-related utilities for web servers.
+
+### Void Elements
+
+Void elements in HTML (like `<br>`, `<img>`, `<input>`) don't have closing tags.
+gomponents handles these correctly by checking against an internal list of void elements during rendering.
+When you create a void element, any child nodes that are not attributes will be ignored automatically to ensure valid HTML output.
+
+## Performance Considerations
+
+gomponents renders directly to an `io.Writer`, making it efficient for server-side rendering.
+The library avoids unnecessary allocations where possible.
+
+## FAQ
+
+### Is gomponents production-ready?
+
+Yes! gomponents is mature, stable, fully tested with 100% coverage, and has been used in production by myself and many others.
+
+### Should I choose `html/template`, Templ, or gomponents?
+
+These are all good choices, and it largely comes down to preference.
+I wrote gomponents because I didn't like how I think it's hard to pass data around between templates in `html/template`.
+gomponents is pure Go, with no extra build step like Templ, so it works with all tools that already support Go.
+
+That said, both `html/template` and Templ will do the same thing as gomponents in the end. Try them all and choose what you like!
+
+### I don't like how HTML looks in Go.
+
+First of all, that's not a question. 😉
+
+More seriously, think of gomponents like a DSL for HTML. You're building UI components. Give it a day, and it'll feel natural.
+
 ### What's up with the specially named elements and attributes?
 
 Unfortunately, there are some name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
