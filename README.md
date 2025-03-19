@@ -113,6 +113,35 @@ First of all, that's not a question. 😉
 
 More seriously, think of gomponents like a DSL for HTML. You're building UI components. Give it a day, and it'll feel natural.
 
+### I'd like to add feature X, can I do that?
+
+First of all, thank you for wanting to contribute! 😊 See [CONTRIBUTING.md](CONTRIBUTING.md) for a guide.
+
+I accept code contributions, especially with new HTML elements and attributes.
+I always welcome issues discussing interesting aspects of gomponents, and obviously bug reports and the like.
+But otherwise, I consider gomponents pretty much feature complete.
+
+New features to the core library are unlikely to be merged, since I like keeping it simple and the API small.
+In particular, new functions around collections (similar to `Map`) or flow control (`IfElse`/`Else`) will not be added.
+`Map` was introduced before generics where a thing, and I think it's better to start using generic functions
+from the stdlib or other libraries, instead of adding gomponents-specific variations of them to this library.
+
+If there's something missing that you need, I would recommend to keep small helper functions around in your own projects.
+And if all else fails, you can always use an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE):
+
+```go
+func list(ordered bool) Node {
+  return func() Node {
+    // Do whatever you need to do, imperatively
+    if ordered {
+      return Ol()
+    } else {
+     	return Ul()
+    }
+  }()
+}
+```
+
 ### What's up with the specially named elements and attributes?
 
 Unfortunately, there are some name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
