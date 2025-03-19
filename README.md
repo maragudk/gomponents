@@ -131,14 +131,14 @@ And if all else fails, you can always use an [IIFE](https://developer.mozilla.or
 
 ```go
 func list(ordered bool) Node {
-  return func() Node {
-    // Do whatever you need to do, imperatively
-    if ordered {
-      return Ol()
-    } else {
-     	return Ul()
-    }
-  }()
+	return func() Node {
+		// Do whatever you need to do, imperatively
+		if ordered {
+			return Ol()
+		} else {
+			return Ul()
+		}
+	}()
 }
 ```
 
