@@ -257,6 +257,26 @@ func Map[T any](ts []T, cb func(T) Node) Group {
 	return nodes
 }
 
+// Map a slice of anything to a [Group] (which is just a slice of [Node]-s).
+func MapWithIndex[T any](ts []T, cb func(int, T) Node) Group {
+	nodes := make([]Node, 0, len(ts))
+	for k, t := range ts {
+		nodes = append(nodes, cb(k, t))
+	}
+
+	return nodes
+}
+
+// Map a map of anything to a [Group] (which is just a slice of [Node]-s).
+func MapMap[K comparable, T any](ts map[K]T, cb func(K, T) Node) Group {
+	nodes := make([]Node, 0, len(ts))
+	for k, t := range ts {
+		nodes = append(nodes, cb(k, t))
+	}
+
+	return nodes
+}
+
 // Group a slice of [Node]-s into one Node, while still being usable like a regular slice of [Node]-s.
 // A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
 // to not produce invalid HTML.
