@@ -277,6 +277,10 @@ func RowSpan(v string) g.Node {
 	return g.Attr("rowspan", v)
 }
 
+func Scope(v string) g.Node {
+	return g.Attr("scope", v)
+}
+
 func Src(v string) g.Node {
 	return g.Attr("src", v)
 }

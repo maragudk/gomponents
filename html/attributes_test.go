@@ -93,6 +93,7 @@ func TestSimpleAttributes(t *testing.T) {
 		{Name: "role", Func: Role},
 		{Name: "rows", Func: Rows},
 		{Name: "rowspan", Func: RowSpan},
+		{Name: "scope", Func: Scope},
 		{Name: "slot", Func: SlotAttr},
 		{Name: "src", Func: Src},
 		{Name: "srcset", Func: SrcSet},
