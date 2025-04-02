@@ -156,3 +156,26 @@ In either case, the less-used variant also exists in the codebase:
 - `label` (`Label`/`LabelAttr`, `LabelEl` also exists)
 - `style` (`StyleEl`/`Style`, `StyleAttr` also exists)
 - `title` (`TitleEl`/`Title`, `TitleAttr` also exists)
+
+For example, when adding CSS styles to your HTML document:
+
+```go
+// This adds a style attribute to the div element
+div := Div(Style("color: red;"))
+
+// This creates a style element with CSS rules for your document head
+cssRules := StyleEl(g.Raw("h1 { color: blue; } p { font-size: 16px; }"))
+
+// Complete example in an HTML5 document
+document := HTML5(HTML5Props{
+    Title: "My Page",
+    Head: []g.Node{
+        // Adds <style>h1 {color: blue; }</style> inside the <head>
+        StyleEl(g.Raw("h1 {color: blue; }")),
+        // Adds an external stylesheet
+        Link(Rel("stylesheet"), Href("/styles.css")),
+    },
+    Body: []g.Node{
+        H1(Text("Hello World")),
+    },
+})
