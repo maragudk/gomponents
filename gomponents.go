@@ -79,8 +79,35 @@ func El(name string, children ...Node) Node {
 	})
 }
 
+// Prevents class="" appearing twice.
+func combineChildren(children []Node) []Node {
+	var combined []Node
+
+	var foundClassAttr *attr
+
+	for _, child := range children {
+		p, ok := child.(*attr)
+
+		if ok && p.name == "class" {
+			*p.value = strings.TrimSpace(*p.value)
+			if foundClassAttr == nil {
+				foundClassAttr = p
+			} else {
+				*foundClassAttr.value += " " + *p.value
+				continue // dont append
+			}
+		}
+
+		combined = append(combined, child)
+	}
+
+	return combined
+}
+
 func render(w2 io.Writer, name *string, children ...Node) error {
 	w := &statefulWriter{w: w2}
+
+	children = combineChildren(children)
 
 	if name != nil {
 		w.Write([]byte("<" + *name))
