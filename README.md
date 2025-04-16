@@ -171,13 +171,13 @@ import (
 
 func MyPage() Node {
 	return HTML5(HTML5Props{
-    Title: "My Page",
-    Head: []Node{
-        StyleEl(g.Raw("body {background-color: #fff; }")),
-    },
-    Body: []Node{
-        H1(Style("color: #000"), Text("My Page")),
-    },
+		Title: "My Page",
+		Head: []Node{
+			StyleEl(g.Raw("body {background-color: #fff; }")),
+		},
+		Body: []Node{
+			H1(Style("color: #000"), Text("My Page")),
+		},
 	})
 }
 ```
