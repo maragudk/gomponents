@@ -157,25 +157,29 @@ In either case, the less-used variant also exists in the codebase:
 - `style` (`StyleEl`/`Style`, `StyleAttr` also exists)
 - `title` (`TitleEl`/`Title`, `TitleAttr` also exists)
 
-For example, when adding CSS styles to your HTML document:
+<details>
+	<summary>Example with `Style` and `StyleEl`</summary>
 
 ```go
-// This adds a style attribute to the div element
-div := Div(Style("color: red;"))
+package html
 
-// This creates a style element with CSS rules for your document head
-cssRules := StyleEl(g.Raw("h1 { color: blue; } p { font-size: 16px; }"))
+import (
+	. "maragu.dev/gomponents"
+	. "maragu.dev/gomponents/components"
+	. "maragu.dev/gomponents/html"
+)
 
-// Complete example in an HTML5 document
-document := HTML5(HTML5Props{
+func MyPage() Node {
+	return HTML5(HTML5Props{
     Title: "My Page",
-    Head: []g.Node{
-        // Adds <style>h1 {color: blue; }</style> inside the <head>
-        StyleEl(g.Raw("h1 {color: blue; }")),
-        // Adds an external stylesheet
-        Link(Rel("stylesheet"), Href("/styles.css")),
+    Head: []Node{
+        StyleEl(g.Raw("body {background-color: #fff; }")),
     },
-    Body: []g.Node{
-        H1(Text("Hello World")),
+    Body: []Node{
+        H1(Style("color: #000"), Text("My Page")),
     },
-})
+	})
+}
+```
+
+</details>
