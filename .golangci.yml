@@ -1,0 +1,7 @@
+version: "2"
+
+linters:
+  settings:
+    staticcheck:
+      dot-import-whitelist:
+        - "maragu.dev/gomponents/html"

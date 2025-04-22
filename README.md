@@ -3,7 +3,7 @@
 <img src="logo.png" alt="Logo" width="300" align="right">
 
 [![GoDoc](https://pkg.go.dev/badge/maragu.dev/gomponents)](https://pkg.go.dev/maragu.dev/gomponents)
-[![Go](https://github.com/maragudk/gomponents/actions/workflows/ci.yml/badge.svg)](https://github.com/maragudk/gomponents/actions/workflows/ci.yml)
+[![CI](https://github.com/maragudk/gomponents/actions/workflows/ci.yml/badge.svg)](https://github.com/maragudk/gomponents/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/maragudk/gomponents/branch/main/graph/badge.svg)](https://codecov.io/gh/maragudk/gomponents)
 [![Go Report Card](https://goreportcard.com/badge/maragu.dev/gomponents)](https://goreportcard.com/report/maragu.dev/gomponents)
 
