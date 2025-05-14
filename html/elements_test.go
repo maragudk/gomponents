@@ -102,6 +102,7 @@ func TestSimpleElements(t *testing.T) {
 		{Name: "s", Func: S},
 		{Name: "samp", Func: Samp},
 		{Name: "script", Func: Script},
+		{Name: "search", Func: Search},
 		{Name: "section", Func: Section},
 		{Name: "select", Func: Select},
 		{Name: "slot", Func: SlotEl},
