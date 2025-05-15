@@ -256,6 +256,10 @@ func Script(children ...g.Node) g.Node {
 	return g.El("script", children...)
 }
 
+func Search(children ...g.Node) g.Node {
+	return g.El("search", children...)
+}
+
 func Section(children ...g.Node) g.Node {
 	return g.El("section", children...)
 }
