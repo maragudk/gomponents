@@ -68,6 +68,21 @@ func TestClasses(t *testing.T) {
 	})
 }
 
+func hat(children ...g.Node) g.Node {
+	return Div(MergeClasses(g.Group(children), Class("hat")))
+}
+
+func partyHat(children ...g.Node) g.Node {
+	return hat(ID("party-hat"), Class("party"), g.Group(children))
+}
+
+func TestMergeClasses(t *testing.T) {
+	t.Run("merges classes", func(t *testing.T) {
+		n := partyHat(g.Text("Yo."))
+		assert.Equal(t, `<div id="party-hat" class="party hat">Yo.</div>`, n)
+	})
+}
+
 func ExampleClasses() {
 	e := g.El("div", Classes{"party-hat": true, "boring-hat": false})
 	_ = e.Render(os.Stdout)

@@ -64,3 +64,13 @@ func (c Classes) String() string {
 	_ = c.Render(&b)
 	return b.String()
 }
+
+func MergeClasses(children ...g.Node) g.Node {
+	var b strings.Builder
+	for _, n := range children {
+		if err := n.Render(&b); err != nil {
+			panic(err)
+		}
+	}
+	return nil
+}
