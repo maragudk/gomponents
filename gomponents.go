@@ -257,6 +257,19 @@ func Map[T any](ts []T, cb func(T) Node) Group {
 	return nodes
 }
 
+// MapWithIndex a slice of anything to a [Group] (which is just a slice of [Node]-s),
+// while also passing the index of the element to the callback function.
+// This is useful when you need to know the index of the element in the original slice.
+// The callback function receives the index and the element, and should return a [Node].
+func MapWithIndex[T any](ts []T, cb func(int, T) Node) Group {
+	nodes := make([]Node, 0, len(ts))
+	for i, t := range ts {
+		nodes = append(nodes, cb(i, t))
+	}
+
+	return nodes
+}
+
 // Group a slice of [Node]-s into one Node, while still being usable like a regular slice of [Node]-s.
 // A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
 // to not produce invalid HTML.

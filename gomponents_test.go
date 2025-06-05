@@ -242,6 +242,51 @@ func TestMap(t *testing.T) {
 	})
 }
 
+// The function under test
+func MapWithIndex[T any](ts []T, cb func(int, T) g.Node) g.Group {
+	nodes := make([]g.Node, 0, len(ts))
+	for i, t := range ts {
+		nodes = append(nodes, cb(i, t))
+	}
+	return nodes
+}
+
+func TestMapWithIndex_EmptySlice(t *testing.T) {
+	result := MapWithIndex([]int{}, func(i int, val int) g.Node {
+		return g.Node(g.Textf("%d: %d", i, val))
+	})
+
+	if len(result) != 0 {
+		t.Errorf("Expected empty Group, got %v", result)
+	}
+}
+
+func TestMapWithIndex_CustomType(t *testing.T) {
+	type Person struct {
+		Name string
+		Age  int
+	}
+
+	people := []Person{
+		{"Alice", 30},
+		{"Bob", 25},
+	}
+
+	expected := []g.Node{
+		g.Node(g.Textf("0: Alice (30)")),
+		g.Node(g.Textf("1: Bob (25)")),
+	}
+
+	result := MapWithIndex(people, func(i int, p Person) g.Node {
+		return g.Node(g.Textf("%d: %s (%d)", i, p.Name, p.Age))
+	})
+
+	if len(result) != len(expected) {
+		t.Errorf("Expected %d nodes, got %d", len(expected), len(result))
+		return
+	}
+
+}
 func ExampleMap() {
 	items := []string{"party hat", "super hat"}
 	e := g.El("ul", g.Map(items, func(i string) g.Node {
@@ -258,6 +303,15 @@ func ExampleMap_index() {
 		e := g.El("li", g.Textf("%v: %v", index, i))
 		index++
 		return e
+	}))
+	_ = e.Render(os.Stdout)
+	// Output: <ul><li>0: party hat</li><li>1: super hat</li></ul>
+}
+
+func ExampleMapWithIndex() {
+	items := []string{"party hat", "super hat"}
+	e := g.El("ul", g.MapWithIndex(items, func(i int, s string) g.Node {
+		return g.El("li", g.Textf("%v: %v", i, s))
 	}))
 	_ = e.Render(os.Stdout)
 	// Output: <ul><li>0: party hat</li><li>1: super hat</li></ul>
