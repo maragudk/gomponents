@@ -66,11 +66,5 @@ func (c Classes) String() string {
 }
 
 func MergeClasses(children ...g.Node) g.Node {
-	var b strings.Builder
-	for _, n := range children {
-		if err := n.Render(&b); err != nil {
-			panic(err)
-		}
-	}
 	return nil
 }

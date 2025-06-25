@@ -78,8 +78,8 @@ func partyHat(children ...g.Node) g.Node {
 
 func TestMergeClasses(t *testing.T) {
 	t.Run("merges classes", func(t *testing.T) {
-		n := partyHat(g.Text("Yo."))
-		assert.Equal(t, `<div id="party-hat" class="party hat">Yo.</div>`, n)
+		n := partyHat(Span(ID("party-hat-text"), Class("solid"), g.Text("Yo.")))
+		assert.Equal(t, `<div id="party-hat" class="party hat"><span id="party-hat-text" class="solid">Yo.</span></div>`, n)
 	})
 }
 
