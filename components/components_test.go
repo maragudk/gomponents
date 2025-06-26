@@ -84,13 +84,19 @@ func partyHat(children ...g.Node) g.Node {
 	return hat(ID("party-hat"), Class("party"), g.Group(children))
 }
 
-type brokenNode struct{}
+type brokenNode struct {
+	first bool
+}
 
-func (b brokenNode) Render(io.Writer) error {
+func (b *brokenNode) Render(io.Writer) error {
+	if !b.first {
+		return nil
+	}
+	b.first = false
 	return errors.New("oh no")
 }
 
-func (b brokenNode) Type() g.NodeType {
+func (b *brokenNode) Type() g.NodeType {
 	return g.AttributeType
 }
 
@@ -111,7 +117,7 @@ func TestJoinAttrs(t *testing.T) {
 	})
 
 	t.Run("ignores nodes that can't render", func(t *testing.T) {
-		n := Div(JoinAttrs("class", Class("party"), ID("hey"), brokenNode{}, Class("hat")))
+		n := Div(JoinAttrs("class", Class("party"), ID("hey"), &brokenNode{first: true}, Class("hat")))
 		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
 	})
 }
