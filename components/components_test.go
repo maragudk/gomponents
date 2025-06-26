@@ -88,3 +88,17 @@ func TestJoinAttrs(t *testing.T) {
 		assert.Equal(t, `<div id="party-hat" class="party hat"><span id="party-hat-text" class="solid" class="gold">Yo.</span></div>`, n)
 	})
 }
+
+func myButton(children ...g.Node) g.Node {
+	return Div(JoinAttrs("class", g.Group(children), Class("button")))
+}
+
+func myPrimaryButton(text string) g.Node {
+	return myButton(Class("primary"), g.Text(text))
+}
+
+func ExampleJoinAttrs() {
+	danceButton := myPrimaryButton("Dance")
+	_ = danceButton.Render(os.Stdout)
+	// Output: <div class="primary button">Dance</div>
+}
