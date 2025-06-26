@@ -68,23 +68,23 @@ func TestClasses(t *testing.T) {
 	})
 }
 
+func ExampleClasses() {
+	e := g.El("div", Classes{"party-hat": true, "boring-hat": false})
+	_ = e.Render(os.Stdout)
+	// Output: <div class="party-hat"></div>
+}
+
 func hat(children ...g.Node) g.Node {
-	return Div(MergeClasses(g.Group(children), Class("hat")))
+	return Div(JoinAttrs("class", g.Group(children), Class("hat")))
 }
 
 func partyHat(children ...g.Node) g.Node {
 	return hat(ID("party-hat"), Class("party"), g.Group(children))
 }
 
-func TestMergeClasses(t *testing.T) {
+func TestJoinAttrs(t *testing.T) {
 	t.Run("merges classes", func(t *testing.T) {
-		n := partyHat(Span(ID("party-hat-text"), Class("solid"), g.Text("Yo.")))
-		assert.Equal(t, `<div id="party-hat" class="party hat"><span id="party-hat-text" class="solid">Yo.</span></div>`, n)
+		n := partyHat(Span(ID("party-hat-text"), Class("solid"), Class("gold"), g.Text("Yo.")))
+		assert.Equal(t, `<div id="party-hat" class="party hat"><span id="party-hat-text" class="solid" class="gold">Yo.</span></div>`, n)
 	})
-}
-
-func ExampleClasses() {
-	e := g.El("div", Classes{"party-hat": true, "boring-hat": false})
-	_ = e.Render(os.Stdout)
-	// Output: <div class="party-hat"></div>
 }
