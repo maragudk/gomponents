@@ -1,6 +1,8 @@
 package components_test
 
 import (
+	"errors"
+	"io"
 	"os"
 	"testing"
 
@@ -82,10 +84,35 @@ func partyHat(children ...g.Node) g.Node {
 	return hat(ID("party-hat"), Class("party"), g.Group(children))
 }
 
+type brokenNode struct{}
+
+func (b brokenNode) Render(io.Writer) error {
+	return errors.New("oh no")
+}
+
+func (b brokenNode) Type() g.NodeType {
+	return g.AttributeType
+}
+
 func TestJoinAttrs(t *testing.T) {
-	t.Run("merges classes", func(t *testing.T) {
+	t.Run("joins classes", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("party"), ID("hey"), Class("hat")))
+		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
+	})
+
+	t.Run("joins classes in groups", func(t *testing.T) {
 		n := partyHat(Span(ID("party-hat-text"), Class("solid"), Class("gold"), g.Text("Yo.")))
 		assert.Equal(t, `<div id="party-hat" class="party hat"><span id="party-hat-text" class="solid" class="gold">Yo.</span></div>`, n)
+	})
+
+	t.Run("does nothing if attribute not found", func(t *testing.T) {
+		n := Div(JoinAttrs("style", Class("party"), ID("hey"), Class("hat")))
+		assert.Equal(t, `<div class="party" id="hey" class="hat"></div>`, n)
+	})
+
+	t.Run("ignores nodes that can't render", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("party"), ID("hey"), brokenNode{}, Class("hat")))
+		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
 	})
 }
 
