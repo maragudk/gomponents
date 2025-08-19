@@ -78,7 +78,7 @@ jobs:
 
       - name: Run Benchmarks
         run: |
-          echo "# Benchmark Results for Go ${matrix.go}" >> $GITHUB_STEP_SUMMARY
+          echo "# Benchmark Results for Go ${{ matrix.go }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           go test -bench . -benchmem ./... 2>&1 | tee -a $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
