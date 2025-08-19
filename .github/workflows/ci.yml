@@ -73,7 +73,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: ${{ matrix.go }}
+          go-version: ${{ matrix.go }}
           check-latest: true
 
       - name: Run Benchmarks
