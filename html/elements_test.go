@@ -168,7 +168,7 @@ func TestSimpleVoidKindElements(t *testing.T) {
 }
 
 func BenchmarkLargeHTMLDocument(b *testing.B) {
-	b.ReportAllocs()
+	var sb strings.Builder
 
 	for i := 0; i < b.N; i++ {
 		elements := make([]g.Node, 0, 10000)
@@ -181,7 +181,8 @@ func BenchmarkLargeHTMLDocument(b *testing.B) {
 		}
 		doc := Div(elements...)
 
-		var sb strings.Builder
 		_ = doc.Render(&sb)
+
+		sb.Reset()
 	}
 }

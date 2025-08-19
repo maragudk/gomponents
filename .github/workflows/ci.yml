@@ -68,7 +68,7 @@ jobs:
         run: |
           echo "# Benchmark Results" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          go test -bench=. ./... 2>&1 | tee -a $GITHUB_STEP_SUMMARY
+          go test -bench . -benchmem ./... 2>&1 | tee -a $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   lint:
