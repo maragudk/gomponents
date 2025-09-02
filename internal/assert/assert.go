@@ -13,7 +13,10 @@ func Equal(t *testing.T, expected string, actual g.Node) {
 	t.Helper()
 
 	var b strings.Builder
-	_ = actual.Render(&b)
+	err := actual.Render(&b)
+	if err != nil {
+		t.Fatal("error rendering actual:", err)
+	}
 	if expected != b.String() {
 		t.Fatalf(`expected "%v" but got "%v"`, expected, b.String())
 	}

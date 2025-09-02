@@ -60,16 +60,22 @@ func TestAttr(t *testing.T) {
 
 func BenchmarkAttr(b *testing.B) {
 	b.Run("boolean attributes", func(b *testing.B) {
+		var sb strings.Builder
+
 		for i := 0; i < b.N; i++ {
 			a := g.Attr("hat")
-			_ = a.Render(&strings.Builder{})
+			_ = a.Render(&sb)
+			sb.Reset()
 		}
 	})
 
 	b.Run("name-value attributes", func(b *testing.B) {
+		var sb strings.Builder
+
 		for i := 0; i < b.N; i++ {
 			a := g.Attr("hat", "party")
-			_ = a.Render(&strings.Builder{})
+			_ = a.Render(&sb)
+			sb.Reset()
 		}
 	})
 }
@@ -140,17 +146,33 @@ func TestEl(t *testing.T) {
 	})
 
 	t.Run("returns render error on cannot write", func(t *testing.T) {
-		e := g.El("div")
-		err := e.Render(&erroringWriter{})
-		assert.Error(t, err)
+		// This weird little constructs makes sure we test error handling of all writes
+		for i := 0; i <= 33; i++ {
+			t.Run(fmt.Sprintf("failing write %v", i), func(t *testing.T) {
+				e := g.El("div", g.Attr("id", "hat"), g.Attr("required"), g.El("span"),
+					g.Group{g.El("span"), g.Attr("class", "party-hat")},
+					g.Text("foo"), g.Textf("ba%v", "r"), g.Raw("baz"), g.Rawf("what comes after %v?", "baz"))
+
+				w := &erroringWriter{failingWrite: i}
+				err := e.Render(w)
+				assert.Error(t, err)
+
+				sw := &stringWriter{w: &erroringWriter{failingWrite: i}}
+				err = e.Render(sw)
+				assert.Error(t, err)
+			})
+		}
 	})
 }
 
 func BenchmarkEl(b *testing.B) {
 	b.Run("normal elements", func(b *testing.B) {
+		var sb strings.Builder
+
 		for i := 0; i < b.N; i++ {
 			e := g.El("div")
-			_ = e.Render(&strings.Builder{})
+			_ = e.Render(&sb)
+			sb.Reset()
 		}
 	})
 }
@@ -161,10 +183,29 @@ func ExampleEl() {
 	// Output: <div><span></span></div>
 }
 
-type erroringWriter struct{}
+type erroringWriter struct {
+	failingWrite int
+	actualWrite  int
+}
 
 func (w *erroringWriter) Write(p []byte) (n int, err error) {
-	return 0, errors.New("no thanks")
+	if w.failingWrite == w.actualWrite {
+		return 0, errors.New("no thanks")
+	}
+	w.actualWrite++
+	return 0, nil
+}
+
+type stringWriter struct {
+	w io.Writer
+}
+
+func (w *stringWriter) Write(p []byte) (n int, err error) {
+	return w.w.Write(p)
+}
+
+func (w *stringWriter) WriteString(s string) (n int, err error) {
+	return w.w.Write([]byte(s))
 }
 
 func TestText(t *testing.T) {
@@ -349,6 +390,12 @@ func TestGroup(t *testing.T) {
 		assert.Equal(t, "<div></div><span></span>", e)
 		assert.Equal(t, "<div></div>", e[0])
 		assert.Equal(t, "<span></span>", e[1])
+	})
+
+	t.Run("returns render error on cannot write", func(t *testing.T) {
+		e := g.Group{g.El("span")}
+		err := e.Render(&erroringWriter{})
+		assert.Error(t, err)
 	})
 }
 
