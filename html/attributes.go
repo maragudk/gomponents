@@ -60,6 +60,10 @@ func Muted() g.Node {
 	return g.Attr("muted")
 }
 
+func Open() g.Node {
+	return g.Attr("open")
+}
+
 func PlaysInline() g.Node {
 	return g.Attr("playsinline")
 }

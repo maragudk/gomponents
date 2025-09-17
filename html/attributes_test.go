@@ -25,6 +25,7 @@ func TestBooleanAttributes(t *testing.T) {
 		{Name: "loop", Func: Loop},
 		{Name: "multiple", Func: Multiple},
 		{Name: "muted", Func: Muted},
+		{Name: "open", Func: Open},
 		{Name: "playsinline", Func: PlaysInline},
 		{Name: "readonly", Func: ReadOnly},
 		{Name: "required", Func: Required},
