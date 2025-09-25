@@ -1,10 +1,9 @@
 package slices_test
 
 import (
+	"reflect"
 	"strconv"
 	"testing"
-
-	"maragu.dev/is"
 
 	"maragu.dev/gomponents/x/slices"
 )
@@ -15,7 +14,10 @@ func TestMap(t *testing.T) {
 		result := slices.Map(input, func(i int, v int) string {
 			return strconv.Itoa(i) + ":" + strconv.Itoa(v)
 		})
-		is.EqualSlice(t, []string{"0:1", "1:2", "2:3"}, result)
+		expected := []string{"0:1", "1:2", "2:3"}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
 	})
 
 	t.Run("maps strings to integers", func(t *testing.T) {
@@ -23,7 +25,10 @@ func TestMap(t *testing.T) {
 		result := slices.Map(input, func(i int, s string) int {
 			return len(s) + i
 		})
-		is.EqualSlice(t, []int{5, 6, 6}, result)
+		expected := []int{5, 6, 6}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
 	})
 
 	t.Run("handles empty slice", func(t *testing.T) {
@@ -31,7 +36,9 @@ func TestMap(t *testing.T) {
 		result := slices.Map(input, func(i int, v int) string {
 			return strconv.Itoa(v)
 		})
-		is.EqualSlice(t, []string{}, result)
+		if len(result) != 0 {
+			t.Errorf("expected empty slice, got %v", result)
+		}
 	})
 
 	t.Run("handles nil slice", func(t *testing.T) {
@@ -39,7 +46,9 @@ func TestMap(t *testing.T) {
 		result := slices.Map(input, func(i int, v int) string {
 			return strconv.Itoa(v)
 		})
-		is.Nil(t, result)
+		if result != nil {
+			t.Errorf("expected nil, got %v", result)
+		}
 	})
 
 	t.Run("maps struct to another struct", func(t *testing.T) {
@@ -68,7 +77,9 @@ func TestMap(t *testing.T) {
 			{ID: 0, Text: "Alice (30)"},
 			{ID: 1, Text: "Bob (25)"},
 		}
-		is.EqualSlice(t, expected, displays)
+		if !reflect.DeepEqual(expected, displays) {
+			t.Errorf("expected %v, got %v", expected, displays)
+		}
 	})
 
 	t.Run("preserves order", func(t *testing.T) {
@@ -76,7 +87,10 @@ func TestMap(t *testing.T) {
 		result := slices.Map(input, func(i int, v int) int {
 			return v * 2
 		})
-		is.EqualSlice(t, []int{6, 2, 8, 2, 10, 18}, result)
+		expected := []int{6, 2, 8, 2, 10, 18}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
 	})
 }
 
@@ -86,7 +100,10 @@ func TestFilter(t *testing.T) {
 		result := slices.Filter(input, func(v int) bool {
 			return v%2 == 0
 		})
-		is.EqualSlice(t, []int{2, 4, 6}, result)
+		expected := []int{2, 4, 6}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
 	})
 
 	t.Run("filters strings by length", func(t *testing.T) {
@@ -94,7 +111,10 @@ func TestFilter(t *testing.T) {
 		result := slices.Filter(input, func(s string) bool {
 			return len(s) >= 3
 		})
-		is.EqualSlice(t, []string{"abc", "abcd", "abcde"}, result)
+		expected := []string{"abc", "abcd", "abcde"}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
 	})
 
 	t.Run("handles empty slice", func(t *testing.T) {
@@ -102,7 +122,9 @@ func TestFilter(t *testing.T) {
 		result := slices.Filter(input, func(v int) bool {
 			return v > 0
 		})
-		is.EqualSlice(t, []int{}, result)
+		if len(result) != 0 {
+			t.Errorf("expected empty slice, got %v", result)
+		}
 	})
 
 	t.Run("handles nil slice", func(t *testing.T) {
@@ -110,7 +132,9 @@ func TestFilter(t *testing.T) {
 		result := slices.Filter(input, func(v int) bool {
 			return v > 0
 		})
-		is.Nil(t, result)
+		if result != nil {
+			t.Errorf("expected nil, got %v", result)
+		}
 	})
 
 	t.Run("filters all elements when none match", func(t *testing.T) {
@@ -118,7 +142,9 @@ func TestFilter(t *testing.T) {
 		result := slices.Filter(input, func(v int) bool {
 			return v%2 == 0
 		})
-		is.EqualSlice(t, []int{}, result)
+		if len(result) != 0 {
+			t.Errorf("expected empty slice, got %v", result)
+		}
 	})
 
 	t.Run("keeps all elements when all match", func(t *testing.T) {
@@ -126,7 +152,10 @@ func TestFilter(t *testing.T) {
 		result := slices.Filter(input, func(v int) bool {
 			return v%2 == 0
 		})
-		is.EqualSlice(t, []int{2, 4, 6, 8}, result)
+		expected := []int{2, 4, 6, 8}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
 	})
 
 	t.Run("filters structs", func(t *testing.T) {
@@ -150,7 +179,9 @@ func TestFilter(t *testing.T) {
 			{Name: "Orange", Price: 0.8},
 			{Name: "Grape", Price: 1.2},
 		}
-		is.EqualSlice(t, expected, expensive)
+		if !reflect.DeepEqual(expected, expensive) {
+			t.Errorf("expected %v, got %v", expected, expensive)
+		}
 	})
 
 	t.Run("preserves order", func(t *testing.T) {
@@ -158,7 +189,10 @@ func TestFilter(t *testing.T) {
 		result := slices.Filter(input, func(v int) bool {
 			return v > 4
 		})
-		is.EqualSlice(t, []int{5, 8, 9, 6}, result)
+		expected := []int{5, 8, 9, 6}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
 	})
 }
 
@@ -168,7 +202,9 @@ func TestReduce(t *testing.T) {
 		result := slices.Reduce(input, 0, func(acc int, v int) int {
 			return acc + v
 		})
-		is.Equal(t, 15, result)
+		if result != 15 {
+			t.Errorf("expected 15, got %v", result)
+		}
 	})
 
 	t.Run("concatenates strings", func(t *testing.T) {
@@ -176,7 +212,9 @@ func TestReduce(t *testing.T) {
 		result := slices.Reduce(input, "", func(acc string, v string) string {
 			return acc + v
 		})
-		is.Equal(t, "hello world", result)
+		if result != "hello world" {
+			t.Errorf("expected 'hello world', got %v", result)
+		}
 	})
 
 	t.Run("finds maximum", func(t *testing.T) {
@@ -187,7 +225,9 @@ func TestReduce(t *testing.T) {
 			}
 			return max
 		})
-		is.Equal(t, 9, result)
+		if result != 9 {
+			t.Errorf("expected 9, got %v", result)
+		}
 	})
 
 	t.Run("handles empty slice", func(t *testing.T) {
@@ -195,7 +235,9 @@ func TestReduce(t *testing.T) {
 		result := slices.Reduce(input, 100, func(acc int, v int) int {
 			return acc + v
 		})
-		is.Equal(t, 100, result)
+		if result != 100 {
+			t.Errorf("expected 100, got %v", result)
+		}
 	})
 
 	t.Run("handles nil slice", func(t *testing.T) {
@@ -203,7 +245,9 @@ func TestReduce(t *testing.T) {
 		result := slices.Reduce(input, 42, func(acc int, v int) int {
 			return acc + v
 		})
-		is.Equal(t, 42, result)
+		if result != 42 {
+			t.Errorf("expected 42, got %v", result)
+		}
 	})
 
 	t.Run("calculates product", func(t *testing.T) {
@@ -211,7 +255,9 @@ func TestReduce(t *testing.T) {
 		result := slices.Reduce(input, 1, func(acc int, v int) int {
 			return acc * v
 		})
-		is.Equal(t, 24, result)
+		if result != 24 {
+			t.Errorf("expected 24, got %v", result)
+		}
 	})
 
 	t.Run("reduces to different type", func(t *testing.T) {
@@ -219,7 +265,9 @@ func TestReduce(t *testing.T) {
 		result := slices.Reduce(input, 0, func(acc int, v string) int {
 			return acc + len(v)
 		})
-		is.Equal(t, 3, result)
+		if result != 3 {
+			t.Errorf("expected 3, got %v", result)
+		}
 	})
 
 	t.Run("builds map from slice", func(t *testing.T) {
@@ -240,9 +288,13 @@ func TestReduce(t *testing.T) {
 		})
 
 		expected := map[string]int{"a": 1, "b": 2, "c": 3}
-		is.Equal(t, len(expected), len(result))
+		if len(expected) != len(result) {
+			t.Errorf("expected length %v, got %v", len(expected), len(result))
+		}
 		for k, v := range expected {
-			is.Equal(t, v, result[k])
+			if result[k] != v {
+				t.Errorf("expected %v for key %v, got %v", v, k, result[k])
+			}
 		}
 	})
 
@@ -253,9 +305,15 @@ func TestReduce(t *testing.T) {
 			return acc
 		})
 
-		is.Equal(t, 3, counts["apple"])
-		is.Equal(t, 2, counts["banana"])
-		is.Equal(t, 1, counts["orange"])
+		if counts["apple"] != 3 {
+			t.Errorf("expected 3 apples, got %v", counts["apple"])
+		}
+		if counts["banana"] != 2 {
+			t.Errorf("expected 2 bananas, got %v", counts["banana"])
+		}
+		if counts["orange"] != 1 {
+			t.Errorf("expected 1 orange, got %v", counts["orange"])
+		}
 	})
 
 	t.Run("builds nested structure", func(t *testing.T) {
@@ -276,8 +334,14 @@ func TestReduce(t *testing.T) {
 			return acc
 		})
 
-		is.EqualSlice(t, []string{"Alice", "Charlie"}, byAge[30])
-		is.EqualSlice(t, []string{"Bob"}, byAge[25])
+		expected30 := []string{"Alice", "Charlie"}
+		if !reflect.DeepEqual(expected30, byAge[30]) {
+			t.Errorf("expected %v for age 30, got %v", expected30, byAge[30])
+		}
+		expected25 := []string{"Bob"}
+		if !reflect.DeepEqual(expected25, byAge[25]) {
+			t.Errorf("expected %v for age 25, got %v", expected25, byAge[25])
+		}
 	})
 }
 
@@ -290,7 +354,10 @@ func TestCombinedOperations(t *testing.T) {
 		result := slices.Filter(doubled, func(v int) bool {
 			return v > 5
 		})
-		is.EqualSlice(t, []int{6, 8, 10}, result)
+		expected := []int{6, 8, 10}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
 	})
 
 	t.Run("filter then reduce", func(t *testing.T) {
@@ -301,7 +368,9 @@ func TestCombinedOperations(t *testing.T) {
 		sum := slices.Reduce(evens, 0, func(acc int, v int) int {
 			return acc + v
 		})
-		is.Equal(t, 12, sum)
+		if sum != 12 {
+			t.Errorf("expected 12, got %v", sum)
+		}
 	})
 
 	t.Run("map filter reduce pipeline", func(t *testing.T) {
@@ -319,10 +388,6 @@ func TestCombinedOperations(t *testing.T) {
 		}
 
 		// Calculate total revenue for Widgets
-		revenues := slices.Map(sales, func(_ int, s Sale) float64 {
-			return float64(s.Quantity) * s.Price
-		})
-
 		widgetSales := slices.Filter(sales, func(s Sale) bool {
 			return s.Product == "Widget"
 		})
@@ -335,6 +400,8 @@ func TestCombinedOperations(t *testing.T) {
 			return acc + v
 		})
 
-		is.Equal(t, 65.0, totalWidgetRevenue)
+		if totalWidgetRevenue != 65.0 {
+			t.Errorf("expected 65.0, got %v", totalWidgetRevenue)
+		}
 	})
 }
