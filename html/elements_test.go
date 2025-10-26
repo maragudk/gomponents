@@ -94,6 +94,7 @@ func TestSimpleElements(t *testing.T) {
 		{Name: "ol", Func: Ol},
 		{Name: "optgroup", Func: OptGroup},
 		{Name: "option", Func: Option},
+		{Name: "output", Func: Output},
 		{Name: "p", Func: P},
 		{Name: "picture", Func: Picture},
 		{Name: "pre", Func: Pre},

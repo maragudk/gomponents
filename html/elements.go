@@ -228,6 +228,10 @@ func OptGroup(children ...g.Node) g.Node {
 	return g.El("optgroup", children...)
 }
 
+func Output(children ...g.Node) g.Node {
+	return g.El("output", children...)
+}
+
 func Option(children ...g.Node) g.Node {
 	return g.El("option", children...)
 }
