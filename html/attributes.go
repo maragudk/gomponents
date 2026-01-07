@@ -285,6 +285,10 @@ func Scope(v string) g.Node {
 	return g.Attr("scope", v)
 }
 
+func SpellCheck(v string) g.Node {
+	return g.Attr("spellcheck", v)
+}
+
 func Src(v string) g.Node {
 	return g.Attr("src", v)
 }
