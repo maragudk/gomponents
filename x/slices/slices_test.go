@@ -9,7 +9,7 @@ import (
 )
 
 func TestMap(t *testing.T) {
-	t.Run("transforms elements using index and value", func(t *testing.T) {
+	t.Run("transforms from one type to another with index", func(t *testing.T) {
 		input := []int{1, 2, 3}
 		result := slices.Map(input, func(i int, v int) string {
 			return strconv.Itoa(i) + ":" + strconv.Itoa(v)
@@ -20,13 +20,13 @@ func TestMap(t *testing.T) {
 		}
 	})
 
-	t.Run("returns nil for nil input", func(t *testing.T) {
+	t.Run("returns empty for nil input", func(t *testing.T) {
 		var input []int
 		result := slices.Map(input, func(_ int, v int) int {
 			return v
 		})
-		if result != nil {
-			t.Errorf("expected nil, got %v", result)
+		if len(result) != 0 {
+			t.Errorf("expected empty, got %v", result)
 		}
 	})
 }
@@ -43,13 +43,13 @@ func TestFilter(t *testing.T) {
 		}
 	})
 
-	t.Run("returns nil for nil input", func(t *testing.T) {
+	t.Run("returns empty for nil input", func(t *testing.T) {
 		var input []int
 		result := slices.Filter(input, func(_ int, v int) bool {
 			return true
 		})
-		if result != nil {
-			t.Errorf("expected nil, got %v", result)
+		if len(result) != 0 {
+			t.Errorf("expected empty, got %v", result)
 		}
 	})
 
