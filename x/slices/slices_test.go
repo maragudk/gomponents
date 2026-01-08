@@ -148,6 +148,18 @@ func ExampleFilter() {
 	// Output: <ul><li>party hat</li><li>silly hat</li></ul>
 }
 
+func ExampleFilter_withIndex() {
+	items := []string{"party hat", "super hat", "silly hat", "regular hat"}
+	everyOther := slices.Filter(items, func(i int, _ string) bool {
+		return i%2 == 0
+	})
+	e := html.Ul(slices.Map(everyOther, func(_ int, item string) g.Node {
+		return html.Li(g.Text(item))
+	})...)
+	_ = e.Render(os.Stdout)
+	// Output: <ul><li>party hat</li><li>silly hat</li></ul>
+}
+
 func ExampleReduce() {
 	prices := []float64{9.99, 14.99, 24.99}
 	total := slices.Reduce(prices, 0.0, func(sum float64, price float64) float64 {
