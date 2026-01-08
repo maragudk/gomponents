@@ -1,4 +1,7 @@
 // Package slices provides generic slice manipulation functions.
+//
+// This is an experimental package and does not have the same
+// compatibility guarantees as the core gomponents library.
 package slices
 
 // Map applies the given function to each element of the slice,
