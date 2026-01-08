@@ -17,15 +17,16 @@ func Map[T1, T2 any](s []T1, f func(int, T1) T2) []T2 {
 }
 
 // Filter returns a new slice containing only the elements
-// for which the predicate function returns true.
-func Filter[T any](s []T, f func(T) bool) []T {
+// for which the predicate function returns true. The callback
+// function receives both the index and the element.
+func Filter[T any](s []T, f func(int, T) bool) []T {
 	if s == nil {
 		return nil
 	}
 
 	var result []T
-	for _, v := range s {
-		if f(v) {
+	for i, v := range s {
+		if f(i, v) {
 			result = append(result, v)
 		}
 	}

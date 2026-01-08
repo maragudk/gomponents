@@ -97,7 +97,7 @@ func TestMap(t *testing.T) {
 func TestFilter(t *testing.T) {
 	t.Run("keeps only even numbers", func(t *testing.T) {
 		input := []int{1, 2, 3, 4, 5, 6}
-		result := slices.Filter(input, func(v int) bool {
+		result := slices.Filter(input, func(_ int, v int) bool {
 			return v%2 == 0
 		})
 		expected := []int{2, 4, 6}
@@ -108,7 +108,7 @@ func TestFilter(t *testing.T) {
 
 	t.Run("keeps strings with length >= 3", func(t *testing.T) {
 		input := []string{"a", "ab", "abc", "abcd", "abcde"}
-		result := slices.Filter(input, func(s string) bool {
+		result := slices.Filter(input, func(_ int, s string) bool {
 			return len(s) >= 3
 		})
 		expected := []string{"abc", "abcd", "abcde"}
@@ -119,7 +119,7 @@ func TestFilter(t *testing.T) {
 
 	t.Run("returns empty slice for empty input", func(t *testing.T) {
 		input := []int{}
-		result := slices.Filter(input, func(v int) bool {
+		result := slices.Filter(input, func(_ int, v int) bool {
 			return v > 0
 		})
 		if len(result) != 0 {
@@ -129,7 +129,7 @@ func TestFilter(t *testing.T) {
 
 	t.Run("returns nil for nil input", func(t *testing.T) {
 		var input []int
-		result := slices.Filter(input, func(v int) bool {
+		result := slices.Filter(input, func(_ int, v int) bool {
 			return v > 0
 		})
 		if result != nil {
@@ -139,7 +139,7 @@ func TestFilter(t *testing.T) {
 
 	t.Run("returns empty when no elements match", func(t *testing.T) {
 		input := []int{1, 3, 5, 7}
-		result := slices.Filter(input, func(v int) bool {
+		result := slices.Filter(input, func(_ int, v int) bool {
 			return v%2 == 0
 		})
 		if len(result) != 0 {
@@ -149,7 +149,7 @@ func TestFilter(t *testing.T) {
 
 	t.Run("keeps all elements when all match", func(t *testing.T) {
 		input := []int{2, 4, 6, 8}
-		result := slices.Filter(input, func(v int) bool {
+		result := slices.Filter(input, func(_ int, v int) bool {
 			return v%2 == 0
 		})
 		expected := []int{2, 4, 6, 8}
@@ -171,7 +171,7 @@ func TestFilter(t *testing.T) {
 			{Name: "Grape", Price: 1.2},
 		}
 
-		expensive := slices.Filter(products, func(p Product) bool {
+		expensive := slices.Filter(products, func(_ int, p Product) bool {
 			return p.Price > 0.5
 		})
 
@@ -186,10 +186,21 @@ func TestFilter(t *testing.T) {
 
 	t.Run("preserves order", func(t *testing.T) {
 		input := []int{5, 2, 8, 1, 9, 3, 6}
-		result := slices.Filter(input, func(v int) bool {
+		result := slices.Filter(input, func(_ int, v int) bool {
 			return v > 4
 		})
 		expected := []int{5, 8, 9, 6}
+		if !reflect.DeepEqual(expected, result) {
+			t.Errorf("expected %v, got %v", expected, result)
+		}
+	})
+
+	t.Run("keeps elements at even indices", func(t *testing.T) {
+		input := []string{"a", "b", "c", "d", "e"}
+		result := slices.Filter(input, func(i int, _ string) bool {
+			return i%2 == 0
+		})
+		expected := []string{"a", "c", "e"}
 		if !reflect.DeepEqual(expected, result) {
 			t.Errorf("expected %v, got %v", expected, result)
 		}
@@ -318,7 +329,7 @@ func TestCombinedOperations(t *testing.T) {
 		doubled := slices.Map(input, func(_ int, v int) int {
 			return v * 2
 		})
-		result := slices.Filter(doubled, func(v int) bool {
+		result := slices.Filter(doubled, func(_ int, v int) bool {
 			return v > 5
 		})
 		expected := []int{6, 8, 10}
@@ -329,7 +340,7 @@ func TestCombinedOperations(t *testing.T) {
 
 	t.Run("filter then reduce", func(t *testing.T) {
 		input := []int{1, 2, 3, 4, 5, 6}
-		evens := slices.Filter(input, func(v int) bool {
+		evens := slices.Filter(input, func(_ int, v int) bool {
 			return v%2 == 0
 		})
 		sum := slices.Reduce(evens, 0, func(acc int, v int) int {
@@ -354,7 +365,7 @@ func TestCombinedOperations(t *testing.T) {
 			{Product: "Widget", Quantity: 3, Price: 5.0},
 		}
 
-		widgetSales := slices.Filter(sales, func(s Sale) bool {
+		widgetSales := slices.Filter(sales, func(_ int, s Sale) bool {
 			return s.Product == "Widget"
 		})
 
