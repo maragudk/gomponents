@@ -81,6 +81,7 @@ gomponents is organized into several packages:
 - `gomponents/html`: HTML elements and attributes.
 - `gomponents/components`: Higher-level components and utilities.
 - `gomponents/http`: HTTP-related utilities for web servers.
+- `gomponents/x/...`: Experimental packages. These do not have the same compatibility guarantees as the core library.
 
 ### Void Elements
 
@@ -122,9 +123,8 @@ I always welcome issues discussing interesting aspects of gomponents, and obviou
 But otherwise, I consider gomponents pretty much feature complete.
 
 New features to the core library are unlikely to be merged, since I like keeping it simple and the API small.
-In particular, new functions around collections (similar to `Map`) or flow control (`IfElse`/`Else`) will not be added.
-`Map` was introduced before generics were a thing, and I think it's better to start using generic functions
-from the stdlib or other libraries, instead of adding gomponents-specific variations of them to this library.
+In particular, new flow control functions (`IfElse`/`Else`) will not be added to the core library.
+For generic collection utilities like `Map`, `Filter`, and `Reduce`, see the experimental `x/slices` package.
 
 If there's something missing that you need, I would recommend to keep small helper functions around in your own projects.
 And if all else fails, you can always use an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE):
