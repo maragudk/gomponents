@@ -1,10 +1,13 @@
 package slices_test
 
 import (
+	"os"
 	"reflect"
 	"strconv"
 	"testing"
 
+	g "maragu.dev/gomponents"
+	"maragu.dev/gomponents/html"
 	"maragu.dev/gomponents/x/slices"
 )
 
@@ -105,4 +108,52 @@ func TestReduce(t *testing.T) {
 			t.Errorf("expected 6, got %v", result)
 		}
 	})
+}
+
+func ExampleMap() {
+	items := []string{"party hat", "super hat"}
+	e := html.Ul(slices.Map(items, func(_ int, item string) g.Node {
+		return html.Li(g.Text(item))
+	})...)
+	_ = e.Render(os.Stdout)
+	// Output: <ul><li>party hat</li><li>super hat</li></ul>
+}
+
+func ExampleMap_withIndex() {
+	items := []string{"party hat", "super hat"}
+	e := html.Ul(slices.Map(items, func(i int, item string) g.Node {
+		return html.Li(g.Textf("%v: %v", i, item))
+	})...)
+	_ = e.Render(os.Stdout)
+	// Output: <ul><li>0: party hat</li><li>1: super hat</li></ul>
+}
+
+func ExampleFilter() {
+	type Product struct {
+		Name   string
+		InStock bool
+	}
+	products := []Product{
+		{Name: "party hat", InStock: true},
+		{Name: "super hat", InStock: false},
+		{Name: "silly hat", InStock: true},
+	}
+	inStock := slices.Filter(products, func(_ int, p Product) bool {
+		return p.InStock
+	})
+	e := html.Ul(slices.Map(inStock, func(_ int, p Product) g.Node {
+		return html.Li(g.Text(p.Name))
+	})...)
+	_ = e.Render(os.Stdout)
+	// Output: <ul><li>party hat</li><li>silly hat</li></ul>
+}
+
+func ExampleReduce() {
+	prices := []float64{9.99, 14.99, 24.99}
+	total := slices.Reduce(prices, 0.0, func(sum float64, price float64) float64 {
+		return sum + price
+	})
+	e := html.Span(g.Textf("Total: $%.2f", total))
+	_ = e.Render(os.Stdout)
+	// Output: <span>Total: $49.97</span>
 }
