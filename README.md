@@ -81,7 +81,7 @@ gomponents is organized into several packages:
 - `gomponents/html`: HTML elements and attributes.
 - `gomponents/components`: Higher-level components and utilities.
 - `gomponents/http`: HTTP-related utilities for web servers.
-- `gomponents/x/...`: Experimental packages. These do not have the same compatibility guarantees as the core library.
+- `gomponents/x/...`: Experimental packages. These do not have the same compatibility guarantees as the core library, and in particular, may get breaking changes.
 
 ### Void Elements
 
