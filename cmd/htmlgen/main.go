@@ -37,7 +37,6 @@ type Attribute struct {
 	FuncName   string
 	IsBoolean  bool
 	IsVariadic bool
-	Deprecated string // If set, this is a deprecated alias pointing to the given function
 }
 
 // elementsWithGroup are elements that should use g.Group(children) instead of children...
@@ -94,13 +93,6 @@ var deprecatedElementAliases = map[string]string{
 	"LabelEl": "Label",
 }
 
-// deprecatedAttrAliases are deprecated attribute function names for backwards compatibility.
-var deprecatedAttrAliases = map[string]string{
-	"DataAttr":  "Data",
-	"StyleAttr": "Style",
-	"TitleAttr": "Title",
-}
-
 // extraElements are elements not in MDN HTML data but commonly used.
 var extraElements = []Element{
 	{Tag: "svg", FuncName: "SVG"}, // SVG is in a different namespace but commonly inlined
@@ -111,11 +103,8 @@ var extraAttributes = []Attribute{
 	{Key: "role", FuncName: "Role"}, // ARIA role attribute
 }
 
-// skipAttributes are attributes that need special handling and shouldn't be auto-generated.
+// skipAttributes are attributes that shouldn't be auto-generated.
 var skipAttributes = map[string]bool{
-	// Special prefix helpers
-	"data": true, // Data() is a prefix helper for data-* attributes
-	"aria": true, // Aria() is a prefix helper for aria-* attributes
 	// Deprecated body attributes (universally deprecated)
 	"alink": true, "background": true, "bgcolor": true, "border": true,
 	"bottommargin": true, "color": true, "leftmargin": true, "marginheight": true,
@@ -401,10 +390,6 @@ func loadAttributes() ([]Attribute, error) {
 		}
 	}
 
-	// Add special prefix helper attributes
-	attrs["aria"] = Attribute{Key: "aria", FuncName: "Aria"}
-	attrs["data-custom"] = Attribute{Key: "data", FuncName: "Data"}
-
 	// Add extra attributes
 	for _, extra := range extraAttributes {
 		if _, exists := attrs[extra.Key]; !exists {
@@ -418,30 +403,8 @@ func loadAttributes() ([]Attribute, error) {
 		result = append(result, attr)
 	}
 
-	// Add deprecated aliases
-	for alias, target := range deprecatedAttrAliases {
-		result = append(result, Attribute{
-			FuncName:   alias,
-			Deprecated: target,
-		})
-	}
-
-	// Sort: boolean first, then string, then variadic, then special, then deprecated
+	// Sort: boolean first, then string, then variadic
 	sort.Slice(result, func(i, j int) bool {
-		if result[i].Deprecated != "" && result[j].Deprecated == "" {
-			return false
-		}
-		if result[i].Deprecated == "" && result[j].Deprecated != "" {
-			return true
-		}
-		iSpecial := result[i].FuncName == "Aria" || result[i].FuncName == "Data"
-		jSpecial := result[j].FuncName == "Aria" || result[j].FuncName == "Data"
-		if iSpecial && !jSpecial {
-			return false
-		}
-		if !iSpecial && jSpecial {
-			return true
-		}
 		if result[i].IsVariadic && !result[j].IsVariadic {
 			return false
 		}
@@ -581,35 +544,6 @@ import (
 
 	for _, attr := range attrs {
 		buf.WriteString("\n")
-
-		if attr.Deprecated != "" {
-			fmt.Fprintf(&buf, "// Deprecated: Use [%s] instead.\n", attr.Deprecated)
-			if attr.FuncName == "DataAttr" {
-				fmt.Fprintf(&buf, "func %s(name, v string) g.Node {\n", attr.FuncName)
-				fmt.Fprintf(&buf, "\treturn %s(name, v)\n", attr.Deprecated)
-			} else {
-				fmt.Fprintf(&buf, "func %s(v string) g.Node {\n", attr.FuncName)
-				fmt.Fprintf(&buf, "\treturn %s(v)\n", attr.Deprecated)
-			}
-			buf.WriteString("}\n")
-			continue
-		}
-
-		if attr.FuncName == "Aria" {
-			buf.WriteString("// Aria attributes automatically have their name prefixed with \"aria-\".\n")
-			fmt.Fprintf(&buf, "func %s(name, v string) g.Node {\n", attr.FuncName)
-			buf.WriteString("\treturn g.Attr(\"aria-\"+name, v)\n")
-			buf.WriteString("}\n")
-			continue
-		}
-
-		if attr.FuncName == "Data" {
-			buf.WriteString("// Data attributes automatically have their name prefixed with \"data-\".\n")
-			fmt.Fprintf(&buf, "func %s(name, v string) g.Node {\n", attr.FuncName)
-			buf.WriteString("\treturn g.Attr(\"data-\"+name, v)\n")
-			buf.WriteString("}\n")
-			continue
-		}
 
 		if attr.IsVariadic {
 			fmt.Fprintf(&buf, "func %s(v ...string) g.Node {\n", attr.FuncName)
