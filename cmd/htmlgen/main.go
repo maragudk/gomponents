@@ -41,7 +41,8 @@ type Attribute struct {
 }
 
 // elementsWithGroup are elements that should use g.Group(children) instead of children...
-// These are typically inline/phrasing content elements.
+// These are typically inline/phrasing content elements. This is a gomponents-specific design
+// choice that can't be derived from MDN data.
 var elementsWithGroup = map[string]bool{
 	"abbr": true, "b": true, "caption": true, "dd": true, "del": true,
 	"dfn": true, "dt": true, "em": true, "figcaption": true,
@@ -52,6 +53,7 @@ var elementsWithGroup = map[string]bool{
 }
 
 // booleanAttributes are attributes that don't take a value.
+// MDN doesn't provide this information, so we need to maintain this list.
 var booleanAttributes = map[string]bool{
 	"allowfullscreen": true, "async": true, "autofocus": true, "autoplay": true,
 	"checked": true, "controls": true, "default": true, "defer": true,
@@ -68,83 +70,89 @@ var variadicAttributes = map[string]bool{
 
 // nameConflicts defines how to handle element/attribute name conflicts.
 // Key is the HTML name, value is [elementFuncName, attrFuncName].
+// Empty string means skip generation for that type.
 var nameConflicts = map[string][2]string{
-	"abbr":    {"Abbr", "AbbrAttr"},       // <abbr> element vs abbr attribute on <th>/<td>
+	"abbr":    {"Abbr", "AbbrAttr"},
 	"cite":    {"Cite", "CiteAttr"},
-	"data":    {"DataEl", ""},             // Data is special (prefix helper)
+	"data":    {"DataEl", ""},        // Data is special (prefix helper)
 	"form":    {"Form", "FormAttr"},
 	"label":   {"Label", "LabelAttr"},
-	"map":     {"MapEl", ""},              // Map conflicts with gomponents.Map helper
+	"link":    {"Link", ""},          // link attr is deprecated (body link color)
+	"map":     {"MapEl", ""},         // Map conflicts with gomponents.Map helper
+	"text":    {"", ""},              // text attr deprecated; conflicts with gomponents.Text
 	"slot":    {"SlotEl", "SlotAttr"},
-	"span":    {"Span", "SpanAttr"},       // <span> element vs span attribute on <colgroup>/<col>
+	"span":    {"Span", "SpanAttr"},
 	"style":   {"StyleEl", "Style"},
-	"summary": {"Summary", "SummaryAttr"}, // <summary> element vs summary attribute on <table>
+	"summary": {"Summary", "SummaryAttr"},
 	"title":   {"TitleEl", "Title"},
 }
 
-// deprecatedElementAliases are deprecated element function names.
+// deprecatedElementAliases are deprecated element function names for backwards compatibility.
 var deprecatedElementAliases = map[string]string{
 	"CiteEl":  "Cite",
 	"FormEl":  "Form",
 	"LabelEl": "Label",
 }
 
-// deprecatedAttrAliases are deprecated attribute function names.
+// deprecatedAttrAliases are deprecated attribute function names for backwards compatibility.
 var deprecatedAttrAliases = map[string]string{
 	"DataAttr":  "Data",
 	"StyleAttr": "Style",
 	"TitleAttr": "Title",
 }
 
-// skipElements are elements that shouldn't be generated (deprecated/obsolete).
-var skipElements = map[string]bool{
-	"acronym": true, "applet": true, "basefont": true, "bgsound": true,
-	"big": true, "blink": true, "center": true, "content": true,
-	"dir": true, "font": true, "frame": true, "frameset": true,
-	"image": true, "keygen": true, "marquee": true, "menuitem": true,
-	"nobr": true, "noembed": true, "noframes": true,
-	"plaintext": true, "rb": true, "rtc": true, "shadow": true,
-	"spacer": true, "strike": true, "tt": true, "xmp": true,
-}
-
-// extraElements are elements that should be generated but aren't in MDN HTML data.
-// SVG is commonly used inline in HTML documents.
+// extraElements are elements not in MDN HTML data but commonly used.
 var extraElements = []Element{
-	{Tag: "svg", FuncName: "SVG"},
+	{Tag: "svg", FuncName: "SVG"}, // SVG is in a different namespace but commonly inlined
 }
 
-// extraAttributes are attributes that should be generated but aren't in MDN data.
-// Role is an ARIA attribute that's very commonly used.
+// extraAttributes are attributes not in MDN HTML data but commonly used.
 var extraAttributes = []Attribute{
-	{Key: "role", FuncName: "Role"},
+	{Key: "role", FuncName: "Role"}, // ARIA role attribute
 }
 
-// skipAttributes are attributes that shouldn't be generated (deprecated, experimental, or special).
+// skipAttributes are attributes that need special handling and shouldn't be auto-generated.
 var skipAttributes = map[string]bool{
-	// Special handling (prefix helpers)
-	"data":            true, // Data() is a prefix helper for data-* attributes
-	"aria":            true, // Aria() is a prefix helper for aria-* attributes
-	"data_attributes": true, // MDN's name for data-* (we use Data helper)
+	// Special prefix helpers
+	"data": true, // Data() is a prefix helper for data-* attributes
+	"aria": true, // Aria() is a prefix helper for aria-* attributes
+	// Deprecated body attributes (universally deprecated)
+	"alink": true, "background": true, "bgcolor": true, "border": true,
+	"bottommargin": true, "color": true, "leftmargin": true, "marginheight": true,
+	"marginwidth": true, "rightmargin": true, "topmargin": true, "vlink": true,
+	// Experimental (can add later if stabilized)
+	"anchor": true, "exportparts": true,
+}
 
-	// Deprecated or obsolete
-	"alink":      true,
-	"background": true,
-	"bgcolor":    true,
-	"border":     true,
-	"bottommargin": true,
-	"color":      true,
-	"leftmargin": true,
-	"link":       true,
-	"marginheight": true,
-	"marginwidth": true,
-	"rightmargin": true,
-	"text":       true,
-	"topmargin":  true,
-	"vlink":      true,
-
-	// Experimental/non-standard (can be added later if stabilized)
-	"anchor":      true, // CSS anchor positioning, experimental
-	"exportparts": true, // Shadow DOM, limited use
+// funcNameOverrides provides Go function names for cases where the generic algorithm doesn't work.
+// This includes acronyms, compound words, and other special cases.
+var funcNameOverrides = map[string]string{
+	// Acronyms
+	"html": "HTML", "svg": "SVG", "id": "ID",
+	// Hyphenated (keep together)
+	"http-equiv": "HTTPEquiv", "accept-charset": "AcceptCharset",
+	// Compound words (camelCase)
+	"tbody": "TBody", "thead": "THead", "tfoot": "TFoot",
+	"colgroup": "ColGroup", "optgroup": "OptGroup", "fieldset": "FieldSet",
+	"datalist": "DataList", "textarea": "Textarea", "blockquote": "BlockQuote",
+	"noscript": "NoScript", "iframe": "IFrame", "hgroup": "HGroup",
+	"figcaption": "FigCaption", "fencedframe": "FencedFrame",
+	// Attributes with compound words
+	"srcset": "SrcSet", "colspan": "ColSpan", "rowspan": "RowSpan",
+	"maxlength": "MaxLength", "minlength": "MinLength", "datetime": "DateTime",
+	"tabindex": "TabIndex", "accesskey": "AccessKey", "autocomplete": "AutoComplete",
+	"autocapitalize": "AutoCapitalize", "autofocus": "AutoFocus", "autoplay": "AutoPlay",
+	"crossorigin": "CrossOrigin", "enctype": "EncType", "formaction": "FormAction",
+	"formenctype": "FormEncType", "formmethod": "FormMethod", "formnovalidate": "FormNoValidate",
+	"formtarget": "FormTarget", "playsinline": "PlaysInline", "readonly": "ReadOnly",
+	"referrerpolicy": "ReferrerPolicy", "spellcheck": "SpellCheck",
+	"popovertarget": "PopoverTarget", "popovertargetaction": "PopoverTargetAction",
+	"contenteditable": "ContentEditable", "enterkeyhint": "EnterKeyHint",
+	"inputmode": "InputMode", "itemid": "ItemID", "itemprop": "ItemProp",
+	"itemref": "ItemRef", "itemscope": "ItemScope", "itemtype": "ItemType",
+	"novalidate": "NoValidate", "nomodule": "NoModule", "allowfullscreen": "AllowFullscreen",
+	"hreflang": "HrefLang", "srcdoc": "SrcDoc", "usemap": "UseMap", "ismap": "IsMap",
+	"virtualkeyboardpolicy": "VirtualKeyboardPolicy", "writingsuggestions": "WritingSuggestions",
 }
 
 var htmlOutputDir string
@@ -174,7 +182,6 @@ func findModuleRoot() (string, error) {
 }
 
 func run() error {
-	// Find module root by looking for go.mod
 	moduleRoot, err := findModuleRoot()
 	if err != nil {
 		return fmt.Errorf("finding module root: %w", err)
@@ -183,7 +190,6 @@ func run() error {
 	mdnDataPath = filepath.Join(moduleRoot, "tmp", "browser-compat-data")
 	htmlOutputDir = filepath.Join(moduleRoot, "html")
 
-	// Check if MDN data exists
 	if _, err := os.Stat(mdnDataPath); os.IsNotExist(err) {
 		return fmt.Errorf("MDN data not found at %s. Run scripts/fetch-mdn-data.sh first", mdnDataPath)
 	}
@@ -210,6 +216,14 @@ func run() error {
 	return nil
 }
 
+// MDNCompat represents the __compat structure in MDN data.
+type MDNCompat struct {
+	Status struct {
+		Deprecated   bool `json:"deprecated"`
+		Experimental bool `json:"experimental"`
+	} `json:"status"`
+}
+
 func loadElements() ([]Element, error) {
 	elementsDir := filepath.Join(mdnDataPath, "html", "elements")
 	entries, err := os.ReadDir(elementsDir)
@@ -230,43 +244,57 @@ func loadElements() ([]Element, error) {
 			return nil, err
 		}
 
-		var doc map[string]any
+		var doc map[string]json.RawMessage
 		if err := json.Unmarshal(data, &doc); err != nil {
 			return nil, fmt.Errorf("parsing %s: %w", entry.Name(), err)
 		}
 
-		// Navigate to html.elements
-		htmlData, ok := doc["html"].(map[string]any)
-		if !ok {
-			continue
-		}
-		elementsData, ok := htmlData["elements"].(map[string]any)
-		if !ok {
+		var htmlData map[string]json.RawMessage
+		if err := json.Unmarshal(doc["html"], &htmlData); err != nil {
 			continue
 		}
 
-		for tag := range elementsData {
-			if seen[tag] || skipElements[tag] {
+		var elementsData map[string]json.RawMessage
+		if err := json.Unmarshal(htmlData["elements"], &elementsData); err != nil {
+			continue
+		}
+
+		for tag, elemJSON := range elementsData {
+			if seen[tag] {
 				continue
 			}
+
+			// Check deprecation status from MDN
+			var elemData map[string]json.RawMessage
+			if err := json.Unmarshal(elemJSON, &elemData); err != nil {
+				continue
+			}
+
+			if compatJSON, ok := elemData["__compat"]; ok {
+				var compat MDNCompat
+				if err := json.Unmarshal(compatJSON, &compat); err == nil {
+					if compat.Status.Deprecated {
+						continue // Skip deprecated elements
+					}
+				}
+			}
+
 			seen[tag] = true
 
-			elem := Element{
-				Tag:      tag,
-				FuncName: tagToFuncName(tag),
-				UseGroup: elementsWithGroup[tag],
-			}
-
-			// Handle name conflicts
+			funcName := toFuncName(tag)
 			if conflict, ok := nameConflicts[tag]; ok {
-				elem.FuncName = conflict[0]
+				funcName = conflict[0]
 			}
 
-			elements = append(elements, elem)
+			elements = append(elements, Element{
+				Tag:      tag,
+				FuncName: funcName,
+				UseGroup: elementsWithGroup[tag],
+			})
 		}
 	}
 
-	// Add extra elements (like SVG which is commonly used but not in HTML spec)
+	// Add extra elements
 	for _, extra := range extraElements {
 		if !seen[extra.Tag] {
 			elements = append(elements, extra)
@@ -281,9 +309,8 @@ func loadElements() ([]Element, error) {
 		})
 	}
 
-	// Sort by function name
+	// Sort by function name (deprecated at end)
 	sort.Slice(elements, func(i, j int) bool {
-		// Put deprecated at the end
 		if elements[i].Deprecated != "" && elements[j].Deprecated == "" {
 			return false
 		}
@@ -306,23 +333,23 @@ func loadAttributes() ([]Attribute, error) {
 		return nil, err
 	}
 
-	var doc map[string]any
+	var doc map[string]json.RawMessage
 	if err := json.Unmarshal(data, &doc); err != nil {
 		return nil, err
 	}
 
-	htmlData, ok := doc["html"].(map[string]any)
-	if !ok {
+	var htmlData map[string]json.RawMessage
+	if err := json.Unmarshal(doc["html"], &htmlData); err != nil {
 		return nil, fmt.Errorf("missing html key in global_attributes.json")
 	}
-	globalAttrs, ok := htmlData["global_attributes"].(map[string]any)
-	if !ok {
+
+	var globalAttrs map[string]json.RawMessage
+	if err := json.Unmarshal(htmlData["global_attributes"], &globalAttrs); err != nil {
 		return nil, fmt.Errorf("missing global_attributes key")
 	}
 
-	// Process global attributes (auto-discover, skip deprecated/special)
 	for key := range globalAttrs {
-		if key == "__compat" || skipAttributes[key] {
+		if key == "__compat" {
 			continue
 		}
 		addAttribute(attrs, key)
@@ -345,28 +372,28 @@ func loadAttributes() ([]Attribute, error) {
 			return nil, err
 		}
 
-		var doc map[string]any
+		var doc map[string]json.RawMessage
 		if err := json.Unmarshal(data, &doc); err != nil {
 			continue
 		}
 
-		htmlData, ok := doc["html"].(map[string]any)
-		if !ok {
-			continue
-		}
-		elementsData, ok := htmlData["elements"].(map[string]any)
-		if !ok {
+		var htmlData map[string]json.RawMessage
+		if err := json.Unmarshal(doc["html"], &htmlData); err != nil {
 			continue
 		}
 
-		// For each element, look at its direct children (which are attributes)
-		for _, elemData := range elementsData {
-			elemMap, ok := elemData.(map[string]any)
-			if !ok {
+		var elementsData map[string]json.RawMessage
+		if err := json.Unmarshal(htmlData["elements"], &elementsData); err != nil {
+			continue
+		}
+
+		for _, elemJSON := range elementsData {
+			var elemData map[string]json.RawMessage
+			if err := json.Unmarshal(elemJSON, &elemData); err != nil {
 				continue
 			}
-			for attrKey := range elemMap {
-				if attrKey == "__compat" || skipAttributes[attrKey] {
+			for attrKey := range elemData {
+				if attrKey == "__compat" {
 					continue
 				}
 				addAttribute(attrs, attrKey)
@@ -378,7 +405,7 @@ func loadAttributes() ([]Attribute, error) {
 	attrs["aria"] = Attribute{Key: "aria", FuncName: "Aria"}
 	attrs["data-custom"] = Attribute{Key: "data", FuncName: "Data"}
 
-	// Add extra attributes (like role which is ARIA but commonly used)
+	// Add extra attributes
 	for _, extra := range extraAttributes {
 		if _, exists := attrs[extra.Key]; !exists {
 			attrs[extra.Key] = extra
@@ -401,14 +428,12 @@ func loadAttributes() ([]Attribute, error) {
 
 	// Sort: boolean first, then string, then variadic, then special, then deprecated
 	sort.Slice(result, func(i, j int) bool {
-		// Deprecated at end
 		if result[i].Deprecated != "" && result[j].Deprecated == "" {
 			return false
 		}
 		if result[i].Deprecated == "" && result[j].Deprecated != "" {
 			return true
 		}
-		// Special (Aria, Data) near end
 		iSpecial := result[i].FuncName == "Aria" || result[i].FuncName == "Data"
 		jSpecial := result[j].FuncName == "Aria" || result[j].FuncName == "Data"
 		if iSpecial && !jSpecial {
@@ -417,14 +442,12 @@ func loadAttributes() ([]Attribute, error) {
 		if !iSpecial && jSpecial {
 			return true
 		}
-		// Variadic before special
 		if result[i].IsVariadic && !result[j].IsVariadic {
 			return false
 		}
 		if !result[i].IsVariadic && result[j].IsVariadic {
 			return true
 		}
-		// Boolean before string
 		if result[i].IsBoolean && !result[j].IsBoolean {
 			return true
 		}
@@ -438,24 +461,23 @@ func loadAttributes() ([]Attribute, error) {
 }
 
 func addAttribute(attrs map[string]Attribute, key string) {
-	// Skip deprecated/special attributes
 	if skipAttributes[key] {
 		return
 	}
 
-	// Skip if contains hyphen (need special handling) except known ones
+	// Skip hyphenated attributes except known ones
 	if strings.Contains(key, "-") && key != "http-equiv" && key != "accept-charset" {
 		return
 	}
 
-	// Skip if contains underscore (MDN meta-features, not real attributes)
+	// Skip MDN meta-features (contain underscores)
 	if strings.Contains(key, "_") {
 		return
 	}
 
-	funcName := attrToFuncName(key)
+	funcName := toFuncName(key)
 
-	// Handle name conflicts - skip if it's meant to be an element
+	// Handle name conflicts
 	if conflict, ok := nameConflicts[key]; ok {
 		if conflict[1] == "" {
 			return // No attr function for this conflict
@@ -463,356 +485,21 @@ func addAttribute(attrs map[string]Attribute, key string) {
 		funcName = conflict[1]
 	}
 
-	attr := Attribute{
+	attrs[key] = Attribute{
 		Key:        key,
 		FuncName:   funcName,
 		IsBoolean:  booleanAttributes[key],
 		IsVariadic: variadicAttributes[key],
 	}
-
-	attrs[key] = attr
 }
 
-func tagToFuncName(tag string) string {
-	switch tag {
-	case "a":
-		return "A"
-	case "b":
-		return "B"
-	case "i":
-		return "I"
-	case "p":
-		return "P"
-	case "q":
-		return "Q"
-	case "s":
-		return "S"
-	case "u":
-		return "U"
-	case "br":
-		return "Br"
-	case "dd":
-		return "Dd"
-	case "dl":
-		return "Dl"
-	case "dt":
-		return "Dt"
-	case "em":
-		return "Em"
-	case "h1", "h2", "h3", "h4", "h5", "h6":
-		return strings.ToUpper(tag[:1]) + tag[1:]
-	case "hr":
-		return "Hr"
-	case "li":
-		return "Li"
-	case "ol":
-		return "Ol"
-	case "rp":
-		return "Rp"
-	case "rt":
-		return "Rt"
-	case "td":
-		return "Td"
-	case "th":
-		return "Th"
-	case "tr":
-		return "Tr"
-	case "ul":
-		return "Ul"
-	case "html":
-		return "HTML"
-	case "svg":
-		return "SVG"
-	case "bdi":
-		return "Bdi"
-	case "bdo":
-		return "Bdo"
-	case "del":
-		return "Del"
-	case "dfn":
-		return "Dfn"
-	case "img":
-		return "Img"
-	case "ins":
-		return "Ins"
-	case "kbd":
-		return "Kbd"
-	case "map":
-		return "Map"
-	case "nav":
-		return "Nav"
-	case "pre":
-		return "Pre"
-	case "sub":
-		return "Sub"
-	case "sup":
-		return "Sup"
-	case "var":
-		return "Var"
-	case "wbr":
-		return "Wbr"
-	case "abbr":
-		return "Abbr"
-	case "area":
-		return "Area"
-	case "base":
-		return "Base"
-	case "body":
-		return "Body"
-	case "code":
-		return "Code"
-	case "head":
-		return "Head"
-	case "link":
-		return "Link"
-	case "main":
-		return "Main"
-	case "mark":
-		return "Mark"
-	case "menu":
-		return "Menu"
-	case "meta":
-		return "Meta"
-	case "ruby":
-		return "Ruby"
-	case "samp":
-		return "Samp"
-	case "span":
-		return "Span"
-	case "time":
-		return "Time"
-	case "audio":
-		return "Audio"
-	case "aside":
-		return "Aside"
-	case "embed":
-		return "Embed"
-	case "input":
-		return "Input"
-	case "meter":
-		return "Meter"
-	case "small":
-		return "Small"
-	case "table":
-		return "Table"
-	case "tbody":
-		return "TBody"
-	case "tfoot":
-		return "TFoot"
-	case "thead":
-		return "THead"
-	case "track":
-		return "Track"
-	case "video":
-		return "Video"
-	case "button":
-		return "Button"
-	case "canvas":
-		return "Canvas"
-	case "dialog":
-		return "Dialog"
-	case "figure":
-		return "Figure"
-	case "footer":
-		return "Footer"
-	case "header":
-		return "Header"
-	case "hgroup":
-		return "HGroup"
-	case "iframe":
-		return "IFrame"
-	case "legend":
-		return "Legend"
-	case "object":
-		return "Object"
-	case "option":
-		return "Option"
-	case "output":
-		return "Output"
-	case "script":
-		return "Script"
-	case "search":
-		return "Search"
-	case "select":
-		return "Select"
-	case "source":
-		return "Source"
-	case "strong":
-		return "Strong"
-	case "address":
-		return "Address"
-	case "article":
-		return "Article"
-	case "caption":
-		return "Caption"
-	case "col":
-		return "Col"
-	case "colgroup":
-		return "ColGroup"
-	case "datalist":
-		return "DataList"
-	case "details":
-		return "Details"
-	case "div":
-		return "Div"
-	case "fieldset":
-		return "FieldSet"
-	case "figcaption":
-		return "FigCaption"
-	case "noscript":
-		return "NoScript"
-	case "optgroup":
-		return "OptGroup"
-	case "picture":
-		return "Picture"
-	case "progress":
-		return "Progress"
-	case "section":
-		return "Section"
-	case "summary":
-		return "Summary"
-	case "template":
-		return "Template"
-	case "textarea":
-		return "Textarea"
-	case "blockquote":
-		return "BlockQuote"
-	case "fencedframe":
-		return "FencedFrame"
+// toFuncName converts an HTML tag or attribute name to a Go function name.
+// It first checks overrides, then applies a generic capitalize algorithm.
+func toFuncName(name string) string {
+	if override, ok := funcNameOverrides[name]; ok {
+		return override
 	}
-
-	// Default: capitalize first letter
-	return capitalize(tag)
-}
-
-func attrToFuncName(key string) string {
-	switch key {
-	case "accept-charset":
-		return "AcceptCharset"
-	case "http-equiv":
-		return "HTTPEquiv"
-	case "id":
-		return "ID"
-	case "for":
-		return "For"
-	case "class":
-		return "Class"
-	case "href":
-		return "Href"
-	case "src":
-		return "Src"
-	case "alt":
-		return "Alt"
-	case "type":
-		return "Type"
-	case "name":
-		return "Name"
-	case "value":
-		return "Value"
-	case "rel":
-		return "Rel"
-	case "as":
-		return "As"
-	case "dir":
-		return "Dir"
-	case "max":
-		return "Max"
-	case "min":
-		return "Min"
-	case "low":
-		return "Low"
-	case "high":
-		return "High"
-	case "is":
-		return "Is"
-	case "srcset":
-		return "SrcSet"
-	case "colspan":
-		return "ColSpan"
-	case "rowspan":
-		return "RowSpan"
-	case "maxlength":
-		return "MaxLength"
-	case "minlength":
-		return "MinLength"
-	case "datetime":
-		return "DateTime"
-	case "tabindex":
-		return "TabIndex"
-	case "accesskey":
-		return "AccessKey"
-	case "autocomplete":
-		return "AutoComplete"
-	case "autocapitalize":
-		return "AutoCapitalize"
-	case "autofocus":
-		return "AutoFocus"
-	case "autoplay":
-		return "AutoPlay"
-	case "crossorigin":
-		return "CrossOrigin"
-	case "enctype":
-		return "EncType"
-	case "formaction":
-		return "FormAction"
-	case "formenctype":
-		return "FormEncType"
-	case "formmethod":
-		return "FormMethod"
-	case "formnovalidate":
-		return "FormNoValidate"
-	case "formtarget":
-		return "FormTarget"
-	case "playsinline":
-		return "PlaysInline"
-	case "readonly":
-		return "ReadOnly"
-	case "referrerpolicy":
-		return "ReferrerPolicy"
-	case "spellcheck":
-		return "SpellCheck"
-	case "popovertarget":
-		return "PopoverTarget"
-	case "popovertargetaction":
-		return "PopoverTargetAction"
-	case "contenteditable":
-		return "ContentEditable"
-	case "enterkeyhint":
-		return "EnterKeyHint"
-	case "inputmode":
-		return "InputMode"
-	case "itemid":
-		return "ItemID"
-	case "itemprop":
-		return "ItemProp"
-	case "itemref":
-		return "ItemRef"
-	case "itemscope":
-		return "ItemScope"
-	case "itemtype":
-		return "ItemType"
-	case "novalidate":
-		return "NoValidate"
-	case "nomodule":
-		return "NoModule"
-	case "allowfullscreen":
-		return "AllowFullscreen"
-	case "hreflang":
-		return "HrefLang"
-	case "srcdoc":
-		return "SrcDoc"
-	case "usemap":
-		return "UseMap"
-	case "ismap":
-		return "IsMap"
-	case "virtualkeyboardpolicy":
-		return "VirtualKeyboardPolicy"
-	case "writingsuggestions":
-		return "WritingSuggestions"
-	}
-
-	// Default: capitalize first letter
-	return capitalize(key)
+	return capitalize(name)
 }
 
 func capitalize(s string) string {

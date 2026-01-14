@@ -163,7 +163,6 @@ func TestSimpleVoidKindElements(t *testing.T) {
 		{Name: "input", Func: Input},
 		{Name: "link", Func: Link},
 		{Name: "meta", Func: Meta},
-		{Name: "param", Func: Param},
 		{Name: "source", Func: Source},
 		{Name: "track", Func: Track},
 		{Name: "wbr", Func: Wbr},

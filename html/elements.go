@@ -319,10 +319,6 @@ func P(children ...g.Node) g.Node {
 	return g.El("p", children...)
 }
 
-func Param(children ...g.Node) g.Node {
-	return g.El("param", children...)
-}
-
 func Picture(children ...g.Node) g.Node {
 	return g.El("picture", children...)
 }
