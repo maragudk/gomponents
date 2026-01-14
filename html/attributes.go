@@ -50,6 +50,10 @@ func Inert() g.Node {
 	return g.Attr("inert")
 }
 
+func IsMap() g.Node {
+	return g.Attr("ismap")
+}
+
 func Loop() g.Node {
 	return g.Attr("loop")
 }
@@ -94,6 +98,10 @@ func Selected() g.Node {
 	return g.Attr("selected")
 }
 
+func AbbrAttr(v string) g.Node {
+	return g.Attr("abbr", v)
+}
+
 func Accept(v string) g.Node {
 	return g.Attr("accept", v)
 }
@@ -110,16 +118,40 @@ func Action(v string) g.Node {
 	return g.Attr("action", v)
 }
 
+func Align(v string) g.Node {
+	return g.Attr("align", v)
+}
+
 func Allow(v string) g.Node {
 	return g.Attr("allow", v)
+}
+
+func Allowpaymentrequest(v string) g.Node {
+	return g.Attr("allowpaymentrequest", v)
+}
+
+func Alpha(v string) g.Node {
+	return g.Attr("alpha", v)
 }
 
 func Alt(v string) g.Node {
 	return g.Attr("alt", v)
 }
 
+func Archive(v string) g.Node {
+	return g.Attr("archive", v)
+}
+
 func As(v string) g.Node {
 	return g.Attr("as", v)
+}
+
+func Attributionsourceid(v string) g.Node {
+	return g.Attr("attributionsourceid", v)
+}
+
+func Attributionsrc(v string) g.Node {
+	return g.Attr("attributionsrc", v)
 }
 
 func AutoCapitalize(v string) g.Node {
@@ -128,6 +160,46 @@ func AutoCapitalize(v string) g.Node {
 
 func AutoComplete(v string) g.Node {
 	return g.Attr("autocomplete", v)
+}
+
+func Autocorrect(v string) g.Node {
+	return g.Attr("autocorrect", v)
+}
+
+func Axis(v string) g.Node {
+	return g.Attr("axis", v)
+}
+
+func Behavior(v string) g.Node {
+	return g.Attr("behavior", v)
+}
+
+func Blocking(v string) g.Node {
+	return g.Attr("blocking", v)
+}
+
+func Browsingtopics(v string) g.Node {
+	return g.Attr("browsingtopics", v)
+}
+
+func Capture(v string) g.Node {
+	return g.Attr("capture", v)
+}
+
+func Cellpadding(v string) g.Node {
+	return g.Attr("cellpadding", v)
+}
+
+func Cellspacing(v string) g.Node {
+	return g.Attr("cellspacing", v)
+}
+
+func Char(v string) g.Node {
+	return g.Attr("char", v)
+}
+
+func Charoff(v string) g.Node {
+	return g.Attr("charoff", v)
 }
 
 func Charset(v string) g.Node {
@@ -142,12 +214,48 @@ func Class(v string) g.Node {
 	return g.Attr("class", v)
 }
 
+func Classid(v string) g.Node {
+	return g.Attr("classid", v)
+}
+
+func Clear(v string) g.Node {
+	return g.Attr("clear", v)
+}
+
+func Closedby(v string) g.Node {
+	return g.Attr("closedby", v)
+}
+
+func Codebase(v string) g.Node {
+	return g.Attr("codebase", v)
+}
+
+func Codetype(v string) g.Node {
+	return g.Attr("codetype", v)
+}
+
 func ColSpan(v string) g.Node {
 	return g.Attr("colspan", v)
 }
 
+func Colorspace(v string) g.Node {
+	return g.Attr("colorspace", v)
+}
+
 func Cols(v string) g.Node {
 	return g.Attr("cols", v)
+}
+
+func Command(v string) g.Node {
+	return g.Attr("command", v)
+}
+
+func Commandfor(v string) g.Node {
+	return g.Attr("commandfor", v)
+}
+
+func Compact(v string) g.Node {
+	return g.Attr("compact", v)
 }
 
 func Content(v string) g.Node {
@@ -158,16 +266,56 @@ func ContentEditable(v string) g.Node {
 	return g.Attr("contenteditable", v)
 }
 
+func Controlslist(v string) g.Node {
+	return g.Attr("controlslist", v)
+}
+
+func Coords(v string) g.Node {
+	return g.Attr("coords", v)
+}
+
+func Credentialless(v string) g.Node {
+	return g.Attr("credentialless", v)
+}
+
 func CrossOrigin(v string) g.Node {
 	return g.Attr("crossorigin", v)
+}
+
+func Csp(v string) g.Node {
+	return g.Attr("csp", v)
 }
 
 func DateTime(v string) g.Node {
 	return g.Attr("datetime", v)
 }
 
+func Declare(v string) g.Node {
+	return g.Attr("declare", v)
+}
+
+func Decoding(v string) g.Node {
+	return g.Attr("decoding", v)
+}
+
 func Dir(v string) g.Node {
 	return g.Attr("dir", v)
+}
+
+func Direction(v string) g.Node {
+	return g.Attr("direction", v)
+}
+
+func Dirname(v string) g.Node {
+	return g.Attr("dirname", v)
+}
+
+func Disablepictureinpicture(v string) g.Node {
+	return g.Attr("disablepictureinpicture", v)
+}
+
+func Disableremoteplayback(v string) g.Node {
+	return g.Attr("disableremoteplayback", v)
 }
 
 func Download(v string) g.Node {
@@ -184,6 +332,14 @@ func EncType(v string) g.Node {
 
 func EnterKeyHint(v string) g.Node {
 	return g.Attr("enterkeyhint", v)
+}
+
+func Face(v string) g.Node {
+	return g.Attr("face", v)
+}
+
+func Fetchpriority(v string) g.Node {
+	return g.Attr("fetchpriority", v)
 }
 
 func For(v string) g.Node {
@@ -208,6 +364,14 @@ func FormMethod(v string) g.Node {
 
 func FormTarget(v string) g.Node {
 	return g.Attr("formtarget", v)
+}
+
+func Frame(v string) g.Node {
+	return g.Attr("frame", v)
+}
+
+func Frameborder(v string) g.Node {
+	return g.Attr("frameborder", v)
 }
 
 func HTTPEquiv(v string) g.Node {
@@ -238,8 +402,24 @@ func HrefLang(v string) g.Node {
 	return g.Attr("hreflang", v)
 }
 
+func Hreftranslate(v string) g.Node {
+	return g.Attr("hreftranslate", v)
+}
+
+func Hspace(v string) g.Node {
+	return g.Attr("hspace", v)
+}
+
 func ID(v string) g.Node {
 	return g.Attr("id", v)
+}
+
+func Imagesizes(v string) g.Node {
+	return g.Attr("imagesizes", v)
+}
+
+func Imagesrcset(v string) g.Node {
+	return g.Attr("imagesrcset", v)
 }
 
 func InputMode(v string) g.Node {
@@ -250,8 +430,16 @@ func Integrity(v string) g.Node {
 	return g.Attr("integrity", v)
 }
 
+func Interestfor(v string) g.Node {
+	return g.Attr("interestfor", v)
+}
+
 func Is(v string) g.Node {
 	return g.Attr("is", v)
+}
+
+func Kind(v string) g.Node {
+	return g.Attr("kind", v)
 }
 
 func LabelAttr(v string) g.Node {
@@ -268,6 +456,10 @@ func List(v string) g.Node {
 
 func Loading(v string) g.Node {
 	return g.Attr("loading", v)
+}
+
+func Longdesc(v string) g.Node {
+	return g.Attr("longdesc", v)
 }
 
 func Low(v string) g.Node {
@@ -302,8 +494,20 @@ func Name(v string) g.Node {
 	return g.Attr("name", v)
 }
 
+func Nohref(v string) g.Node {
+	return g.Attr("nohref", v)
+}
+
 func Nonce(v string) g.Node {
 	return g.Attr("nonce", v)
+}
+
+func Noresize(v string) g.Node {
+	return g.Attr("noresize", v)
+}
+
+func Noshade(v string) g.Node {
+	return g.Attr("noshade", v)
 }
 
 func Optimum(v string) g.Node {
@@ -342,12 +546,20 @@ func Preload(v string) g.Node {
 	return g.Attr("preload", v)
 }
 
+func PrivateToken(v string) g.Node {
+	return g.Attr("privateToken", v)
+}
+
 func ReferrerPolicy(v string) g.Node {
 	return g.Attr("referrerpolicy", v)
 }
 
 func Rel(v string) g.Node {
 	return g.Attr("rel", v)
+}
+
+func Rev(v string) g.Node {
+	return g.Attr("rev", v)
 }
 
 func Role(v string) g.Node {
@@ -362,12 +574,52 @@ func Rows(v string) g.Node {
 	return g.Attr("rows", v)
 }
 
+func Rules(v string) g.Node {
+	return g.Attr("rules", v)
+}
+
 func Sandbox(v string) g.Node {
 	return g.Attr("sandbox", v)
 }
 
+func Scheme(v string) g.Node {
+	return g.Attr("scheme", v)
+}
+
 func Scope(v string) g.Node {
 	return g.Attr("scope", v)
+}
+
+func Scrollamount(v string) g.Node {
+	return g.Attr("scrollamount", v)
+}
+
+func Scrolldelay(v string) g.Node {
+	return g.Attr("scrolldelay", v)
+}
+
+func Scrolling(v string) g.Node {
+	return g.Attr("scrolling", v)
+}
+
+func Shadowrootclonable(v string) g.Node {
+	return g.Attr("shadowrootclonable", v)
+}
+
+func Shadowrootdelegatesfocus(v string) g.Node {
+	return g.Attr("shadowrootdelegatesfocus", v)
+}
+
+func Shadowrootmode(v string) g.Node {
+	return g.Attr("shadowrootmode", v)
+}
+
+func Shadowrootserializable(v string) g.Node {
+	return g.Attr("shadowrootserializable", v)
+}
+
+func Shape(v string) g.Node {
+	return g.Attr("shape", v)
 }
 
 func Size(v string) g.Node {
@@ -380,6 +632,10 @@ func Sizes(v string) g.Node {
 
 func SlotAttr(v string) g.Node {
 	return g.Attr("slot", v)
+}
+
+func SpanAttr(v string) g.Node {
+	return g.Attr("span", v)
 }
 
 func SpellCheck(v string) g.Node {
@@ -398,6 +654,14 @@ func SrcSet(v string) g.Node {
 	return g.Attr("srcset", v)
 }
 
+func Srclang(v string) g.Node {
+	return g.Attr("srclang", v)
+}
+
+func Standby(v string) g.Node {
+	return g.Attr("standby", v)
+}
+
 func Start(v string) g.Node {
 	return g.Attr("start", v)
 }
@@ -408,6 +672,10 @@ func Step(v string) g.Node {
 
 func Style(v string) g.Node {
 	return g.Attr("style", v)
+}
+
+func SummaryAttr(v string) g.Node {
+	return g.Attr("summary", v)
 }
 
 func TabIndex(v string) g.Node {
@@ -426,6 +694,10 @@ func Translate(v string) g.Node {
 	return g.Attr("translate", v)
 }
 
+func Truespeed(v string) g.Node {
+	return g.Attr("truespeed", v)
+}
+
 func Type(v string) g.Node {
 	return g.Attr("type", v)
 }
@@ -434,12 +706,32 @@ func UseMap(v string) g.Node {
 	return g.Attr("usemap", v)
 }
 
+func Valign(v string) g.Node {
+	return g.Attr("valign", v)
+}
+
 func Value(v string) g.Node {
 	return g.Attr("value", v)
 }
 
+func Valuetype(v string) g.Node {
+	return g.Attr("valuetype", v)
+}
+
+func Version(v string) g.Node {
+	return g.Attr("version", v)
+}
+
 func VirtualKeyboardPolicy(v string) g.Node {
 	return g.Attr("virtualkeyboardpolicy", v)
+}
+
+func Vspace(v string) g.Node {
+	return g.Attr("vspace", v)
+}
+
+func Webkitdirectory(v string) g.Node {
+	return g.Attr("webkitdirectory", v)
 }
 
 func Width(v string) g.Node {
@@ -452,6 +744,10 @@ func Wrap(v string) g.Node {
 
 func WritingSuggestions(v string) g.Node {
 	return g.Attr("writingsuggestions", v)
+}
+
+func Xmlns(v string) g.Node {
+	return g.Attr("xmlns", v)
 }
 
 func Popover(v ...string) g.Node {

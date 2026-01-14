@@ -69,14 +69,17 @@ var variadicAttributes = map[string]bool{
 // nameConflicts defines how to handle element/attribute name conflicts.
 // Key is the HTML name, value is [elementFuncName, attrFuncName].
 var nameConflicts = map[string][2]string{
-	"cite":  {"Cite", "CiteAttr"},
-	"data":  {"DataEl", ""},     // Data is special (prefix helper)
-	"form":  {"Form", "FormAttr"},
-	"label": {"Label", "LabelAttr"},
-	"map":   {"MapEl", ""},      // Map conflicts with gomponents.Map helper
-	"slot":  {"SlotEl", "SlotAttr"},
-	"style": {"StyleEl", "Style"},
-	"title": {"TitleEl", "Title"},
+	"abbr":    {"Abbr", "AbbrAttr"},       // <abbr> element vs abbr attribute on <th>/<td>
+	"cite":    {"Cite", "CiteAttr"},
+	"data":    {"DataEl", ""},             // Data is special (prefix helper)
+	"form":    {"Form", "FormAttr"},
+	"label":   {"Label", "LabelAttr"},
+	"map":     {"MapEl", ""},              // Map conflicts with gomponents.Map helper
+	"slot":    {"SlotEl", "SlotAttr"},
+	"span":    {"Span", "SpanAttr"},       // <span> element vs span attribute on <colgroup>/<col>
+	"style":   {"StyleEl", "Style"},
+	"summary": {"Summary", "SummaryAttr"}, // <summary> element vs summary attribute on <table>
+	"title":   {"TitleEl", "Title"},
 }
 
 // deprecatedElementAliases are deprecated element function names.
@@ -116,63 +119,32 @@ var extraAttributes = []Attribute{
 	{Key: "role", FuncName: "Role"},
 }
 
-// knownGlobalAttributes are the global attributes we want to generate.
-// This is curated to match the current html package plus useful additions.
-var knownGlobalAttributes = map[string]bool{
-	"accesskey": true, "autocapitalize": true, "autofocus": true,
-	"class": true, "contenteditable": true, "dir": true, "draggable": true,
-	"enterkeyhint": true, "hidden": true, "id": true, "inert": true,
-	"inputmode": true, "is": true, "itemid": true, "itemprop": true,
-	"itemref": true, "itemscope": true, "itemtype": true, "lang": true,
-	"nonce": true, "part": true, "popover": true, "role": true, "slot": true,
-	"spellcheck": true, "style": true, "tabindex": true, "title": true,
-	"translate": true, "virtualkeyboardpolicy": true, "writingsuggestions": true,
-}
+// skipAttributes are attributes that shouldn't be generated (deprecated, experimental, or special).
+var skipAttributes = map[string]bool{
+	// Special handling (prefix helpers)
+	"data":            true, // Data() is a prefix helper for data-* attributes
+	"aria":            true, // Aria() is a prefix helper for aria-* attributes
+	"data_attributes": true, // MDN's name for data-* (we use Data helper)
 
-// knownElementAttributes are element-specific attributes we want to generate.
-var knownElementAttributes = map[string]bool{
-	// Form-related
-	"accept": true, "accept-charset": true, "action": true, "autocomplete": true,
-	"checked": true, "cols": true, "disabled": true, "enctype": true,
-	"for": true, "form": true, "formaction": true, "formenctype": true,
-	"formmethod": true, "formnovalidate": true, "formtarget": true,
-	"list": true, "max": true, "maxlength": true, "method": true,
-	"min": true, "minlength": true, "multiple": true, "name": true,
-	"novalidate": true, "pattern": true, "placeholder": true, "readonly": true,
-	"required": true, "rows": true, "selected": true, "size": true,
-	"step": true, "type": true, "value": true, "wrap": true,
+	// Deprecated or obsolete
+	"alink":      true,
+	"background": true,
+	"bgcolor":    true,
+	"border":     true,
+	"bottommargin": true,
+	"color":      true,
+	"leftmargin": true,
+	"link":       true,
+	"marginheight": true,
+	"marginwidth": true,
+	"rightmargin": true,
+	"text":       true,
+	"topmargin":  true,
+	"vlink":      true,
 
-	// Link/navigation
-	"download": true, "href": true, "hreflang": true, "ping": true,
-	"referrerpolicy": true, "rel": true, "target": true,
-
-	// Media
-	"alt": true, "autoplay": true, "controls": true, "crossorigin": true,
-	"height": true, "loop": true, "muted": true, "playsinline": true,
-	"poster": true, "preload": true, "src": true, "srcset": true,
-	"width": true,
-
-	// iframe/embed
-	"allow": true, "allowfullscreen": true, "loading": true,
-	"sandbox": true, "srcdoc": true,
-
-	// Table
-	"colspan": true, "headers": true, "rowspan": true, "scope": true,
-
-	// Meta/link
-	"as": true, "charset": true, "content": true, "http-equiv": true,
-	"integrity": true, "media": true, "sizes": true,
-
-	// Script
-	"async": true, "defer": true, "nomodule": true,
-
-	// Other
-	"cite": true, "data": true, "datetime": true, "default": true,
-	"high": true, "label": true, "low": true, "open": true, "optimum": true,
-	"reversed": true, "start": true, "usemap": true,
-
-	// Popover
-	"popovertarget": true, "popovertargetaction": true,
+	// Experimental/non-standard (can be added later if stabilized)
+	"anchor":      true, // CSS anchor positioning, experimental
+	"exportparts": true, // Shadow DOM, limited use
 }
 
 var htmlOutputDir string
@@ -348,14 +320,12 @@ func loadAttributes() ([]Attribute, error) {
 		return nil, fmt.Errorf("missing global_attributes key")
 	}
 
-	// Process global attributes
+	// Process global attributes (auto-discover, skip deprecated/special)
 	for key := range globalAttrs {
-		if key == "__compat" {
+		if key == "__compat" || skipAttributes[key] {
 			continue
 		}
-		if knownGlobalAttributes[key] {
-			addAttribute(attrs, key)
-		}
+		addAttribute(attrs, key)
 	}
 
 	// Load element-specific attributes
@@ -396,12 +366,10 @@ func loadAttributes() ([]Attribute, error) {
 				continue
 			}
 			for attrKey := range elemMap {
-				if attrKey == "__compat" {
+				if attrKey == "__compat" || skipAttributes[attrKey] {
 					continue
 				}
-				if knownElementAttributes[attrKey] {
-					addAttribute(attrs, attrKey)
-				}
+				addAttribute(attrs, attrKey)
 			}
 		}
 	}
@@ -470,8 +438,18 @@ func loadAttributes() ([]Attribute, error) {
 }
 
 func addAttribute(attrs map[string]Attribute, key string) {
-	// Skip if contains hyphen (need special handling)
+	// Skip deprecated/special attributes
+	if skipAttributes[key] {
+		return
+	}
+
+	// Skip if contains hyphen (need special handling) except known ones
 	if strings.Contains(key, "-") && key != "http-equiv" && key != "accept-charset" {
+		return
+	}
+
+	// Skip if contains underscore (MDN meta-features, not real attributes)
+	if strings.Contains(key, "_") {
 		return
 	}
 
