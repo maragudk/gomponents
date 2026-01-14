@@ -95,12 +95,19 @@ var deprecatedElementAliases = map[string]string{
 
 // extraElements are elements not in MDN HTML data but commonly used.
 var extraElements = []Element{
-	{Tag: "svg", FuncName: "SVG"}, // SVG is in a different namespace but commonly inlined
+	{Tag: "svg", FuncName: "SVG"},   // SVG is in a different namespace but commonly inlined
+	{Tag: "param", FuncName: "Param"}, // Deprecated in HTML5, but kept for backwards compatibility
 }
 
 // extraAttributes are attributes not in MDN HTML data but commonly used.
 var extraAttributes = []Attribute{
 	{Key: "role", FuncName: "Role"}, // ARIA role attribute
+	// Microdata attributes (https://html.spec.whatwg.org/multipage/microdata.html)
+	{Key: "itemid", FuncName: "ItemID"},
+	{Key: "itemprop", FuncName: "ItemProp"},
+	{Key: "itemref", FuncName: "ItemRef"},
+	{Key: "itemscope", FuncName: "ItemScope", IsBoolean: true},
+	{Key: "itemtype", FuncName: "ItemType"},
 }
 
 // skipAttributes are attributes that shouldn't be auto-generated.
@@ -142,6 +149,19 @@ var funcNameOverrides = map[string]string{
 	"novalidate": "NoValidate", "nomodule": "NoModule", "allowfullscreen": "AllowFullscreen",
 	"hreflang": "HrefLang", "srcdoc": "SrcDoc", "usemap": "UseMap", "ismap": "IsMap",
 	"virtualkeyboardpolicy": "VirtualKeyboardPolicy", "writingsuggestions": "WritingSuggestions",
+	// Elements
+	"selectedcontent": "SelectedContent",
+	// More compound word attributes
+	"allowpaymentrequest": "AllowPaymentRequest", "attributionsourceid": "AttributionSourceID",
+	"attributionsrc": "AttributionSrc", "autocorrect": "AutoCorrect",
+	"browsingtopics": "BrowsingTopics", "cellpadding": "CellPadding", "cellspacing": "CellSpacing",
+	"charoff": "CharOff", "controlslist": "ControlsList",
+	"disablepictureinpicture": "DisablePictureInPicture", "disableremoteplayback": "DisableRemotePlayback",
+	"fetchpriority": "FetchPriority", "hreftranslate": "HrefTranslate",
+	"imagesizes": "ImageSizes", "imagesrcset": "ImageSrcSet",
+	"shadowrootclonable": "ShadowRootClonable", "shadowrootdelegatesfocus": "ShadowRootDelegatesFocus",
+	"shadowrootmode": "ShadowRootMode", "shadowrootserializable": "ShadowRootSerializable",
+	"srclang": "SrcLang", "webkitdirectory": "WebkitDirectory",
 }
 
 var htmlOutputDir string

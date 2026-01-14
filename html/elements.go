@@ -319,6 +319,10 @@ func P(children ...g.Node) g.Node {
 	return g.El("p", children...)
 }
 
+func Param(children ...g.Node) g.Node {
+	return g.El("param", children...)
+}
+
 func Picture(children ...g.Node) g.Node {
 	return g.El("picture", children...)
 }
@@ -375,7 +379,7 @@ func Select(children ...g.Node) g.Node {
 	return g.El("select", children...)
 }
 
-func Selectedcontent(children ...g.Node) g.Node {
+func SelectedContent(children ...g.Node) g.Node {
 	return g.El("selectedcontent", children...)
 }
 

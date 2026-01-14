@@ -54,6 +54,10 @@ func IsMap() g.Node {
 	return g.Attr("ismap")
 }
 
+func ItemScope() g.Node {
+	return g.Attr("itemscope")
+}
+
 func Loop() g.Node {
 	return g.Attr("loop")
 }
@@ -126,7 +130,7 @@ func Allow(v string) g.Node {
 	return g.Attr("allow", v)
 }
 
-func Allowpaymentrequest(v string) g.Node {
+func AllowPaymentRequest(v string) g.Node {
 	return g.Attr("allowpaymentrequest", v)
 }
 
@@ -146,11 +150,11 @@ func As(v string) g.Node {
 	return g.Attr("as", v)
 }
 
-func Attributionsourceid(v string) g.Node {
+func AttributionSourceID(v string) g.Node {
 	return g.Attr("attributionsourceid", v)
 }
 
-func Attributionsrc(v string) g.Node {
+func AttributionSrc(v string) g.Node {
 	return g.Attr("attributionsrc", v)
 }
 
@@ -162,7 +166,7 @@ func AutoComplete(v string) g.Node {
 	return g.Attr("autocomplete", v)
 }
 
-func Autocorrect(v string) g.Node {
+func AutoCorrect(v string) g.Node {
 	return g.Attr("autocorrect", v)
 }
 
@@ -178,7 +182,7 @@ func Blocking(v string) g.Node {
 	return g.Attr("blocking", v)
 }
 
-func Browsingtopics(v string) g.Node {
+func BrowsingTopics(v string) g.Node {
 	return g.Attr("browsingtopics", v)
 }
 
@@ -186,11 +190,11 @@ func Capture(v string) g.Node {
 	return g.Attr("capture", v)
 }
 
-func Cellpadding(v string) g.Node {
+func CellPadding(v string) g.Node {
 	return g.Attr("cellpadding", v)
 }
 
-func Cellspacing(v string) g.Node {
+func CellSpacing(v string) g.Node {
 	return g.Attr("cellspacing", v)
 }
 
@@ -198,7 +202,7 @@ func Char(v string) g.Node {
 	return g.Attr("char", v)
 }
 
-func Charoff(v string) g.Node {
+func CharOff(v string) g.Node {
 	return g.Attr("charoff", v)
 }
 
@@ -266,7 +270,7 @@ func ContentEditable(v string) g.Node {
 	return g.Attr("contenteditable", v)
 }
 
-func Controlslist(v string) g.Node {
+func ControlsList(v string) g.Node {
 	return g.Attr("controlslist", v)
 }
 
@@ -310,11 +314,11 @@ func Dirname(v string) g.Node {
 	return g.Attr("dirname", v)
 }
 
-func Disablepictureinpicture(v string) g.Node {
+func DisablePictureInPicture(v string) g.Node {
 	return g.Attr("disablepictureinpicture", v)
 }
 
-func Disableremoteplayback(v string) g.Node {
+func DisableRemotePlayback(v string) g.Node {
 	return g.Attr("disableremoteplayback", v)
 }
 
@@ -338,7 +342,7 @@ func Face(v string) g.Node {
 	return g.Attr("face", v)
 }
 
-func Fetchpriority(v string) g.Node {
+func FetchPriority(v string) g.Node {
 	return g.Attr("fetchpriority", v)
 }
 
@@ -402,7 +406,7 @@ func HrefLang(v string) g.Node {
 	return g.Attr("hreflang", v)
 }
 
-func Hreftranslate(v string) g.Node {
+func HrefTranslate(v string) g.Node {
 	return g.Attr("hreftranslate", v)
 }
 
@@ -414,11 +418,11 @@ func ID(v string) g.Node {
 	return g.Attr("id", v)
 }
 
-func Imagesizes(v string) g.Node {
+func ImageSizes(v string) g.Node {
 	return g.Attr("imagesizes", v)
 }
 
-func Imagesrcset(v string) g.Node {
+func ImageSrcSet(v string) g.Node {
 	return g.Attr("imagesrcset", v)
 }
 
@@ -436,6 +440,22 @@ func Interestfor(v string) g.Node {
 
 func Is(v string) g.Node {
 	return g.Attr("is", v)
+}
+
+func ItemID(v string) g.Node {
+	return g.Attr("itemid", v)
+}
+
+func ItemProp(v string) g.Node {
+	return g.Attr("itemprop", v)
+}
+
+func ItemRef(v string) g.Node {
+	return g.Attr("itemref", v)
+}
+
+func ItemType(v string) g.Node {
+	return g.Attr("itemtype", v)
 }
 
 func Kind(v string) g.Node {
@@ -602,19 +622,19 @@ func Scrolling(v string) g.Node {
 	return g.Attr("scrolling", v)
 }
 
-func Shadowrootclonable(v string) g.Node {
+func ShadowRootClonable(v string) g.Node {
 	return g.Attr("shadowrootclonable", v)
 }
 
-func Shadowrootdelegatesfocus(v string) g.Node {
+func ShadowRootDelegatesFocus(v string) g.Node {
 	return g.Attr("shadowrootdelegatesfocus", v)
 }
 
-func Shadowrootmode(v string) g.Node {
+func ShadowRootMode(v string) g.Node {
 	return g.Attr("shadowrootmode", v)
 }
 
-func Shadowrootserializable(v string) g.Node {
+func ShadowRootSerializable(v string) g.Node {
 	return g.Attr("shadowrootserializable", v)
 }
 
@@ -650,12 +670,12 @@ func SrcDoc(v string) g.Node {
 	return g.Attr("srcdoc", v)
 }
 
-func SrcSet(v string) g.Node {
-	return g.Attr("srcset", v)
+func SrcLang(v string) g.Node {
+	return g.Attr("srclang", v)
 }
 
-func Srclang(v string) g.Node {
-	return g.Attr("srclang", v)
+func SrcSet(v string) g.Node {
+	return g.Attr("srcset", v)
 }
 
 func Standby(v string) g.Node {
@@ -730,7 +750,7 @@ func Vspace(v string) g.Node {
 	return g.Attr("vspace", v)
 }
 
-func Webkitdirectory(v string) g.Node {
+func WebkitDirectory(v string) g.Node {
 	return g.Attr("webkitdirectory", v)
 }
 
