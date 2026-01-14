@@ -120,5 +120,15 @@ func TestJoinAttrs(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("party"), ID("hey"), &brokenNode{first: true}, Class("hat")))
 		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
 	})
+
+	t.Run("does not double-escape ampersands", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("[&_svg]:size-4"), Class("custom")))
+		assert.Equal(t, `<div class="[&amp;_svg]:size-4 custom"></div>`, n)
+	})
+
+	t.Run("does not double-escape other HTML entities", func(t *testing.T) {
+		n := Div(JoinAttrs("data-test", g.Attr("data-test", `<script>"test"</script>`), g.Attr("data-test", "more")))
+		assert.Equal(t, `<div data-test="&lt;script&gt;&#34;test&#34;&lt;/script&gt; more"></div>`, n)
+	})
 }
 

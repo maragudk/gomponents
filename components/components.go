@@ -2,6 +2,7 @@
 package components
 
 import (
+	"html"
 	"io"
 	"sort"
 	"strings"
@@ -141,5 +142,6 @@ func extractAttrValue(name string, n g.Node) (bool, string) {
 
 	v := strings.TrimPrefix(rendered, " "+name+`="`)
 	v = strings.TrimSuffix(v, `"`)
-	return true, v
+	// Unescape to get the original value, since it will be escaped again when the joined attribute is rendered
+	return true, html.UnescapeString(v)
 }
