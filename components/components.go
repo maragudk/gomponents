@@ -17,23 +17,23 @@ type HTML5Props struct {
 	Title       string
 	Description string
 	Language    string
-	Head        []g.Node
-	Body        []g.Node
-	HTMLAttrs   []g.Node
+	Head        g.Group
+	Body        g.Group
+	HTMLAttrs   g.Group
 }
 
 // HTML5 document template.
 func HTML5(p HTML5Props) g.Node {
 	return Doctype(
-		HTML(g.If(p.Language != "", Lang(p.Language)), g.Group(p.HTMLAttrs),
+		HTML(g.If(p.Language != "", Lang(p.Language)), p.HTMLAttrs,
 			Head(
 				Meta(Charset("utf-8")),
 				Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
 				TitleEl(g.Text(p.Title)),
 				g.If(p.Description != "", Meta(Name("description"), Content(p.Description))),
-				g.Group(p.Head),
+				p.Head,
 			),
-			Body(g.Group(p.Body)),
+			Body(p.Body),
 		),
 	)
 }
