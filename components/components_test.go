@@ -45,6 +45,17 @@ func TestHTML5(t *testing.T) {
 
 		assert.Equal(t, `<!doctype html><html lang="en" class="h-full" id="htmlid"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title><meta name="description" content="Love hats."><link rel="stylesheet" href="/hat.css"></head><body><div></div></body></html>`, e)
 	})
+
+	t.Run("accepts g.Group literal syntax", func(t *testing.T) {
+		e := HTML5(HTML5Props{
+			Title:     "Hat",
+			Head:      g.Group{Link(Rel("stylesheet"), Href("/hat.css"))},
+			Body:      g.Group{Div()},
+			HTMLAttrs: g.Group{Class("h-full")},
+		})
+
+		assert.Equal(t, `<!doctype html><html class="h-full"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title><link rel="stylesheet" href="/hat.css"></head><body><div></div></body></html>`, e)
+	})
 }
 
 func TestClasses(t *testing.T) {
