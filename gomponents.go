@@ -52,7 +52,7 @@ var _ interface {
 	fmt.Stringer
 	Node
 	nodeTypeDescriber
-} = (*NodeFunc)(nil)
+} = (NodeFunc)(nil)
 
 // NodeFunc is a render function that is also a [Node] of [ElementType].
 type NodeFunc func(io.Writer) error
@@ -219,7 +219,7 @@ var (
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
 // More than one value make [Attr] panic.
-// Use this if no convenience creator exists in the [html] package.
+// Use this if no convenience creator exists in the html package.
 func Attr(name string, value ...string) Node {
 	if len(value) > 1 {
 		panic("attribute must be just name or name and value pair")
@@ -277,7 +277,7 @@ var _ interface {
 	fmt.Stringer
 	Node
 	nodeTypeDescriber
-} = (*attrFunc)(nil)
+} = (attrFunc)(nil)
 
 // attrFunc is a render function that is also a [Node] of [AttributeType].
 // It's basically the same as [NodeFunc], but for attributes.

@@ -12,6 +12,16 @@ import (
 	"maragu.dev/gomponents/internal/assert"
 )
 
+func TestNodeFunc(t *testing.T) {
+	t.Run("renders string", func(t *testing.T) {
+		fn := g.NodeFunc(func(w io.Writer) error {
+			_, _ = w.Write([]byte("hat"))
+			return nil
+		})
+		assert.Equal(t, "hat", fn)
+	})
+}
+
 func TestAttr(t *testing.T) {
 	t.Run("renders just the local name with one argument", func(t *testing.T) {
 		a := g.Attr("required")
