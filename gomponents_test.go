@@ -45,7 +45,7 @@ func TestAttr(t *testing.T) {
 	t.Run("implements fmt.Stringer", func(t *testing.T) {
 		a := g.Attr("required")
 
-		if _, ok := a.(fmt.Stringer); !ok {
+		if s, ok := a.(fmt.Stringer); !ok || s.String() != " required" {
 			t.Fail()
 		}
 	})

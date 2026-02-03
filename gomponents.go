@@ -47,7 +47,7 @@ type nodeTypeDescriber interface {
 	Type() NodeType
 }
 
-// Compile-time check that *NodeFunc implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
+// Compile-time check that [NodeFunc] implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
 var _ interface {
 	fmt.Stringer
 	Node
@@ -272,7 +272,7 @@ func Attr(name string, value ...string) Node {
 	})
 }
 
-// Compile-time check that *attrFunc implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
+// Compile-time check that [attrFunc] implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
 var _ interface {
 	fmt.Stringer
 	Node
