@@ -47,6 +47,13 @@ type nodeTypeDescriber interface {
 	Type() NodeType
 }
 
+// Compile-time check that *NodeFunc implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
+var _ interface {
+	fmt.Stringer
+	Node
+	nodeTypeDescriber
+} = (*NodeFunc)(nil)
+
 // NodeFunc is a render function that is also a [Node] of [ElementType].
 type NodeFunc func(io.Writer) error
 
@@ -56,7 +63,7 @@ func (n NodeFunc) Render(w io.Writer) error {
 }
 
 // Type satisfies [nodeTypeDescriber].
-func (n NodeFunc) Type() NodeType {
+func (NodeFunc) Type() NodeType {
 	return ElementType
 }
 
@@ -212,7 +219,7 @@ var (
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
 // More than one value make [Attr] panic.
-// Use this if no convenience creator exists in the html package.
+// Use this if no convenience creator exists in the [html] package.
 func Attr(name string, value ...string) Node {
 	if len(value) > 1 {
 		panic("attribute must be just name or name and value pair")
@@ -265,6 +272,13 @@ func Attr(name string, value ...string) Node {
 	})
 }
 
+// Compile-time check that *attrFunc implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
+var _ interface {
+	fmt.Stringer
+	Node
+	nodeTypeDescriber
+} = (*attrFunc)(nil)
+
 // attrFunc is a render function that is also a [Node] of [AttributeType].
 // It's basically the same as [NodeFunc], but for attributes.
 type attrFunc func(io.Writer) error
@@ -275,7 +289,7 @@ func (a attrFunc) Render(w io.Writer) error {
 }
 
 // Type satisfies [nodeTypeDescriber].
-func (a attrFunc) Type() NodeType {
+func (attrFunc) Type() NodeType {
 	return AttributeType
 }
 

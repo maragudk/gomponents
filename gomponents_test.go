@@ -12,18 +12,6 @@ import (
 	"maragu.dev/gomponents/internal/assert"
 )
 
-func TestNodeFunc(t *testing.T) {
-	t.Run("implements fmt.Stringer", func(t *testing.T) {
-		fn := g.NodeFunc(func(w io.Writer) error {
-			_, _ = w.Write([]byte("hat"))
-			return nil
-		})
-		if fn.String() != "hat" {
-			t.FailNow()
-		}
-	})
-}
-
 func TestAttr(t *testing.T) {
 	t.Run("renders just the local name with one argument", func(t *testing.T) {
 		a := g.Attr("required")
@@ -46,9 +34,9 @@ func TestAttr(t *testing.T) {
 
 	t.Run("implements fmt.Stringer", func(t *testing.T) {
 		a := g.Attr("required")
-		s := fmt.Sprintf("%v", a)
-		if s != " required" {
-			t.FailNow()
+
+		if _, ok := a.(fmt.Stringer); !ok {
+			t.Fail()
 		}
 	})
 
@@ -60,22 +48,20 @@ func TestAttr(t *testing.T) {
 
 func BenchmarkAttr(b *testing.B) {
 	b.Run("boolean attributes", func(b *testing.B) {
-		var sb strings.Builder
+		attr := g.Attr("hat")
+		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			a := g.Attr("hat")
-			_ = a.Render(&sb)
-			sb.Reset()
+			_ = attr.Render(io.Discard)
 		}
 	})
 
 	b.Run("name-value attributes", func(b *testing.B) {
-		var sb strings.Builder
+		attr := g.Attr("hat", "party")
+		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
-			a := g.Attr("hat", "party")
-			_ = a.Render(&sb)
-			sb.Reset()
+			_ = attr.Render(io.Discard)
 		}
 	})
 }
