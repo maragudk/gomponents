@@ -319,11 +319,11 @@ func TestGroup(t *testing.T) {
 		assert.Equal(t, `<div class="hat"><hr id="partyhat"></div><span></span>`, e)
 	})
 
-	t.Run("implements fmt.Stringer", func(t *testing.T) {
+	t.Run("checks string method", func(t *testing.T) {
 		children := []g.Node{g.El("div"), g.El("span")}
 		e := g.Group(children)
-		if e, ok := any(e).(fmt.Stringer); !ok || e.String() != "<div></div><span></span>" {
-			t.FailNow()
+		if e.String() != "<div></div><span></span>" {
+			t.Fail()
 		}
 	})
 
