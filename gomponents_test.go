@@ -53,8 +53,8 @@ func TestAttr(t *testing.T) {
 	})
 
 	t.Run("escapes attribute values", func(t *testing.T) {
-		a := g.Attr(`id`, `hat"><script`)
-		assert.Equal(t, ` id="hat&#34;&gt;&lt;script"`, a)
+		a := g.Attr("onclick", "alert('test')")
+		assert.Equal(t, ` onclick="alert(&#39;test&#39;)"`, a)
 	})
 }
 
@@ -90,6 +90,26 @@ func ExampleAttr_name_value() {
 	e := g.El("div", g.Attr("id", "hat"))
 	_ = e.Render(os.Stdout)
 	// Output: <div id="hat"></div>
+}
+
+func TestRawAttr(t *testing.T) {
+	t.Run("renders the name and value", func(t *testing.T) {
+		a := g.RawAttr("id", "hat")
+		assert.Equal(t, ` id="hat"`, a)
+	})
+
+	t.Run("implements fmt.Stringer", func(t *testing.T) {
+		a := g.RawAttr("id", "hat")
+
+		if _, ok := a.(fmt.Stringer); !ok {
+			t.Fail()
+		}
+	})
+
+	t.Run("does not escape attribute values", func(t *testing.T) {
+		a := g.RawAttr("onclick", "alert('test')")
+		assert.Equal(t, ` onclick="alert('test')"`, a)
+	})
 }
 
 type outsider struct{}

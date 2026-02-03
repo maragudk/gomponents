@@ -265,6 +265,52 @@ func Attr(name string, value ...string) Node {
 	})
 }
 
+// RawAttr creates an attribute DOM [Node] with a name and value (like `class="header"`).
+// Use this when you need an attribute with an unescaped value (for example, JavaScript).
+func RawAttr(name, value string) Node {
+	return attrFunc(func(w io.Writer) error {
+		var err error
+
+		sw, ok := w.(io.StringWriter)
+
+		if _, err = w.Write(space); err != nil {
+			return err
+		}
+
+		// Attribute name
+		if ok {
+			if _, err = sw.WriteString(name); err != nil {
+				return err
+			}
+		} else {
+			if _, err = w.Write([]byte(name)); err != nil {
+				return err
+			}
+		}
+
+		if _, err = w.Write(equalQuote); err != nil {
+			return err
+		}
+
+		// Attribute value
+		if ok {
+			if _, err = sw.WriteString(value); err != nil {
+				return err
+			}
+		} else {
+			if _, err = w.Write([]byte(value)); err != nil {
+				return err
+			}
+		}
+
+		if _, err = w.Write(quote); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 // attrFunc is a render function that is also a [Node] of [AttributeType].
 // It's basically the same as [NodeFunc], but for attributes.
 type attrFunc func(io.Writer) error
