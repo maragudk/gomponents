@@ -13,7 +13,15 @@ import (
 )
 
 func TestNodeFunc(t *testing.T) {
-	t.Run("implements fmt.Stringer", func(t *testing.T) {
+	t.Run("checks Render() method", func(t *testing.T) {
+		fn := g.NodeFunc(func(w io.Writer) error {
+			_, _ = w.Write([]byte("hat"))
+			return nil
+		})
+		assert.Equal(t, "hat", fn)
+	})
+
+	t.Run("checks String() method", func(t *testing.T) {
 		fn := g.NodeFunc(func(w io.Writer) error {
 			_, _ = w.Write([]byte("hat"))
 			return nil
@@ -46,8 +54,8 @@ func TestAttr(t *testing.T) {
 
 	t.Run("implements fmt.Stringer", func(t *testing.T) {
 		a := g.Attr("required")
-		s := fmt.Sprintf("%v", a)
-		if s != " required" {
+
+		if s, ok := a.(fmt.Stringer); !ok || s.String() != " required" {
 			t.FailNow()
 		}
 	})
@@ -323,10 +331,10 @@ func TestGroup(t *testing.T) {
 		assert.Equal(t, `<div class="hat"><hr id="partyhat"></div><span></span>`, e)
 	})
 
-	t.Run("implements fmt.Stringer", func(t *testing.T) {
+	t.Run("checks String() method", func(t *testing.T) {
 		children := []g.Node{g.El("div"), g.El("span")}
 		e := g.Group(children)
-		if e, ok := any(e).(fmt.Stringer); !ok || e.String() != "<div></div><span></span>" {
+		if e.String() != "<div></div><span></span>" {
 			t.FailNow()
 		}
 	})

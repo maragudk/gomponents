@@ -47,6 +47,13 @@ type nodeTypeDescriber interface {
 	Type() NodeType
 }
 
+// Compile-time check that [NodeFunc] implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
+var _ interface {
+	fmt.Stringer
+	Node
+	nodeTypeDescriber
+} = (NodeFunc)(nil)
+
 // NodeFunc is a render function that is also a [Node] of [ElementType].
 type NodeFunc func(io.Writer) error
 
@@ -56,7 +63,7 @@ func (n NodeFunc) Render(w io.Writer) error {
 }
 
 // Type satisfies [nodeTypeDescriber].
-func (n NodeFunc) Type() NodeType {
+func (NodeFunc) Type() NodeType {
 	return ElementType
 }
 
@@ -265,6 +272,13 @@ func Attr(name string, value ...string) Node {
 	})
 }
 
+// Compile-time check that [attrFunc] implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
+var _ interface {
+	fmt.Stringer
+	Node
+	nodeTypeDescriber
+} = (attrFunc)(nil)
+
 // attrFunc is a render function that is also a [Node] of [AttributeType].
 // It's basically the same as [NodeFunc], but for attributes.
 type attrFunc func(io.Writer) error
@@ -275,7 +289,7 @@ func (a attrFunc) Render(w io.Writer) error {
 }
 
 // Type satisfies [nodeTypeDescriber].
-func (a attrFunc) Type() NodeType {
+func (attrFunc) Type() NodeType {
 	return AttributeType
 }
 
@@ -342,6 +356,12 @@ func Map[T any](ts []T, cb func(T) Node) Group {
 	}
 	return nodes
 }
+
+// Compile-time check that [Group] implements [fmt.Stringer] and [Node].
+var _ interface {
+	fmt.Stringer
+	Node
+} = (Group)(nil)
 
 // Group a slice of [Node]-s into one Node, while still being usable like a regular slice of [Node]-s.
 // A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,
