@@ -13,12 +13,22 @@ import (
 )
 
 func TestNodeFunc(t *testing.T) {
-	t.Run("renders string", func(t *testing.T) {
+	t.Run("checks Render() method", func(t *testing.T) {
 		fn := g.NodeFunc(func(w io.Writer) error {
 			_, _ = w.Write([]byte("hat"))
 			return nil
 		})
 		assert.Equal(t, "hat", fn)
+	})
+
+	t.Run("checks String() method", func(t *testing.T) {
+		fn := g.NodeFunc(func(w io.Writer) error {
+			_, _ = w.Write([]byte("hat"))
+			return nil
+		})
+		if fn.String() != "hat" {
+			t.FailNow()
+		}
 	})
 }
 
@@ -46,7 +56,7 @@ func TestAttr(t *testing.T) {
 		a := g.Attr("required")
 
 		if s, ok := a.(fmt.Stringer); !ok || s.String() != " required" {
-			t.Fail()
+			t.FailNow()
 		}
 	})
 
@@ -58,20 +68,22 @@ func TestAttr(t *testing.T) {
 
 func BenchmarkAttr(b *testing.B) {
 	b.Run("boolean attributes", func(b *testing.B) {
-		attr := g.Attr("hat")
-		b.ResetTimer()
+		var sb strings.Builder
 
 		for i := 0; i < b.N; i++ {
-			_ = attr.Render(io.Discard)
+			a := g.Attr("hat")
+			_ = a.Render(&sb)
+			sb.Reset()
 		}
 	})
 
 	b.Run("name-value attributes", func(b *testing.B) {
-		attr := g.Attr("hat", "party")
-		b.ResetTimer()
+		var sb strings.Builder
 
 		for i := 0; i < b.N; i++ {
-			_ = attr.Render(io.Discard)
+			a := g.Attr("hat", "party")
+			_ = a.Render(&sb)
+			sb.Reset()
 		}
 	})
 }
@@ -319,11 +331,11 @@ func TestGroup(t *testing.T) {
 		assert.Equal(t, `<div class="hat"><hr id="partyhat"></div><span></span>`, e)
 	})
 
-	t.Run("checks string method", func(t *testing.T) {
+	t.Run("checks String() method", func(t *testing.T) {
 		children := []g.Node{g.El("div"), g.El("span")}
 		e := g.Group(children)
 		if e.String() != "<div></div><span></span>" {
-			t.Fail()
+			t.FailNow()
 		}
 	})
 
