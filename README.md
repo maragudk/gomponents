@@ -98,7 +98,7 @@ The library avoids unnecessary allocations where possible.
 
 ### Is gomponents production-ready?
 
-Yes! gomponents is mature, stable, fully tested with 100% coverage, and is used in production by myself and many others, and has been for years.
+Yes! gomponents is mature, stable, fully tested with 100% coverage, and has been used in production by myself and many others for years.
 
 ### Should I choose `html/template`, Templ, or gomponents?
 
