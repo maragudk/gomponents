@@ -67,7 +67,7 @@ func (c Classes) String() string {
 }
 
 // JoinAttrs with the given name only on the first level of the given nodes.
-// This means that attributes on non-direct descendants are ignored.
+// Groups are flattened recursively, but attributes on non-direct descendants are ignored.
 // Attribute values are joined by spaces.
 // Note that this renders all first-level attributes to check whether they should be processed.
 func JoinAttrs(name string, children ...g.Node) g.Node {
@@ -75,32 +75,19 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 	var result []g.Node
 	firstAttrIndex := -1
 
-	// Process all children
-	for _, child := range children {
-		// Handle groups explicitly because they may contain attributes
+	var processNode func(child g.Node)
+	processNode = func(child g.Node) {
 		if group, ok := child.(g.Group); ok {
 			for _, groupChild := range group {
-				isGivenAttr, attrValue := extractAttrValue(name, groupChild)
-				if !isGivenAttr || attrValue == "" {
-					result = append(result, groupChild)
-					continue
-				}
-
-				attrValues = append(attrValues, attrValue)
-				if firstAttrIndex == -1 {
-					firstAttrIndex = len(result)
-					result = append(result, nil)
-				}
+				processNode(groupChild)
 			}
-
-			continue
+			return
 		}
 
-		// Handle non-group nodes essentially the same way
 		isGivenAttr, attrValue := extractAttrValue(name, child)
 		if !isGivenAttr || attrValue == "" {
 			result = append(result, child)
-			continue
+			return
 		}
 
 		attrValues = append(attrValues, attrValue)
@@ -108,6 +95,10 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 			firstAttrIndex = len(result)
 			result = append(result, nil)
 		}
+	}
+
+	for _, child := range children {
+		processNode(child)
 	}
 
 	// If no attributes were found, just return the result now
