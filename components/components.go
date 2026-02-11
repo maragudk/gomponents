@@ -75,7 +75,7 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 	var result []g.Node
 	firstAttrIndex := -1
 
-	processNode := func(child g.Node) {}
+	var processNode func(child g.Node)
 	processNode = func(child g.Node) {
 		if group, ok := child.(g.Group); ok {
 			for _, groupChild := range group {
