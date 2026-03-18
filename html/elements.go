@@ -74,6 +74,8 @@ func Cite(children ...g.Node) g.Node {
 }
 
 // Deprecated: Use [Cite] instead.
+//
+//go:fix inline
 func CiteEl(children ...g.Node) g.Node {
 	return Cite(children...)
 }
@@ -123,6 +125,8 @@ func Form(children ...g.Node) g.Node {
 }
 
 // Deprecated: Use [Form] instead.
+//
+//go:fix inline
 func FormEl(children ...g.Node) g.Node {
 	return Form(children...)
 }
@@ -176,6 +180,8 @@ func Label(children ...g.Node) g.Node {
 }
 
 // Deprecated: Use [Label] instead.
+//
+//go:fix inline
 func LabelEl(children ...g.Node) g.Node {
 	return Label(children...)
 }
