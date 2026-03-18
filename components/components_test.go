@@ -132,6 +132,30 @@ func TestJoinAttrs(t *testing.T) {
 		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
 	})
 
+	t.Run("joins classes in nested groups", func(t *testing.T) {
+		n := Div(JoinAttrs("class", g.Group{Class("a"), g.Group{Class("b"), Class("c")}}))
+		assert.Equal(t, `<div class="a b c"></div>`, n)
+	})
+
+	t.Run("preserves non-attribute nodes in nested groups", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("a"), g.Group{ID("hat"), g.Group{Span(), Class("b")}}))
+		assert.Equal(t, `<div class="a b" id="hat"><span></span></div>`, n)
+	})
+
+	t.Run("does not join attributes inside element children", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("outer"), Span(Class("inner"))))
+		assert.Equal(t, `<div class="outer"><span class="inner"></span></div>`, n)
+	})
+
+	t.Run("does not render non-attribute nodes when checking", func(t *testing.T) {
+		bomb := g.NodeFunc(func(io.Writer) error {
+			panic("should not be rendered during JoinAttrs")
+		})
+		// JoinAttrs should not render element-type nodes, only inspect attribute-type ones.
+		// The bomb would panic if Render was called on it.
+		JoinAttrs("class", Class("a"), bomb, g.Group{bomb, Class("b")})
+	})
+
 	t.Run("does not double-escape ampersands", func(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("[&_svg]:size-4"), Class("custom")))
 		assert.Equal(t, `<div class="[&amp;_svg]:size-4 custom"></div>`, n)
