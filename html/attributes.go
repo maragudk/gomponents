@@ -137,6 +137,8 @@ func Data(name, v string) g.Node {
 // DataAttr attributes automatically have their name prefixed with "data-".
 //
 // Deprecated: Use [Data] instead.
+//
+//go:fix inline
 func DataAttr(name, v string) g.Node {
 	return Data(name, v)
 }
@@ -306,6 +308,8 @@ func Style(v string) g.Node {
 }
 
 // Deprecated: Use [Style] instead.
+//
+//go:fix inline
 func StyleAttr(v string) g.Node {
 	return Style(v)
 }
@@ -323,6 +327,8 @@ func Title(v string) g.Node {
 }
 
 // Deprecated: Use [Title] instead.
+//
+//go:fix inline
 func TitleAttr(v string) g.Node {
 	return Title(v)
 }
