@@ -4,8 +4,8 @@ benchmark:
 
 .PHONY: fuzz
 fuzz:
-	@grep -rh "^func Fuzz" *_test.go | sed 's/func \(Fuzz[a-zA-Z0-9_]*\).*/\1/' | while read name; do \
-		go test -fuzz "^$$name$$" -fuzztime 10s .; \
+	grep -h "^func Fuzz" *_test.go | sed 's/func \(Fuzz[a-zA-Z0-9_]*\).*/\1/' | while read name; do \
+		go test -fuzz "^$$name$$" -fuzztime 10s . || exit 1; \
 	done
 
 .PHONY: cover
