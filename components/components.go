@@ -74,6 +74,7 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 	var attrValues []string
 	var result []g.Node
 	firstAttrIndex := -1
+	sawBoolAttr := false
 
 	// Process all children
 	for _, child := range children {
@@ -86,6 +87,11 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 					continue
 				}
 				if attrValue == "" {
+					sawBoolAttr = true
+					if firstAttrIndex == -1 {
+						firstAttrIndex = len(result)
+						result = append(result, nil)
+					}
 					continue
 				}
 
@@ -106,6 +112,11 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 			continue
 		}
 		if attrValue == "" {
+			sawBoolAttr = true
+			if firstAttrIndex == -1 {
+				firstAttrIndex = len(result)
+				result = append(result, nil)
+			}
 			continue
 		}
 
@@ -116,13 +127,17 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 		}
 	}
 
-	// If no attributes were found, just return the result now
+	// If no matching attributes were found, just return the result now
 	if firstAttrIndex == -1 {
 		return g.Group(result)
 	}
 
-	// Insert joined attribute at the position of the first attribute
-	result[firstAttrIndex] = g.Attr(name, strings.Join(attrValues, " "))
+	// Insert joined attribute at the position of the first match
+	if len(attrValues) > 0 {
+		result[firstAttrIndex] = g.Attr(name, strings.Join(attrValues, " "))
+	} else if sawBoolAttr {
+		result[firstAttrIndex] = g.Attr(name)
+	}
 	return g.Group(result)
 }
 
@@ -142,6 +157,12 @@ func extractAttrValue(name string, n g.Node) (bool, string) {
 	}
 
 	rendered := b.String()
+
+	// Match boolean attribute (e.g., ` required`)
+	if rendered == " "+name {
+		return true, ""
+	}
+
 	if !strings.HasPrefix(rendered, " "+name+`="`) || !strings.HasSuffix(rendered, `"`) {
 		return false, ""
 	}

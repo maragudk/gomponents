@@ -142,6 +142,16 @@ func TestJoinAttrs(t *testing.T) {
 		assert.Equal(t, `<div class="party"></div>`, n)
 	})
 
+	t.Run("deduplicates boolean attributes", func(t *testing.T) {
+		n := Div(JoinAttrs("required", g.Attr("required"), ID("hey"), g.Attr("required")))
+		assert.Equal(t, `<div required id="hey"></div>`, n)
+	})
+
+	t.Run("deduplicates boolean attributes in groups", func(t *testing.T) {
+		n := Div(JoinAttrs("required", g.Group{g.Attr("required"), g.Attr("required")}))
+		assert.Equal(t, `<div required></div>`, n)
+	})
+
 	t.Run("does not double-escape ampersands", func(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("[&_svg]:size-4"), Class("custom")))
 		assert.Equal(t, `<div class="[&amp;_svg]:size-4 custom"></div>`, n)
