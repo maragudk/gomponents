@@ -62,7 +62,7 @@ func FuzzAttr(f *testing.F) {
 	})
 }
 
-func FuzzAttrBool(f *testing.F) {
+func FuzzAttr_bool(f *testing.F) {
 	f.Add("required")
 	f.Add("disabled")
 	f.Add("")
