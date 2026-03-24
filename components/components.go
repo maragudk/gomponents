@@ -81,8 +81,11 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 		if group, ok := child.(g.Group); ok {
 			for _, groupChild := range group {
 				isGivenAttr, attrValue := extractAttrValue(name, groupChild)
-				if !isGivenAttr || attrValue == "" {
+				if !isGivenAttr {
 					result = append(result, groupChild)
+					continue
+				}
+				if attrValue == "" {
 					continue
 				}
 
@@ -98,8 +101,11 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 
 		// Handle non-group nodes essentially the same way
 		isGivenAttr, attrValue := extractAttrValue(name, child)
-		if !isGivenAttr || attrValue == "" {
+		if !isGivenAttr {
 			result = append(result, child)
+			continue
+		}
+		if attrValue == "" {
 			continue
 		}
 

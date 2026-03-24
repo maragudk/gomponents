@@ -132,6 +132,16 @@ func TestJoinAttrs(t *testing.T) {
 		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
 	})
 
+	t.Run("discards empty-valued matching attributes", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("party"), g.Attr("class", "")))
+		assert.Equal(t, `<div class="party"></div>`, n)
+	})
+
+	t.Run("discards empty-valued matching attributes in groups", func(t *testing.T) {
+		n := Div(JoinAttrs("class", g.Group{Class("party"), g.Attr("class", "")}))
+		assert.Equal(t, `<div class="party"></div>`, n)
+	})
+
 	t.Run("does not double-escape ampersands", func(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("[&_svg]:size-4"), Class("custom")))
 		assert.Equal(t, `<div class="[&amp;_svg]:size-4 custom"></div>`, n)
