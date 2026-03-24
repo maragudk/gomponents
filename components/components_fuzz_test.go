@@ -33,14 +33,18 @@ func FuzzJoinAttrs(f *testing.F) {
 		attr2 := g.Attr(name, value2)
 		got := renderToString(t, g.El("div", JoinAttrs(name, attr1, attr2)))
 
-		// JoinAttrs only joins attributes with non-empty values.
-		// Attributes with empty values pass through unmodified.
+		// JoinAttrs should always produce a single merged attribute.
+		// See https://github.com/maragudk/gomponents/issues/302
 		var expected string
 		switch {
 		case value1 != "" && value2 != "":
 			expected = renderToString(t, g.El("div", g.Attr(name, value1+" "+value2)))
+		case value1 != "":
+			expected = renderToString(t, g.El("div", g.Attr(name, value1)))
+		case value2 != "":
+			expected = renderToString(t, g.El("div", g.Attr(name, value2)))
 		default:
-			expected = renderToString(t, g.El("div", attr1, attr2))
+			expected = renderToString(t, g.El("div"))
 		}
 
 		if got != expected {
