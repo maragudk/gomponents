@@ -4,8 +4,11 @@ benchmark:
 
 .PHONY: fuzz
 fuzz:
-	grep -h "^func Fuzz" *_test.go | sed 's/func \(Fuzz[a-zA-Z0-9_]*\).*/\1/' | while read name; do \
-		go test -fuzz "^$$name$$" -fuzztime 10s . || exit 1; \
+	grep -r "^func Fuzz" --include='*_test.go' -l . | while read file; do \
+		dir=$$(dirname "$$file"); \
+		grep -h "^func Fuzz" "$$file" | sed 's/func \(Fuzz[a-zA-Z0-9_]*\).*/\1/' | while read name; do \
+			go test -fuzz "^$$name$$" -fuzztime 10s "$$dir" || exit 1; \
+		done || exit 1; \
 	done
 
 .PHONY: cover
