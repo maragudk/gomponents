@@ -35,16 +35,19 @@ func FuzzJoinAttrs(f *testing.F) {
 
 		// JoinAttrs should always produce a single merged attribute.
 		// See https://github.com/maragudk/gomponents/issues/302
+		// JoinAttrs treats whitespace-only values as empty.
+		v1 := strings.TrimSpace(value1)
+		v2 := strings.TrimSpace(value2)
 		var expected string
 		switch {
-		case value1 != "" && value2 != "":
+		case v1 != "" && v2 != "":
 			expected = renderToString(t, g.El("div", g.Attr(name, value1+" "+value2)))
-		case value1 != "":
+		case v1 != "":
 			expected = renderToString(t, g.El("div", g.Attr(name, value1)))
-		case value2 != "":
+		case v2 != "":
 			expected = renderToString(t, g.El("div", g.Attr(name, value2)))
 		default:
-			expected = renderToString(t, g.El("div"))
+			expected = renderToString(t, g.El("div", g.Attr(name)))
 		}
 
 		if got != expected {
