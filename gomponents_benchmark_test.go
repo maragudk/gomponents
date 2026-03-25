@@ -42,3 +42,27 @@ func BenchmarkEl(b *testing.B) {
 		}
 	})
 }
+
+func BenchmarkRaw(b *testing.B) {
+	b.Run("raw element", func(b *testing.B) {
+		var sb strings.Builder
+
+		for b.Loop() {
+			e := g.Raw("<span>content</span>")
+			_ = e.Render(&sb)
+			sb.Reset()
+		}
+	})
+}
+
+func BenchmarkRawf(b *testing.B) {
+	b.Run("formatted raw element", func(b *testing.B) {
+		var sb strings.Builder
+
+		for b.Loop() {
+			e := g.Rawf("<span>%s</span>", "content")
+			_ = e.Render(&sb)
+			sb.Reset()
+		}
+	})
+}
