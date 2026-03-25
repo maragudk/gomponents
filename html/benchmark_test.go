@@ -3,7 +3,8 @@
 package html_test
 
 import (
-	"io"
+	"fmt"
+	"strings"
 	"testing"
 
 	g "maragu.dev/gomponents"
@@ -44,13 +45,16 @@ func BenchmarkRealisticPage(b *testing.B) {
 		{"Conversion Rate", "Stable", "neutral", 3},
 	}
 
+	statuses := []string{"Active", "Inactive", "Pending", "Suspended"}
+	roles := []string{"Admin", "Member", "Viewer", "Editor"}
+
 	rows := make([]row, 50)
 	for i := range rows {
 		rows[i] = row{
-			name:   "User Name",
-			email:  "user@example.com",
-			role:   "Member",
-			status: "Active",
+			name:   fmt.Sprintf("User %d", i+1),
+			email:  fmt.Sprintf("user%d@example.com", i+1),
+			role:   roles[i%len(roles)],
+			status: statuses[i%len(statuses)],
 		}
 	}
 
@@ -271,15 +275,19 @@ func BenchmarkRealisticPage(b *testing.B) {
 	}
 
 	b.Run("construct and render", func(b *testing.B) {
+		var sb strings.Builder
 		for b.Loop() {
-			_ = page().Render(io.Discard)
+			_ = page().Render(&sb)
+			sb.Reset()
 		}
 	})
 
-	b.Run("render only", func(b *testing.B) {
+	b.Run("render pre-built tree", func(b *testing.B) {
+		var sb strings.Builder
 		p := page()
 		for b.Loop() {
-			_ = p.Render(io.Discard)
+			_ = p.Render(&sb)
+			sb.Reset()
 		}
 	})
 }
