@@ -218,7 +218,7 @@ var (
 // Attr creates an attribute DOM [Node] with a name and optional value.
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
-// More than one value make [Attr] panic.
+// More than one value makes [Attr] panic.
 // Use this if no convenience creator exists in the html package.
 func Attr(name string, value ...string) Node {
 	switch len(value) {
