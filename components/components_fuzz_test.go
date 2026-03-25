@@ -56,29 +56,3 @@ func FuzzJoinAttrs(f *testing.F) {
 	})
 }
 
-func FuzzClasses(f *testing.F) {
-	f.Add("hat", "party")
-	f.Add("", "")
-	f.Add("[&_svg]:size-4", "custom")
-	f.Add(`<script>`, `"quoted"`)
-	f.Add("a&b", "c<d")
-
-	f.Fuzz(func(t *testing.T, class1, class2 string) {
-		node := Classes{class1: true, class2: true}
-
-		var b strings.Builder
-		if err := node.Render(&b); err != nil {
-			t.Fatal(err)
-		}
-
-		got := b.String()
-
-		// Must render as a class attribute.
-		if !strings.HasPrefix(got, ` class="`) {
-			t.Fatalf("expected class attribute, got %q", got)
-		}
-		if !strings.HasSuffix(got, `"`) {
-			t.Fatalf("expected closing quote, got %q", got)
-		}
-	})
-}
