@@ -278,7 +278,6 @@ func BenchmarkRealisticPage(b *testing.B) {
 
 	b.Run("render only", func(b *testing.B) {
 		p := page()
-		b.ResetTimer()
 		for b.Loop() {
 			_ = p.Render(io.Discard)
 		}
