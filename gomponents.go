@@ -202,13 +202,21 @@ var (
 // Attr creates an attribute DOM [Node] with a name and optional value.
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
-// More than one value make [Attr] panic.
+// More than one value makes [Attr] panic.
 // Use this if no convenience creator exists in the html package.
 func Attr(name string, value ...string) Node {
-	if len(value) > 1 {
+	switch len(value) {
+	case 0:
+		return booleanAttr(name)
+	case 1:
+		return valueAttr(name, value[0])
+	default:
 		panic("attribute must be just name or name and value pair")
 	}
+}
 
+// booleanAttr creates a boolean attribute Node with just a name.
+func booleanAttr(name string) Node {
 	return attrFunc(func(w io.Writer) error {
 		var err error
 
@@ -218,7 +226,26 @@ func Attr(name string, value ...string) Node {
 			return err
 		}
 
-		// Attribute name
+		if ok {
+			_, err = sw.WriteString(name)
+		} else {
+			_, err = w.Write([]byte(name))
+		}
+		return err
+	})
+}
+
+// valueAttr creates a name-value attribute Node.
+func valueAttr(name, value string) Node {
+	return attrFunc(func(w io.Writer) error {
+		var err error
+
+		sw, ok := w.(io.StringWriter)
+
+		if _, err = w.Write(space); err != nil {
+			return err
+		}
+
 		if ok {
 			if _, err = sw.WriteString(name); err != nil {
 				return err
@@ -229,21 +256,16 @@ func Attr(name string, value ...string) Node {
 			}
 		}
 
-		if len(value) == 0 {
-			return nil
-		}
-
 		if _, err = w.Write(equalQuote); err != nil {
 			return err
 		}
 
-		// Attribute value
 		if ok {
-			if _, err = sw.WriteString(template.HTMLEscapeString(value[0])); err != nil {
+			if _, err = sw.WriteString(template.HTMLEscapeString(value)); err != nil {
 				return err
 			}
 		} else {
-			if _, err = w.Write([]byte(template.HTMLEscapeString(value[0]))); err != nil {
+			if _, err = w.Write([]byte(template.HTMLEscapeString(value))); err != nil {
 				return err
 			}
 		}
