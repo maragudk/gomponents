@@ -66,9 +66,13 @@ func (c Classes) String() string {
 	return b.String()
 }
 
-// JoinAttrs with the given name only on the first level of the given nodes.
-// This means that attributes on non-direct descendants are ignored.
-// Attribute values are joined by spaces.
+// JoinAttrs joins attributes with the given name on the first level of the given nodes.
+// Attributes on non-direct descendants are ignored.
+// Non-empty attribute values are joined by spaces into a single attribute.
+// Empty, whitespace-only, and boolean (valueless) attributes are deduplicated and discarded
+// if a non-empty value exists. If only boolean/empty attributes match, a single boolean
+// attribute is emitted.
+// When both boolean and valued attributes match, the valued form takes precedence.
 // Note that this renders all first-level attributes to check whether they should be processed.
 func JoinAttrs(name string, children ...g.Node) g.Node {
 	var attrValues []string
@@ -76,40 +80,12 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 	firstAttrIndex := -1
 	sawBoolAttr := false
 
-	// Process all children
-	for _, child := range children {
-		// Handle groups explicitly because they may contain attributes
-		if group, ok := child.(g.Group); ok {
-			for _, groupChild := range group {
-				isGivenAttr, attrValue := extractAttrValue(name, groupChild)
-				if !isGivenAttr {
-					result = append(result, groupChild)
-					continue
-				}
-				if attrValue == "" {
-					sawBoolAttr = true
-					if firstAttrIndex == -1 {
-						firstAttrIndex = len(result)
-						result = append(result, nil)
-					}
-					continue
-				}
-
-				attrValues = append(attrValues, attrValue)
-				if firstAttrIndex == -1 {
-					firstAttrIndex = len(result)
-					result = append(result, nil)
-				}
-			}
-
-			continue
-		}
-
-		// Handle non-group nodes essentially the same way
-		isGivenAttr, attrValue := extractAttrValue(name, child)
+	// processNode checks a single child node and either collects its value or appends it to result.
+	processNode := func(n g.Node) {
+		isGivenAttr, attrValue := extractAttrValue(name, n)
 		if !isGivenAttr {
-			result = append(result, child)
-			continue
+			result = append(result, n)
+			return
 		}
 		if attrValue == "" {
 			sawBoolAttr = true
@@ -117,14 +93,23 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 				firstAttrIndex = len(result)
 				result = append(result, nil)
 			}
-			continue
+			return
 		}
-
 		attrValues = append(attrValues, attrValue)
 		if firstAttrIndex == -1 {
 			firstAttrIndex = len(result)
 			result = append(result, nil)
 		}
+	}
+
+	for _, child := range children {
+		if group, ok := child.(g.Group); ok {
+			for _, groupChild := range group {
+				processNode(groupChild)
+			}
+			continue
+		}
+		processNode(child)
 	}
 
 	// If no matching attributes were found, just return the result now
