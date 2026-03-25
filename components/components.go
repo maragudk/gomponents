@@ -66,43 +66,35 @@ func (c Classes) String() string {
 	return b.String()
 }
 
-// JoinAttrs with the given name only on the first level of the given nodes.
-// This means that attributes on non-direct descendants are ignored.
-// Attribute values are joined by spaces.
+// JoinAttrs joins attributes with the given name on the first level of the given nodes.
+// Attributes on non-direct descendants are ignored.
+// Non-empty attribute values are joined by spaces into a single attribute.
+// Empty, whitespace-only, and boolean (valueless) attributes are deduplicated and discarded
+// if a non-empty value exists. If only boolean/empty attributes match, a single boolean
+// attribute is emitted.
+// When both boolean and valued attributes match, the valued form takes precedence.
 // Note that this renders all first-level attributes to check whether they should be processed.
 func JoinAttrs(name string, children ...g.Node) g.Node {
 	var attrValues []string
 	var result []g.Node
 	firstAttrIndex := -1
+	sawBoolAttr := false
 
-	// Process all children
-	for _, child := range children {
-		// Handle groups explicitly because they may contain attributes
-		if group, ok := child.(g.Group); ok {
-			for _, groupChild := range group {
-				isGivenAttr, attrValue := extractAttrValue(name, groupChild)
-				if !isGivenAttr || attrValue == "" {
-					result = append(result, groupChild)
-					continue
-				}
-
-				attrValues = append(attrValues, attrValue)
-				if firstAttrIndex == -1 {
-					firstAttrIndex = len(result)
-					result = append(result, nil)
-				}
+	// processNode checks a single child node and either collects its value or appends it to result.
+	processNode := func(n g.Node) {
+		isGivenAttr, attrValue := extractAttrValue(name, n)
+		if !isGivenAttr {
+			result = append(result, n)
+			return
+		}
+		if attrValue == "" {
+			sawBoolAttr = true
+			if firstAttrIndex == -1 {
+				firstAttrIndex = len(result)
+				result = append(result, nil)
 			}
-
-			continue
+			return
 		}
-
-		// Handle non-group nodes essentially the same way
-		isGivenAttr, attrValue := extractAttrValue(name, child)
-		if !isGivenAttr || attrValue == "" {
-			result = append(result, child)
-			continue
-		}
-
 		attrValues = append(attrValues, attrValue)
 		if firstAttrIndex == -1 {
 			firstAttrIndex = len(result)
@@ -110,13 +102,27 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 		}
 	}
 
-	// If no attributes were found, just return the result now
+	for _, child := range children {
+		if group, ok := child.(g.Group); ok {
+			for _, groupChild := range group {
+				processNode(groupChild)
+			}
+			continue
+		}
+		processNode(child)
+	}
+
+	// If no matching attributes were found, just return the result now
 	if firstAttrIndex == -1 {
 		return g.Group(result)
 	}
 
-	// Insert joined attribute at the position of the first attribute
-	result[firstAttrIndex] = g.Attr(name, strings.Join(attrValues, " "))
+	// Insert joined attribute at the position of the first match
+	if len(attrValues) > 0 {
+		result[firstAttrIndex] = g.Attr(name, strings.Join(attrValues, " "))
+	} else if sawBoolAttr {
+		result[firstAttrIndex] = g.Attr(name)
+	}
 	return g.Group(result)
 }
 
@@ -136,6 +142,12 @@ func extractAttrValue(name string, n g.Node) (bool, string) {
 	}
 
 	rendered := b.String()
+
+	// Match boolean attribute (e.g., ` required`)
+	if rendered == " "+name {
+		return true, ""
+	}
+
 	if !strings.HasPrefix(rendered, " "+name+`="`) || !strings.HasSuffix(rendered, `"`) {
 		return false, ""
 	}
@@ -143,5 +155,10 @@ func extractAttrValue(name string, n g.Node) (bool, string) {
 	v := strings.TrimPrefix(rendered, " "+name+`="`)
 	v = strings.TrimSuffix(v, `"`)
 	// Unescape to get the original value, since it will be escaped again when the joined attribute is rendered
-	return true, html.UnescapeString(v)
+	v = html.UnescapeString(v)
+	// Treat whitespace-only values the same as empty
+	if strings.TrimSpace(v) == "" {
+		return true, ""
+	}
+	return true, v
 }
