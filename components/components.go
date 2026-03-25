@@ -170,5 +170,10 @@ func extractAttrValue(name string, n g.Node) (bool, string) {
 	v := strings.TrimPrefix(rendered, " "+name+`="`)
 	v = strings.TrimSuffix(v, `"`)
 	// Unescape to get the original value, since it will be escaped again when the joined attribute is rendered
-	return true, html.UnescapeString(v)
+	v = html.UnescapeString(v)
+	// Treat whitespace-only values the same as empty
+	if strings.TrimSpace(v) == "" {
+		return true, ""
+	}
+	return true, v
 }
