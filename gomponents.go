@@ -183,30 +183,14 @@ func renderChild(w io.Writer, c Node, desiredType NodeType) error {
 	return nil
 }
 
-// voidElements don't have end tags and must be treated differently in the rendering.
+// isVoidElement reports whether the named element is a void element that doesn't have an end tag.
 // See https://dev.w3.org/html5/spec-LC/syntax.html#void-elements
-var voidElements = map[string]struct{}{
-	"area":    {},
-	"base":    {},
-	"br":      {},
-	"col":     {},
-	"command": {},
-	"embed":   {},
-	"hr":      {},
-	"img":     {},
-	"input":   {},
-	"keygen":  {},
-	"link":    {},
-	"meta":    {},
-	"param":   {},
-	"source":  {},
-	"track":   {},
-	"wbr":     {},
-}
-
 func isVoidElement(name string) bool {
-	_, ok := voidElements[name]
-	return ok
+	switch name {
+	case "area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr":
+		return true
+	}
+	return false
 }
 
 var (
