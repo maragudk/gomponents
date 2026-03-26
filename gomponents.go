@@ -308,26 +308,12 @@ func (a attrFunc) String() string {
 
 // Text creates a text DOM [Node] that Renders the escaped string t.
 func Text(t string) Node {
-	return NodeFunc(func(w io.Writer) error {
-		if w, ok := w.(io.StringWriter); ok {
-			_, err := w.WriteString(template.HTMLEscapeString(t))
-			return err
-		}
-		_, err := w.Write([]byte(template.HTMLEscapeString(t)))
-		return err
-	})
+	return raw(template.HTMLEscapeString(t))
 }
 
 // Textf creates a text DOM [Node] that Renders the interpolated and escaped string format.
 func Textf(format string, a ...interface{}) Node {
-	return NodeFunc(func(w io.Writer) error {
-		if w, ok := w.(io.StringWriter); ok {
-			_, err := w.WriteString(template.HTMLEscapeString(fmt.Sprintf(format, a...)))
-			return err
-		}
-		_, err := w.Write([]byte(template.HTMLEscapeString(fmt.Sprintf(format, a...))))
-		return err
-	})
+	return raw(template.HTMLEscapeString(fmt.Sprintf(format, a...)))
 }
 
 // Compile-time check that [raw] implements [fmt.Stringer] and [Node].
