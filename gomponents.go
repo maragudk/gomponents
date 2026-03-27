@@ -330,28 +330,36 @@ func Textf(format string, a ...interface{}) Node {
 	})
 }
 
+// Compile-time check that [raw] implements [fmt.Stringer] and [Node].
+var _ interface {
+	fmt.Stringer
+	Node
+} = raw("")
+
+// raw is a text DOM [Node] that just Renders the unescaped, underlying string.
+type raw string
+
+func (r raw) Render(w io.Writer) error {
+	if w, ok := w.(io.StringWriter); ok {
+		_, err := w.WriteString(string(r))
+		return err
+	}
+	_, err := w.Write([]byte(r))
+	return err
+}
+
+func (r raw) String() string {
+	return string(r)
+}
+
 // Raw creates a text DOM [Node] that just Renders the unescaped string t.
 func Raw(t string) Node {
-	return NodeFunc(func(w io.Writer) error {
-		if w, ok := w.(io.StringWriter); ok {
-			_, err := w.WriteString(t)
-			return err
-		}
-		_, err := w.Write([]byte(t))
-		return err
-	})
+	return raw(t)
 }
 
 // Rawf creates a text DOM [Node] that just Renders the interpolated and unescaped string format.
 func Rawf(format string, a ...interface{}) Node {
-	return NodeFunc(func(w io.Writer) error {
-		if w, ok := w.(io.StringWriter); ok {
-			_, err := w.WriteString(fmt.Sprintf(format, a...))
-			return err
-		}
-		_, err := fmt.Fprintf(w, format, a...)
-		return err
-	})
+	return raw(fmt.Sprintf(format, a...))
 }
 
 // Map a slice of anything to a [Group] (which is just a slice of [Node]-s).
