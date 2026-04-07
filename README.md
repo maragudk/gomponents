@@ -161,7 +161,7 @@ In either case, the less-used variant also exists in the codebase:
 	<summary>Example with `Style` and `StyleEl`</summary>
 
 ```go
-package main
+package html
 
 import (
 	. "maragu.dev/gomponents"
