@@ -64,7 +64,7 @@ func Navbar(authenticated bool, currentPath string) Node {
 }
 
 func NavbarLink(href, name, currentPath string) Node {
-	return A(Href(href), Classes{"is-active": currentPath == href}, g.Text(name))
+	return A(Href(href), Classes{"is-active": currentPath == href}, Text(name))
 }
 ```
 
@@ -173,7 +173,7 @@ func MyPage() Node {
 	return HTML5(HTML5Props{
 		Title: "My Page",
 		Head: []Node{
-			StyleEl(g.Raw("body {background-color: #fff; }")),
+			StyleEl(Raw("body {background-color: #fff; }")),
 		},
 		Body: []Node{
 			H1(Style("color: #000"), Text("My Page")),
