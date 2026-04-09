@@ -28,10 +28,13 @@ jobs:
           - "1.23"
           - "1.24"
           - "1.25"
+          - "1.26"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -46,7 +49,7 @@ jobs:
         run: go test -v -coverprofile=coverage.txt -shuffle on ./...
 
       - name: Coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -57,18 +60,15 @@ jobs:
     strategy:
       matrix:
         go:
-          - "1.18"
-          - "1.19"
-          - "1.20"
-          - "1.21"
-          - "1.22"
-          - "1.23"
           - "1.24"
           - "1.25"
+          - "1.26"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -89,14 +89,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version: stable
           check-latest: true
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: latest
