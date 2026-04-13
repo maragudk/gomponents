@@ -206,12 +206,14 @@ Div(
 
 ### Name Conflicts
 Some HTML names conflict in Go. The library provides both variants:
-- `Style()` (attribute) vs `StyleEl()` (element)
-- `Title()` (attribute) vs `TitleEl()` (element)
-- `Form()` (element) vs `FormAttr()` (attribute)
-- `Label()` (element) vs `LabelAttr()` (attribute)
-- `Data()` (attribute) vs `DataEl()` (element)
-- `Cite()` (element) vs `CiteAttr()` (attribute)
+- `cite`: `Cite()` (element) / `CiteAttr()` (attribute)
+- `data`: `DataEl()` (element) / `Data()` (attribute)
+- `form`: `Form()` (element) / `FormAttr()` (attribute)
+- `label`: `Label()` (element) / `LabelAttr()` (attribute)
+- `style`: `StyleEl()` (element) / `Style()` (attribute)
+- `title`: `TitleEl()` (element) / `Title()` (attribute)
+
+Deprecated aliases (`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, `TitleAttr`) exist for backwards compatibility but should not be used in new code.
 
 ### Void Elements
 Self-closing elements (br, img, input, etc.) are handled automatically. Child nodes that aren't attributes are ignored:

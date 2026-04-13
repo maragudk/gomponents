@@ -64,7 +64,7 @@ Self-closing HTML elements (br, img, input, etc.) are handled specially - non-at
 Some HTML names conflict (e.g., `style`). Convention:
 - Most common usage gets the simple name (`Style` for attribute)
 - Alternative gets suffix (`StyleEl` for element)
-- Both variants always exist
+- Both variants exist; deprecated aliases (`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, `TitleAttr`) remain for backwards compatibility
 
 ## Common Patterns
 
