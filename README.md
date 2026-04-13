@@ -147,15 +147,16 @@ func list(ordered bool) Node {
 Unfortunately, there are some name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
 to be able to co-exist in the same package in Go.
 
-I've chosen one or the other based on what I think is the common usage.
-In either case, the less-used variant also exists in the codebase:
+I've chosen one or the other based on what I think is the common usage:
 
-- `cite` (`Cite`/`CiteAttr`, `CiteEl` also exists)
-- `data` (`DataEl`/`Data`, `DataAttr` also exists)
-- `form` (`Form`/`FormAttr`, `FormEl` also exists)
-- `label` (`Label`/`LabelAttr`, `LabelEl` also exists)
-- `style` (`StyleEl`/`Style`, `StyleAttr` also exists)
-- `title` (`TitleEl`/`Title`, `TitleAttr` also exists)
+- `cite`: `Cite` (element) / `CiteAttr` (attribute)
+- `data`: `DataEl` (element) / `Data` (attribute)
+- `form`: `Form` (element) / `FormAttr` (attribute)
+- `label`: `Label` (element) / `LabelAttr` (attribute)
+- `style`: `StyleEl` (element) / `Style` (attribute)
+- `title`: `TitleEl` (element) / `Title` (attribute)
+
+Deprecated aliases (`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, `TitleAttr`) also exist for backwards compatibility but should not be used in new code.
 
 <details>
 	<summary>Example with `Style` and `StyleEl`</summary>
