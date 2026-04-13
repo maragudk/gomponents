@@ -316,10 +316,11 @@ func Textf(format string, a ...interface{}) Node {
 	return raw(template.HTMLEscapeString(fmt.Sprintf(format, a...)))
 }
 
-// Compile-time check that [raw] implements [fmt.Stringer] and [Node].
+// Compile-time check that [raw] implements [fmt.Stringer], [Node], and [nodeTypeDescriber].
 var _ interface {
 	fmt.Stringer
 	Node
+	nodeTypeDescriber
 } = raw("")
 
 // raw is a text DOM [Node] that just Renders the unescaped, underlying string.
@@ -336,6 +337,10 @@ func (r raw) Render(w io.Writer) error {
 
 func (r raw) String() string {
 	return string(r)
+}
+
+func (r raw) Type() NodeType {
+	return ElementType
 }
 
 // Raw creates a text DOM [Node] that just Renders the unescaped string t.
