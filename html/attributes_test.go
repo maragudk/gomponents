@@ -94,6 +94,7 @@ func TestSimpleAttributes(t *testing.T) {
 		{Name: "role", Func: Role},
 		{Name: "rows", Func: Rows},
 		{Name: "rowspan", Func: RowSpan},
+		{Name: "sizes", Func: Sizes},
 		{Name: "scope", Func: Scope},
 		{Name: "spellcheck", Func: SpellCheck},
 		{Name: "slot", Func: SlotAttr},
@@ -128,17 +129,17 @@ func TestVariadicAttributes(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.Name + "(no args)", func(t *testing.T) {
+		t.Run(test.Name+"(no args)", func(t *testing.T) {
 			n := g.El("div", test.Func())
 			assert.Equal(t, fmt.Sprintf(`<div %v></div>`, test.Name), n)
 		})
 
-		t.Run(test.Name +"(one arg)", func(t *testing.T) {
+		t.Run(test.Name+"(one arg)", func(t *testing.T) {
 			n := g.El("div", test.Func("hat"))
 			assert.Equal(t, fmt.Sprintf(`<div %v="hat"></div>`, test.Name), n)
 		})
 
-		t.Run(test.Name + "(two args panics)", func(t *testing.T) {
+		t.Run(test.Name+"(two args panics)", func(t *testing.T) {
 			defer func() {
 				if r := recover(); r == nil {
 					t.Errorf("expected a panic")

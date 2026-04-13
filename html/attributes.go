@@ -144,7 +144,7 @@ func DataAttr(name, v string) g.Node {
 }
 
 func SlotAttr(v string) g.Node {
-  return g.Attr("slot", v)
+	return g.Attr("slot", v)
 }
 
 func For(v string) g.Node {
@@ -281,6 +281,10 @@ func Rows(v string) g.Node {
 
 func RowSpan(v string) g.Node {
 	return g.Attr("rowspan", v)
+}
+
+func Sizes(v string) g.Node {
+	return g.Attr("sizes", v)
 }
 
 func Scope(v string) g.Node {
