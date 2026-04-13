@@ -66,3 +66,27 @@ func BenchmarkRawf(b *testing.B) {
 		}
 	})
 }
+
+func BenchmarkText(b *testing.B) {
+	b.Run("simple text element", func(b *testing.B) {
+		var sb strings.Builder
+
+		for b.Loop() {
+			e := g.Text("some simple text")
+			_ = e.Render(&sb)
+			sb.Reset()
+		}
+	})
+}
+
+func BenchmarkTextf(b *testing.B) {
+	b.Run("formatted text element", func(b *testing.B) {
+		var sb strings.Builder
+
+		for b.Loop() {
+			e := g.Textf("some %s text", "formatted")
+			_ = e.Render(&sb)
+			sb.Reset()
+		}
+	})
+}
