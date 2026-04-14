@@ -157,6 +157,7 @@ func TestSimpleVoidKindElements(t *testing.T) {
 		{Name: "param", Func: Param},
 		{Name: "source", Func: Source},
 		{Name: "wbr", Func: Wbr},
+		{Name: "track", Func: Track},
 	}
 
 	for _, test := range tests {

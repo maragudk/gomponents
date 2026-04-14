@@ -469,3 +469,7 @@ func Var(children ...g.Node) g.Node {
 func Video(children ...g.Node) g.Node {
 	return g.El("video", g.Group(children))
 }
+
+func Track(children ...g.Node) g.Node {
+	return g.El("track", children...)
+}
