@@ -23,7 +23,7 @@ Made with ✨sparkles✨ by [maragu](https://www.maragu.dev/): independent softw
 
 ## Features
 
-Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
+Check out [www.gomponents.com](https://www.gomponents.com) for an introduction or [pgk.go.dev/maragu.dev/gomponents](https://pkg.go.dev/maragu.dev/gomponents) for the official docs.
 
 - Build reusable HTML components
 - Write declarative HTML 5 in Go without all the strings, so you get
