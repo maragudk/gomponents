@@ -88,31 +88,21 @@ var (
 // Use this if no convenience creator exists in the html package.
 func El(name string, children ...Node) Node {
 	return NodeFunc(func(w io.Writer) error {
-		var err error
-
-		sw, ok := w.(io.StringWriter)
-
-		if _, err = w.Write(lt); err != nil {
+		if _, err := w.Write(lt); err != nil {
 			return err
 		}
 
-		if ok {
-			if _, err = sw.WriteString(name); err != nil {
-				return err
-			}
-		} else {
-			if _, err = w.Write([]byte(name)); err != nil {
-				return err
-			}
+		if _, err := io.WriteString(w, name); err != nil {
+			return err
 		}
 
 		for _, c := range children {
-			if err = renderChild(w, c, AttributeType); err != nil {
+			if err := renderChild(w, c, AttributeType); err != nil {
 				return err
 			}
 		}
 
-		if _, err = w.Write(gt); err != nil {
+		if _, err := w.Write(gt); err != nil {
 			return err
 		}
 
@@ -121,26 +111,20 @@ func El(name string, children ...Node) Node {
 		}
 
 		for _, c := range children {
-			if err = renderChild(w, c, ElementType); err != nil {
+			if err := renderChild(w, c, ElementType); err != nil {
 				return err
 			}
 		}
 
-		if _, err = w.Write(ltSlash); err != nil {
+		if _, err := w.Write(ltSlash); err != nil {
 			return err
 		}
 
-		if ok {
-			if _, err = sw.WriteString(name); err != nil {
-				return err
-			}
-		} else {
-			if _, err = w.Write([]byte(name)); err != nil {
-				return err
-			}
+		if _, err := io.WriteString(w, name); err != nil {
+			return err
 		}
 
-		if _, err = w.Write(gt); err != nil {
+		if _, err := w.Write(gt); err != nil {
 			return err
 		}
 
@@ -218,59 +202,38 @@ func Attr(name string, value ...string) Node {
 // booleanAttr creates a boolean attribute Node with just a name.
 func booleanAttr(name string) Node {
 	return attrFunc(func(w io.Writer) error {
-		var err error
-
-		sw, ok := w.(io.StringWriter)
-
-		if _, err = w.Write(space); err != nil {
+		if _, err := w.Write(space); err != nil {
 			return err
 		}
 
-		if ok {
-			_, err = sw.WriteString(name)
-		} else {
-			_, err = w.Write([]byte(name))
+		if _, err := io.WriteString(w, name); err != nil {
+			return err
 		}
-		return err
+
+		return nil
 	})
 }
 
 // valueAttr creates a name-value attribute Node.
 func valueAttr(name, value string) Node {
 	return attrFunc(func(w io.Writer) error {
-		var err error
-
-		sw, ok := w.(io.StringWriter)
-
-		if _, err = w.Write(space); err != nil {
+		if _, err := w.Write(space); err != nil {
 			return err
 		}
 
-		if ok {
-			if _, err = sw.WriteString(name); err != nil {
-				return err
-			}
-		} else {
-			if _, err = w.Write([]byte(name)); err != nil {
-				return err
-			}
-		}
-
-		if _, err = w.Write(equalQuote); err != nil {
+		if _, err := io.WriteString(w, name); err != nil {
 			return err
 		}
 
-		if ok {
-			if _, err = sw.WriteString(template.HTMLEscapeString(value)); err != nil {
-				return err
-			}
-		} else {
-			if _, err = w.Write([]byte(template.HTMLEscapeString(value))); err != nil {
-				return err
-			}
+		if _, err := w.Write(equalQuote); err != nil {
+			return err
 		}
 
-		if _, err = w.Write(quote); err != nil {
+		if _, err := io.WriteString(w, template.HTMLEscapeString(value)); err != nil {
+			return err
+		}
+
+		if _, err := w.Write(quote); err != nil {
 			return err
 		}
 
@@ -327,11 +290,7 @@ var _ interface {
 type raw string
 
 func (r raw) Render(w io.Writer) error {
-	if w, ok := w.(io.StringWriter); ok {
-		_, err := w.WriteString(string(r))
-		return err
-	}
-	_, err := w.Write([]byte(r))
+	_, err := io.WriteString(w, string(r))
 	return err
 }
 
