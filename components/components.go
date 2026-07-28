@@ -67,14 +67,17 @@ func (c Classes) String() string {
 }
 
 // JoinAttrs joins attributes with the given name on the first level of the given nodes.
-// Attributes on non-direct descendants are ignored.
+// A [g.Group] is transparent and doesn't count as a level, so attributes inside one are joined
+// at any depth, matching how groups are rendered.
+// Attributes on non-direct descendants, for example inside a child element, are ignored.
 // Non-empty attribute values are joined by spaces into a single attribute.
 // Empty, whitespace-only, and boolean (valueless) attributes are deduplicated and discarded
 // if a non-empty value exists. If only boolean/empty attributes match, a single boolean
 // attribute is emitted.
 // When both boolean and valued attributes match, the valued form takes precedence.
 // The name is rendered unescaped and must be a trusted value, never user-controlled data.
-// Note that this renders all first-level attributes to check whether they should be processed.
+// Note that this renders all first-level attributes, at any group depth, to check whether they
+// should be processed.
 func JoinAttrs(name string, children ...g.Node) g.Node {
 	var attrValues []string
 	var result []g.Node
@@ -82,7 +85,16 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 	sawBoolAttr := false
 
 	// processNode checks a single child node and either collects its value or appends it to result.
-	processNode := func(n g.Node) {
+	// Groups are unwrapped recursively, mirroring how they are rendered.
+	var processNode func(n g.Node)
+	processNode = func(n g.Node) {
+		if group, ok := n.(g.Group); ok {
+			for _, groupChild := range group {
+				processNode(groupChild)
+			}
+			return
+		}
+
 		isGivenAttr, attrValue := extractAttrValue(name, n)
 		if !isGivenAttr {
 			result = append(result, n)
@@ -104,12 +116,6 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 	}
 
 	for _, child := range children {
-		if group, ok := child.(g.Group); ok {
-			for _, groupChild := range group {
-				processNode(groupChild)
-			}
-			continue
-		}
 		processNode(child)
 	}
 
