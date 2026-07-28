@@ -262,6 +262,18 @@ func Progress(children ...g.Node) g.Node {
 	return g.El("progress", children...)
 }
 
+func Rp(children ...g.Node) g.Node {
+	return g.El("rp", children...)
+}
+
+func Rt(children ...g.Node) g.Node {
+	return g.El("rt", children...)
+}
+
+func Ruby(children ...g.Node) g.Node {
+	return g.El("ruby", children...)
+}
+
 func Script(children ...g.Node) g.Node {
 	return g.El("script", children...)
 }
