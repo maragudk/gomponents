@@ -20,7 +20,7 @@ Linting needs [golangci-lint](https://golangci-lint.run) v2 installed.
 The library keeps 100% coverage outside `internal/`, so cover new code with tests.
 Run `make cover` after `make test` to open the coverage report in a browser.
 
-Run `make benchmark` to compare rendering performance before and after a change.
+Run `make benchmark` before and after a change to compare rendering performance.
 `make fuzz` runs each fuzz target for 10 seconds.
 
 CI tests Go 1.18 and up.
