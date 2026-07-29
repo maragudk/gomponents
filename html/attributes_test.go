@@ -159,11 +159,18 @@ func TestAria(t *testing.T) {
 }
 
 func TestData(t *testing.T) {
-	t.Run("returns an attribute which name is prefixed with data-", func(t *testing.T) {
-		n := Data("id", "partyhat")
-		assert.Equal(t, ` data-id="partyhat"`, n)
+	tests := []struct {
+		Name string
+		Func func(name, v string) g.Node
+	}{
+		{Name: "Data", Func: Data},
+		{Name: "DataAttr", Func: DataAttr},
+	}
 
-		n = DataAttr("id", "partyhat")
-		assert.Equal(t, ` data-id="partyhat"`, n)
-	})
+	for _, test := range tests {
+		t.Run(test.Name+" returns an attribute which name is prefixed with data-", func(t *testing.T) {
+			n := test.Func("id", "partyhat")
+			assert.Equal(t, ` data-id="partyhat"`, n)
+		})
+	}
 }
