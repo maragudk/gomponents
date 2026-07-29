@@ -15,12 +15,15 @@ a large PR that doesn't get accepted, which would make everyone involved sad.
 ## Development
 
 Run the tests with `make test` and the linter with `make lint`.
-Linting needs [golangci-lint](https://golangci-lint.run) installed.
+Linting needs [golangci-lint](https://golangci-lint.run) v2 installed.
 
-The library keeps 100% test coverage, so cover new code with tests.
-After `make test`, `make cover` opens the coverage report in a browser.
+The library keeps 100% coverage outside `internal/`, so cover new code with tests.
+Run `make cover` after `make test` to open the coverage report in a browser.
 
-`make benchmark` runs the benchmarks, and `make fuzz` runs each fuzz test for 10 seconds.
+Run `make benchmark` to compare rendering performance before and after a change.
+`make fuzz` runs each fuzz target for 10 seconds.
+
+CI tests every Go version from 1.18, so avoid newer language and library features.
 
 ## Terms
 
