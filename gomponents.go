@@ -10,7 +10,7 @@
 //
 // The functions [Text], [Textf], [Raw], and [Rawf] can be used to create text nodes, either HTML-escaped or unescaped.
 //
-// See also helper functions [Map], [If], and [Iff] for mapping data to nodes and inserting them conditionally.
+// See also helper functions [Map], [If], [Iff], and [Static] for mapping data to nodes, inserting them conditionally, and caching static trees.
 //
 // There's also the [Group] type, which is a slice of [Node]-s that can be rendered as one [Node].
 //
@@ -26,6 +26,7 @@ import (
 	"html/template"
 	"io"
 	"strings"
+	"sync"
 )
 
 // Node is a DOM node that can Render itself to a [io.Writer].
@@ -374,4 +375,38 @@ func Iff(condition bool, f func() Node) Node {
 		return f()
 	}
 	return nil
+}
+
+// Static pre-renders a large static HTML tree once and reuses the rendered HTML.
+// It is useful only when the returned node is reused.
+// Use it only for [ElementType] nodes that never depend on request data, user data, or changing state.
+// Static always returns an [ElementType] node, so don't use it for attributes.
+//
+// For example:
+//
+//	var staticHead = Static(Head(
+//		TitleEl(Text("My site")),
+//		Link(Rel("stylesheet"), Href("/app.css")),
+//	))
+//
+//	func Page(body Node) Node {
+//		return HTML(staticHead, Body(body))
+//	}
+func Static(node Node) Node {
+	var once sync.Once
+	var html string
+	var renderErr error
+
+	return NodeFunc(func(w io.Writer) error {
+		once.Do(func() {
+			var b strings.Builder
+			renderErr = node.Render(&b)
+			html = b.String()
+		})
+		if renderErr != nil {
+			return renderErr
+		}
+		_, writeErr := io.WriteString(w, html)
+		return writeErr
+	})
 }
