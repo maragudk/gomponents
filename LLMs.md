@@ -308,10 +308,12 @@ const (
     ButtonSecondary ButtonVariant = "btn-secondary"
 )
 
-func Button(variant ButtonVariant, text string) Node {
+func VariantButton(variant ButtonVariant, text string) Node {
     return Button(Class(string(variant)), Type("button"), Text(text))
 }
 ```
+
+Note that the component can't be called `Button`: dot-importing `html` claims that name for the element, and redeclaring it anywhere in the same package is a compile error. Pick a distinct name, or import `html` with an alias instead.
 
 ### 3. Performance
 Nodes render directly to io.Writer for efficiency:
@@ -328,23 +330,25 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 ```
 
 ### 4. Testing
-Components are pure functions, making testing straightforward:
+Components are pure functions, making testing straightforward. This tests the `VariantButton` component from above:
 ```go
 import (
     "bytes"
     "testing"
 )
 
-func TestButton(t *testing.T) {
-    btn := Button("Click me")
-    
-    var buf bytes.Buffer
-    btn.Render(&buf)
-    
-    expected := `<button>Click me</button>`
-    if buf.String() != expected {
-        t.Errorf("got %q, want %q", buf.String(), expected)
-    }
+func TestVariantButton(t *testing.T) {
+    t.Run("renders a button with the variant class", func(t *testing.T) {
+        var buf bytes.Buffer
+        if err := VariantButton(ButtonPrimary, "Click me").Render(&buf); err != nil {
+            t.Fatal(err)
+        }
+
+        expected := `<button class="btn-primary" type="button">Click me</button>`
+        if buf.String() != expected {
+            t.Errorf("got %q, want %q", buf.String(), expected)
+        }
+    })
 }
 ```
 
