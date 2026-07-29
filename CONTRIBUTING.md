@@ -12,6 +12,20 @@ feel free to create an issue first discussing the change.
 This also applies for any larger changes; start with an issue instead of risking
 a large PR that doesn't get accepted, which would make everyone involved sad.
 
+## Development
+
+Run the tests with `make test` and the linter with `make lint`.
+Linting needs [golangci-lint](https://golangci-lint.run) v2 installed.
+
+The library keeps 100% coverage outside `internal/`, so cover new code with tests.
+Run `make cover` after `make test` to open the coverage report in a browser.
+
+Run `make benchmark` before and after a change to compare rendering performance.
+`make fuzz` runs each fuzz target for 10 seconds.
+
+CI tests Go 1.18 and up.
+Guard newer APIs behind a build tag, as the benchmark tests do.
+
 ## Terms
 
 By contributing code, you declare that you have the rights to add it,
