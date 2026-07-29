@@ -147,12 +147,13 @@ func list(ordered bool) Node {
 Unfortunately, there are some name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
 to be able to co-exist in the same package in Go.
 
-I've chosen one or the other based on what I think is the common usage:
+I've chosen one or the other based on what I think is the common usage, except for `slot`, where both forms keep a suffix:
 
 - `cite`: `Cite` (element) / `CiteAttr` (attribute)
 - `data`: `DataEl` (element) / `Data` (attribute)
 - `form`: `Form` (element) / `FormAttr` (attribute)
 - `label`: `Label` (element) / `LabelAttr` (attribute)
+- `slot`: `SlotEl` (element) / `SlotAttr` (attribute), so there's no plain `Slot`
 - `style`: `StyleEl` (element) / `Style` (attribute)
 - `title`: `TitleEl` (element) / `Title` (attribute)
 
