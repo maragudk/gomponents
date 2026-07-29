@@ -210,8 +210,11 @@ Some HTML names conflict in Go. The library provides both variants:
 - `data`: `DataEl()` (element) / `Data()` (attribute)
 - `form`: `Form()` (element) / `FormAttr()` (attribute)
 - `label`: `Label()` (element) / `LabelAttr()` (attribute)
+- `slot`: `SlotEl()` (element) / `SlotAttr()` (attribute)
 - `style`: `StyleEl()` (element) / `Style()` (attribute)
 - `title`: `TitleEl()` (element) / `Title()` (attribute)
+
+`slot` is the only name where both forms keep a suffix; there is no plain `Slot()`.
 
 Deprecated aliases (`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, `TitleAttr`) exist for backwards compatibility but should not be used in new code.
 
