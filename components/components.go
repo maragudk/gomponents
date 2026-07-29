@@ -68,6 +68,7 @@ func (c Classes) String() string {
 // JoinAttrs with the given name only on the first level of the given nodes.
 // This means that attributes on non-direct descendants are ignored.
 // Attribute values are joined by spaces.
+// The name is rendered unescaped and must be a trusted value, never user-controlled data.
 // Note that this renders all first-level attributes to check whether they should be processed.
 func JoinAttrs(name string, children ...g.Node) g.Node {
 	var attrValues []string
