@@ -23,7 +23,8 @@ Run `make cover` after `make test` to open the coverage report in a browser.
 Run `make benchmark` to compare rendering performance before and after a change.
 `make fuzz` runs each fuzz target for 10 seconds.
 
-CI tests every Go version from 1.18, so avoid newer language and library features.
+CI tests Go 1.18 and up.
+Guard newer APIs behind a build tag, as the benchmark tests do.
 
 ## Terms
 
