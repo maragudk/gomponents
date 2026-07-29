@@ -5,6 +5,9 @@
 //
 // All DOM elements and attributes can be created by using the [El] and [Attr] functions.
 //
+// Element and attribute names are rendered unescaped and must be trusted values, never user-controlled data.
+// Attribute values and text rendered with [Text] and [Textf] are escaped.
+//
 // The functions [Text], [Textf], [Raw], and [Rawf] can be used to create text nodes, either HTML-escaped or unescaped.
 //
 // See also helper functions [Map], [If], and [Iff] for mapping data to nodes and inserting them conditionally.
@@ -85,6 +88,7 @@ var (
 // No tags are ever omitted from normal tags, even though it's allowed for elements given at
 // https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
 // If an element is a void element, non-attribute children nodes are ignored.
+// The name is rendered unescaped and must be a trusted value, never user-controlled data.
 // Use this if no convenience creator exists in the html package.
 func El(name string, children ...Node) Node {
 	return NodeFunc(func(w io.Writer) error {
@@ -187,6 +191,7 @@ var (
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
 // More than one value makes [Attr] panic.
+// The name is rendered unescaped and must be a trusted value, never user-controlled data; the value is escaped.
 // Use this if no convenience creator exists in the html package.
 func Attr(name string, value ...string) Node {
 	switch len(value) {

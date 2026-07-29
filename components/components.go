@@ -73,6 +73,7 @@ func (c Classes) String() string {
 // if a non-empty value exists. If only boolean/empty attributes match, a single boolean
 // attribute is emitted.
 // When both boolean and valued attributes match, the valued form takes precedence.
+// The name is rendered unescaped and must be a trusted value, never user-controlled data.
 // Note that this renders all first-level attributes to check whether they should be processed.
 func JoinAttrs(name string, children ...g.Node) g.Node {
 	var attrValues []string

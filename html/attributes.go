@@ -93,6 +93,7 @@ func Alt(v string) g.Node {
 }
 
 // Aria attributes automatically have their name prefixed with "aria-".
+// The name is rendered unescaped and must be a trusted value, never user-controlled data; the value is escaped.
 func Aria(name, v string) g.Node {
 	return g.Attr("aria-"+name, v)
 }
@@ -130,6 +131,7 @@ func Content(v string) g.Node {
 }
 
 // Data attributes automatically have their name prefixed with "data-".
+// The name is rendered unescaped and must be a trusted value, never user-controlled data; the value is escaped.
 func Data(name, v string) g.Node {
 	return g.Attr("data-"+name, v)
 }
