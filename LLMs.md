@@ -313,7 +313,7 @@ func VariantButton(variant ButtonVariant, text string) Node {
 }
 ```
 
-Note that the component can't be called `Button`: with a dot-import of the `html` package, that name is already taken by the `Button` element.
+Note that the component can't be called `Button`: dot-importing `html` claims that name for the element, and redeclaring it anywhere in the same package is a compile error. Pick a distinct name, or import `html` with an alias instead.
 
 ### 3. Performance
 Nodes render directly to io.Writer for efficiency:
@@ -330,7 +330,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 ```
 
 ### 4. Testing
-Components are pure functions, making testing straightforward:
+Components are pure functions, making testing straightforward. This tests the `VariantButton` component from above:
 ```go
 import (
     "bytes"
