@@ -50,6 +50,13 @@ type nodeTypeDescriber interface {
 	Type() NodeType
 }
 
+// Compile-time check that [NodeFunc] implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
+var _ interface {
+	fmt.Stringer
+	Node
+	nodeTypeDescriber
+} = (NodeFunc)(nil)
+
 // NodeFunc is a render function that is also a [Node] of [ElementType].
 type NodeFunc func(io.Writer) error
 
@@ -59,7 +66,7 @@ func (n NodeFunc) Render(w io.Writer) error {
 }
 
 // Type satisfies [nodeTypeDescriber].
-func (n NodeFunc) Type() NodeType {
+func (NodeFunc) Type() NodeType {
 	return ElementType
 }
 
@@ -85,31 +92,21 @@ var (
 // Use this if no convenience creator exists in the html package.
 func El(name string, children ...Node) Node {
 	return NodeFunc(func(w io.Writer) error {
-		var err error
-
-		sw, ok := w.(io.StringWriter)
-
-		if _, err = w.Write(lt); err != nil {
+		if _, err := w.Write(lt); err != nil {
 			return err
 		}
 
-		if ok {
-			if _, err = sw.WriteString(name); err != nil {
-				return err
-			}
-		} else {
-			if _, err = w.Write([]byte(name)); err != nil {
-				return err
-			}
+		if _, err := io.WriteString(w, name); err != nil {
+			return err
 		}
 
 		for _, c := range children {
-			if err = renderChild(w, c, AttributeType); err != nil {
+			if err := renderChild(w, c, AttributeType); err != nil {
 				return err
 			}
 		}
 
-		if _, err = w.Write(gt); err != nil {
+		if _, err := w.Write(gt); err != nil {
 			return err
 		}
 
@@ -118,26 +115,20 @@ func El(name string, children ...Node) Node {
 		}
 
 		for _, c := range children {
-			if err = renderChild(w, c, ElementType); err != nil {
+			if err := renderChild(w, c, ElementType); err != nil {
 				return err
 			}
 		}
 
-		if _, err = w.Write(ltSlash); err != nil {
+		if _, err := w.Write(ltSlash); err != nil {
 			return err
 		}
 
-		if ok {
-			if _, err = sw.WriteString(name); err != nil {
-				return err
-			}
-		} else {
-			if _, err = w.Write([]byte(name)); err != nil {
-				return err
-			}
+		if _, err := io.WriteString(w, name); err != nil {
+			return err
 		}
 
-		if _, err = w.Write(gt); err != nil {
+		if _, err := w.Write(gt); err != nil {
 			return err
 		}
 
@@ -180,30 +171,14 @@ func renderChild(w io.Writer, c Node, desiredType NodeType) error {
 	return nil
 }
 
-// voidElements don't have end tags and must be treated differently in the rendering.
+// isVoidElement reports whether the named element is a void element that doesn't have an end tag.
 // See https://dev.w3.org/html5/spec-LC/syntax.html#void-elements
-var voidElements = map[string]struct{}{
-	"area":    {},
-	"base":    {},
-	"br":      {},
-	"col":     {},
-	"command": {},
-	"embed":   {},
-	"hr":      {},
-	"img":     {},
-	"input":   {},
-	"keygen":  {},
-	"link":    {},
-	"meta":    {},
-	"param":   {},
-	"source":  {},
-	"track":   {},
-	"wbr":     {},
-}
-
 func isVoidElement(name string) bool {
-	_, ok := voidElements[name]
-	return ok
+	switch name {
+	case "area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr":
+		return true
+	}
+	return false
 }
 
 var (
@@ -215,60 +190,68 @@ var (
 // Attr creates an attribute DOM [Node] with a name and optional value.
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
-// More than one value make [Attr] panic.
+// More than one value makes [Attr] panic.
 // The name is rendered unescaped and must be a trusted value, never user-controlled data; the value is escaped.
 // Use this if no convenience creator exists in the html package.
 func Attr(name string, value ...string) Node {
-	if len(value) > 1 {
+	switch len(value) {
+	case 0:
+		return booleanAttr(name)
+	case 1:
+		return valueAttr(name, value[0])
+	default:
 		panic("attribute must be just name or name and value pair")
 	}
+}
 
+// booleanAttr creates a boolean attribute Node with just a name.
+func booleanAttr(name string) Node {
 	return attrFunc(func(w io.Writer) error {
-		var err error
-
-		sw, ok := w.(io.StringWriter)
-
-		if _, err = w.Write(space); err != nil {
+		if _, err := w.Write(space); err != nil {
 			return err
 		}
 
-		// Attribute name
-		if ok {
-			if _, err = sw.WriteString(name); err != nil {
-				return err
-			}
-		} else {
-			if _, err = w.Write([]byte(name)); err != nil {
-				return err
-			}
-		}
-
-		if len(value) == 0 {
-			return nil
-		}
-
-		if _, err = w.Write(equalQuote); err != nil {
-			return err
-		}
-
-		// Attribute value
-		if ok {
-			if _, err = sw.WriteString(template.HTMLEscapeString(value[0])); err != nil {
-				return err
-			}
-		} else {
-			if _, err = w.Write([]byte(template.HTMLEscapeString(value[0]))); err != nil {
-				return err
-			}
-		}
-
-		if _, err = w.Write(quote); err != nil {
+		if _, err := io.WriteString(w, name); err != nil {
 			return err
 		}
 
 		return nil
 	})
 }
+
+// valueAttr creates a name-value attribute Node.
+func valueAttr(name, value string) Node {
+	return attrFunc(func(w io.Writer) error {
+		if _, err := w.Write(space); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(w, name); err != nil {
+			return err
+		}
+
+		if _, err := w.Write(equalQuote); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(w, template.HTMLEscapeString(value)); err != nil {
+			return err
+		}
+
+		if _, err := w.Write(quote); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+// Compile-time check that [attrFunc] implements [fmt.Stringer], [Node] and [nodeTypeDescriber].
+var _ interface {
+	fmt.Stringer
+	Node
+	nodeTypeDescriber
+} = (attrFunc)(nil)
 
 // attrFunc is a render function that is also a [Node] of [AttributeType].
 // It's basically the same as [NodeFunc], but for attributes.
@@ -280,7 +263,7 @@ func (a attrFunc) Render(w io.Writer) error {
 }
 
 // Type satisfies [nodeTypeDescriber].
-func (a attrFunc) Type() NodeType {
+func (attrFunc) Type() NodeType {
 	return AttributeType
 }
 
@@ -293,50 +276,45 @@ func (a attrFunc) String() string {
 
 // Text creates a text DOM [Node] that Renders the escaped string t.
 func Text(t string) Node {
-	return NodeFunc(func(w io.Writer) error {
-		if w, ok := w.(io.StringWriter); ok {
-			_, err := w.WriteString(template.HTMLEscapeString(t))
-			return err
-		}
-		_, err := w.Write([]byte(template.HTMLEscapeString(t)))
-		return err
-	})
+	return raw(template.HTMLEscapeString(t))
 }
 
 // Textf creates a text DOM [Node] that Renders the interpolated and escaped string format.
 func Textf(format string, a ...interface{}) Node {
-	return NodeFunc(func(w io.Writer) error {
-		if w, ok := w.(io.StringWriter); ok {
-			_, err := w.WriteString(template.HTMLEscapeString(fmt.Sprintf(format, a...)))
-			return err
-		}
-		_, err := w.Write([]byte(template.HTMLEscapeString(fmt.Sprintf(format, a...))))
-		return err
-	})
+	return raw(template.HTMLEscapeString(fmt.Sprintf(format, a...)))
+}
+
+// Compile-time check that [raw] implements [fmt.Stringer], [Node], and [nodeTypeDescriber].
+var _ interface {
+	fmt.Stringer
+	Node
+	nodeTypeDescriber
+} = raw("")
+
+// raw is a text DOM [Node] that just Renders the unescaped, underlying string.
+type raw string
+
+func (r raw) Render(w io.Writer) error {
+	_, err := io.WriteString(w, string(r))
+	return err
+}
+
+func (r raw) String() string {
+	return string(r)
+}
+
+func (r raw) Type() NodeType {
+	return ElementType
 }
 
 // Raw creates a text DOM [Node] that just Renders the unescaped string t.
 func Raw(t string) Node {
-	return NodeFunc(func(w io.Writer) error {
-		if w, ok := w.(io.StringWriter); ok {
-			_, err := w.WriteString(t)
-			return err
-		}
-		_, err := w.Write([]byte(t))
-		return err
-	})
+	return raw(t)
 }
 
 // Rawf creates a text DOM [Node] that just Renders the interpolated and unescaped string format.
 func Rawf(format string, a ...interface{}) Node {
-	return NodeFunc(func(w io.Writer) error {
-		if w, ok := w.(io.StringWriter); ok {
-			_, err := w.WriteString(fmt.Sprintf(format, a...))
-			return err
-		}
-		_, err := fmt.Fprintf(w, format, a...)
-		return err
-	})
+	return raw(fmt.Sprintf(format, a...))
 }
 
 // Map a slice of anything to a [Group] (which is just a slice of [Node]-s).
@@ -347,6 +325,12 @@ func Map[T any](ts []T, cb func(T) Node) Group {
 	}
 	return nodes
 }
+
+// Compile-time check that [Group] implements [fmt.Stringer] and [Node].
+var _ interface {
+	fmt.Stringer
+	Node
+} = (Group)(nil)
 
 // Group a slice of [Node]-s into one Node, while still being usable like a regular slice of [Node]-s.
 // A [Group] can render directly, but if any of the direct children are [AttributeType], they will be ignored,

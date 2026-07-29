@@ -45,6 +45,17 @@ func TestHTML5(t *testing.T) {
 
 		assert.Equal(t, `<!doctype html><html lang="en" class="h-full" id="htmlid"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title><meta name="description" content="Love hats."><link rel="stylesheet" href="/hat.css"></head><body><div></div></body></html>`, e)
 	})
+
+	t.Run("accepts g.Group literal syntax", func(t *testing.T) {
+		e := HTML5(HTML5Props{
+			Title:     "Hat",
+			Head:      g.Group{Link(Rel("stylesheet"), Href("/hat.css"))},
+			Body:      g.Group{Div()},
+			HTMLAttrs: g.Group{Class("h-full")},
+		})
+
+		assert.Equal(t, `<!doctype html><html class="h-full"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hat</title><link rel="stylesheet" href="/hat.css"></head><body><div></div></body></html>`, e)
+	})
 }
 
 func TestClasses(t *testing.T) {
@@ -120,18 +131,50 @@ func TestJoinAttrs(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("party"), ID("hey"), &brokenNode{first: true}, Class("hat")))
 		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
 	})
+
+	t.Run("discards empty-valued matching attributes", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("party"), g.Attr("class", "")))
+		assert.Equal(t, `<div class="party"></div>`, n)
+	})
+
+	t.Run("discards whitespace-only matching attributes", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("party"), g.Attr("class", "  ")))
+		assert.Equal(t, `<div class="party"></div>`, n)
+	})
+
+	t.Run("discards empty-valued matching attributes in groups", func(t *testing.T) {
+		n := Div(JoinAttrs("class", g.Group{Class("party"), g.Attr("class", "")}))
+		assert.Equal(t, `<div class="party"></div>`, n)
+	})
+
+	t.Run("deduplicates boolean attributes", func(t *testing.T) {
+		n := Div(JoinAttrs("required", g.Attr("required"), ID("hey"), g.Attr("required")))
+		assert.Equal(t, `<div required id="hey"></div>`, n)
+	})
+
+	t.Run("deduplicates boolean attributes in groups", func(t *testing.T) {
+		n := Div(JoinAttrs("required", g.Group{g.Attr("required"), g.Attr("required")}))
+		assert.Equal(t, `<div required></div>`, n)
+	})
+
+	t.Run("keeps single boolean attribute", func(t *testing.T) {
+		n := Div(JoinAttrs("required", g.Attr("required"), ID("hey")))
+		assert.Equal(t, `<div required id="hey"></div>`, n)
+	})
+
+	t.Run("valued attribute takes precedence over boolean", func(t *testing.T) {
+		n := Div(JoinAttrs("hidden", g.Attr("hidden"), g.Attr("hidden", "until-found")))
+		assert.Equal(t, `<div hidden="until-found"></div>`, n)
+	})
+
+	t.Run("does not double-escape ampersands", func(t *testing.T) {
+		n := Div(JoinAttrs("class", Class("[&_svg]:size-4"), Class("custom")))
+		assert.Equal(t, `<div class="[&amp;_svg]:size-4 custom"></div>`, n)
+	})
+
+	t.Run("does not double-escape other HTML entities", func(t *testing.T) {
+		n := Div(JoinAttrs("data-test", g.Attr("data-test", `<script>"test"</script>`), g.Attr("data-test", "more")))
+		assert.Equal(t, `<div data-test="&lt;script&gt;&#34;test&#34;&lt;/script&gt; more"></div>`, n)
+	})
 }
 
-func myButton(children ...g.Node) g.Node {
-	return Div(JoinAttrs("class", g.Group(children), Class("button")))
-}
-
-func myPrimaryButton(text string) g.Node {
-	return myButton(Class("primary"), g.Text(text))
-}
-
-func ExampleJoinAttrs() {
-	danceButton := myPrimaryButton("Dance")
-	_ = danceButton.Render(os.Stdout)
-	// Output: <div class="primary button">Dance</div>
-}

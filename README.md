@@ -23,7 +23,7 @@ Made with ✨sparkles✨ by [maragu](https://www.maragu.dev/): independent softw
 
 ## Features
 
-Check out [www.gomponents.com](https://www.gomponents.com) for an introduction.
+Check out [www.gomponents.com](https://www.gomponents.com) for an introduction or [pkg.go.dev/maragu.dev/gomponents](https://pkg.go.dev/maragu.dev/gomponents) for the official docs.
 
 - Build reusable HTML components
 - Write declarative HTML 5 in Go without all the strings, so you get
@@ -64,7 +64,7 @@ func Navbar(authenticated bool, currentPath string) Node {
 }
 
 func NavbarLink(href, name, currentPath string) Node {
-	return A(Href(href), Classes{"is-active": currentPath == href}, g.Text(name))
+	return A(Href(href), Classes{"is-active": currentPath == href}, Text(name))
 }
 ```
 
@@ -81,6 +81,7 @@ gomponents is organized into several packages:
 - `gomponents/html`: HTML elements and attributes.
 - `gomponents/components`: Higher-level components and utilities.
 - `gomponents/http`: HTTP-related utilities for web servers.
+- `gomponents/x/...`: Experimental packages. These do not have the same compatibility guarantees as the core library, and in particular, may get breaking changes.
 
 ### Void Elements
 
@@ -97,7 +98,7 @@ The library avoids unnecessary allocations where possible.
 
 ### Is gomponents production-ready?
 
-Yes! gomponents is mature, stable, fully tested with 100% coverage, and has been used in production by myself and many others.
+Yes! gomponents is mature, stable, fully tested with 100% coverage, and is used in production by myself and many others, and has been for years.
 
 ### Should I choose `html/template`, Templ, or gomponents?
 
@@ -122,9 +123,8 @@ I always welcome issues discussing interesting aspects of gomponents, and obviou
 But otherwise, I consider gomponents pretty much feature complete.
 
 New features to the core library are unlikely to be merged, since I like keeping it simple and the API small.
-In particular, new functions around collections (similar to `Map`) or flow control (`IfElse`/`Else`) will not be added.
-`Map` was introduced before generics were a thing, and I think it's better to start using generic functions
-from the stdlib or other libraries, instead of adding gomponents-specific variations of them to this library.
+In particular, new flow control functions (`IfElse`/`Else`) will not be added to the core library.
+For generic collection utilities like `Map`, `Filter`, and `Reduce`, see the experimental `x/slices` package.
 
 If there's something missing that you need, I would recommend to keep small helper functions around in your own projects.
 And if all else fails, you can always use an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE):
@@ -147,15 +147,16 @@ func list(ordered bool) Node {
 Unfortunately, there are some name clashes in HTML elements and attributes, so they need an `El` or `Attr` suffix,
 to be able to co-exist in the same package in Go.
 
-I've chosen one or the other based on what I think is the common usage.
-In either case, the less-used variant also exists in the codebase:
+I've chosen one or the other based on what I think is the common usage:
 
-- `cite` (`Cite`/`CiteAttr`, `CiteEl` also exists)
-- `data` (`DataEl`/`Data`, `DataAttr` also exists)
-- `form` (`Form`/`FormAttr`, `FormEl` also exists)
-- `label` (`Label`/`LabelAttr`, `LabelEl` also exists)
-- `style` (`StyleEl`/`Style`, `StyleAttr` also exists)
-- `title` (`TitleEl`/`Title`, `TitleAttr` also exists)
+- `cite`: `Cite` (element) / `CiteAttr` (attribute)
+- `data`: `DataEl` (element) / `Data` (attribute)
+- `form`: `Form` (element) / `FormAttr` (attribute)
+- `label`: `Label` (element) / `LabelAttr` (attribute)
+- `style`: `StyleEl` (element) / `Style` (attribute)
+- `title`: `TitleEl` (element) / `Title` (attribute)
+
+Deprecated aliases (`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, `TitleAttr`) also exist for backwards compatibility but should not be used in new code.
 
 <details>
 	<summary>Example with `Style` and `StyleEl`</summary>
@@ -173,7 +174,7 @@ func MyPage() Node {
 	return HTML5(HTML5Props{
 		Title: "My Page",
 		Head: []Node{
-			StyleEl(g.Raw("body {background-color: #fff; }")),
+			StyleEl(Raw("body {background-color: #fff; }")),
 		},
 		Body: []Node{
 			H1(Style("color: #000"), Text("My Page")),
