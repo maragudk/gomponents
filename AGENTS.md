@@ -17,9 +17,9 @@ The project is organized into focused packages:
 
 - **Core (`gomponents.go`)**: Main interfaces (`Node`), element/attribute creators (`El`, `Attr`), text rendering (`Text`, `Raw`), and helpers (`Map`, `Group`, `If`, `Iff`)
 - **html/**: All HTML5 elements and attributes as Go functions
-- **components/**: Higher-level components like `HTML5` document structure, the `Classes` helper, and `JoinAttrs` for joining same-named attributes across nodes
+- **components/**: Higher-level components like `HTML5` document structure, the `Classes` helper, and `JoinAttrs` for merging repeated attributes among a node's direct children
 - **http/**: HTTP handler utilities for web servers
-- **x/**: Experimental packages like `x/slices` (`Map`, `Filter`, `Reduce`). These do not have the same compatibility guarantees as the core library, and in particular, may get breaking changes.
+- **x/**: Experimental packages, currently just `x/slices` (index-aware `Map`, `Filter`, `Reduce`), which don't have the same compatibility guarantees as the core library and may get breaking changes
 - **internal/examples/app/**: Example application showing usage patterns
 
 ## Development Standards
@@ -28,7 +28,7 @@ The project is organized into focused packages:
 - Follow standard Go conventions
 - Use clear, descriptive function names
 - No external dependencies in core library
-- Maintain backwards compatibility (library is stable/mature)
+- Maintain backwards compatibility in the core library (it's stable/mature)
 - HTML element/attribute names match their HTML equivalents exactly
 
 ### Testing
