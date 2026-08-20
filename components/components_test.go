@@ -176,5 +176,25 @@ func TestJoinAttrs(t *testing.T) {
 		n := Div(JoinAttrs("data-test", g.Attr("data-test", `<script>"test"</script>`), g.Attr("data-test", "more")))
 		assert.Equal(t, `<div data-test="&lt;script&gt;&#34;test&#34;&lt;/script&gt; more"></div>`, n)
 	})
+
+	t.Run("joins classes in nested groups", func(t *testing.T) {
+		n := Div(JoinAttrs("class", g.Group{Class("party"), g.Group{Class("gold")}}, Class("hat")))
+		assert.Equal(t, `<div class="party gold hat"></div>`, n)
+	})
+
+	t.Run("joins classes in deeply nested groups", func(t *testing.T) {
+		n := Div(JoinAttrs("class", g.Group{g.Group{g.Group{Class("a")}, Class("b")}, Class("c")}, Class("d")))
+		assert.Equal(t, `<div class="a b c d"></div>`, n)
+	})
+
+	t.Run("joins classes passed through nested components", func(t *testing.T) {
+		n := partyHat(Class("gold"), g.Text("Yo."))
+		assert.Equal(t, `<div id="party-hat" class="party gold hat">Yo.</div>`, n)
+	})
+
+	t.Run("keeps element order when joining classes in nested groups", func(t *testing.T) {
+		n := Div(JoinAttrs("class", g.Group{g.Text("a"), g.Group{Class("x"), g.Text("b")}, Class("y")}))
+		assert.Equal(t, `<div class="x y">ab</div>`, n)
+	})
 }
 
