@@ -111,33 +111,22 @@ func (b *brokenNode) Type() g.NodeType {
 	return g.AttributeType
 }
 
-// wiretap claims to be an ElementType node, so JoinAttrs should skip it without ever calling Render.
-// If it does get rendered, it gives itself away by setting rendered and writing a tell.
-type wiretap struct {
-	rendered bool
-}
+// recorder is a [g.Node] that records whether Render was called on it.
+type recorder struct{ rendered bool }
 
-func (w *wiretap) Render(out io.Writer) error {
-	w.rendered = true
-	_, err := io.WriteString(out, "bugged")
+func (r *recorder) Render(out io.Writer) error {
+	r.rendered = true
+	_, err := io.WriteString(out, "!")
 	return err
 }
 
-func (w *wiretap) Type() g.NodeType {
-	return g.ElementType
-}
+// elementNode reports Type as [g.ElementType].
+type elementNode struct{ *recorder }
 
-// mole has no Type method at all, so JoinAttrs can't tell what it is and should also skip it
-// without ever calling Render.
-type mole struct {
-	rendered bool
-}
+func (elementNode) Type() g.NodeType { return g.ElementType }
 
-func (m *mole) Render(out io.Writer) error {
-	m.rendered = true
-	_, err := io.WriteString(out, "unmasked")
-	return err
-}
+// defaultTypeNode has no Type method, so it defaults to [g.ElementType] per the [g.NodeType] contract.
+type defaultTypeNode struct{ *recorder }
 
 func TestJoinAttrs(t *testing.T) {
 	t.Run("joins classes", func(t *testing.T) {
@@ -160,59 +149,43 @@ func TestJoinAttrs(t *testing.T) {
 		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
 	})
 
-	t.Run("does not render a node it skips because its Type is ElementType", func(t *testing.T) {
-		w := &wiretap{}
-
-		result := JoinAttrs("class", Class("party"), g.Text("before"), w, g.Text("after"), Class("hat"))
-		if w.rendered {
-			t.Fatal("wiretap was rendered while JoinAttrs was still deciding what to do with it")
+	t.Run("does not eagerly render nodes classified as elements while inspecting attributes", func(t *testing.T) {
+		kinds := []struct {
+			name    string
+			newNode func() (g.Node, *recorder)
+		}{
+			{"element-typed node", func() (g.Node, *recorder) { r := &recorder{}; return elementNode{r}, r }},
+			{"default-typed node", func() (g.Node, *recorder) { r := &recorder{}; return defaultTypeNode{r}, r }},
 		}
 
-		assert.Equal(t, `<div class="party hat">beforebuggedafter</div>`, Div(result))
-		if !w.rendered {
-			t.Fatal("wiretap was never rendered, so this test proves nothing")
-		}
-	})
-
-	t.Run("does not render a node it skips because it has no Type method", func(t *testing.T) {
-		m := &mole{}
-
-		result := JoinAttrs("class", Class("party"), g.Text("before"), m, g.Text("after"), Class("hat"))
-		if m.rendered {
-			t.Fatal("mole was rendered while JoinAttrs was still deciding what to do with it")
+		scenarios := []struct {
+			name     string
+			attrName string
+			children func(n g.Node) []g.Node
+			expected string
+		}{
+			{"before the matching attribute", "class", func(n g.Node) []g.Node { return []g.Node{n, Class("party"), Class("hat")} }, `<div class="party hat">!</div>`},
+			{"nested one group deep", "class", func(n g.Node) []g.Node { return []g.Node{Class("party"), g.Group{n}} }, `<div class="party">!</div>`},
+			{"nested two groups deep", "class", func(n g.Node) []g.Node { return []g.Node{Class("party"), g.Group{g.Group{n}}} }, `<div class="party">!</div>`},
+			{"when no attribute matches", "required", func(n g.Node) []g.Node { return []g.Node{n} }, `<div>!</div>`},
 		}
 
-		assert.Equal(t, `<div class="party hat">beforeunmaskedafter</div>`, Div(result))
-		if !m.rendered {
-			t.Fatal("mole was never rendered, so this test proves nothing")
-		}
-	})
+		for _, kind := range kinds {
+			for _, scenario := range scenarios {
+				t.Run(kind.name+" "+scenario.name, func(t *testing.T) {
+					node, rec := kind.newNode()
 
-	t.Run("does not render a skipped node nested in a group", func(t *testing.T) {
-		w := &wiretap{}
+					result := JoinAttrs(scenario.attrName, scenario.children(node)...)
+					if rec.rendered {
+						t.Fatal("node was rendered while JoinAttrs was still inspecting attributes")
+					}
 
-		result := JoinAttrs("class", Class("party"), g.Group{g.Text("before"), w, g.Text("after")}, Class("hat"))
-		if w.rendered {
-			t.Fatal("wiretap was rendered while JoinAttrs was still deciding what to do with it")
-		}
-
-		assert.Equal(t, `<div class="party hat">beforebuggedafter</div>`, Div(result))
-		if !w.rendered {
-			t.Fatal("wiretap was never rendered, so this test proves nothing")
-		}
-	})
-
-	t.Run("does not render a skipped node nested in a group nested in another group", func(t *testing.T) {
-		m := &mole{}
-
-		result := JoinAttrs("class", Class("party"), g.Group{g.Group{g.Text("before"), m, g.Text("after")}}, Class("hat"))
-		if m.rendered {
-			t.Fatal("mole was rendered while JoinAttrs was still deciding what to do with it")
-		}
-
-		assert.Equal(t, `<div class="party hat">beforeunmaskedafter</div>`, Div(result))
-		if !m.rendered {
-			t.Fatal("mole was never rendered, so this test proves nothing")
+					assert.Equal(t, scenario.expected, Div(result))
+					if !rec.rendered {
+						t.Fatal("node was never rendered, so this test proves nothing")
+					}
+				})
+			}
 		}
 	})
 
@@ -281,4 +254,3 @@ func TestJoinAttrs(t *testing.T) {
 		assert.Equal(t, `<div class="x y">ab</div>`, n)
 	})
 }
-
