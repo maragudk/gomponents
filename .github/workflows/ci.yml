@@ -29,6 +29,7 @@ jobs:
           - "1.24"
           - "1.25"
           - "1.26"
+          - "1.27"
 
     steps:
       - name: Checkout
@@ -63,6 +64,7 @@ jobs:
           - "1.24"
           - "1.25"
           - "1.26"
+          - "1.27"
 
     steps:
       - name: Checkout
