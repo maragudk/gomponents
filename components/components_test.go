@@ -111,6 +111,34 @@ func (b *brokenNode) Type() g.NodeType {
 	return g.AttributeType
 }
 
+// wiretap claims to be an ElementType node, so JoinAttrs should skip it without ever calling Render.
+// If it does get rendered, it gives itself away by setting rendered and writing a tell.
+type wiretap struct {
+	rendered bool
+}
+
+func (w *wiretap) Render(out io.Writer) error {
+	w.rendered = true
+	_, err := io.WriteString(out, "bugged")
+	return err
+}
+
+func (w *wiretap) Type() g.NodeType {
+	return g.ElementType
+}
+
+// mole has no Type method at all, so JoinAttrs can't tell what it is and should also skip it
+// without ever calling Render.
+type mole struct {
+	rendered bool
+}
+
+func (m *mole) Render(out io.Writer) error {
+	m.rendered = true
+	_, err := io.WriteString(out, "unmasked")
+	return err
+}
+
 func TestJoinAttrs(t *testing.T) {
 	t.Run("joins classes", func(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("party"), ID("hey"), Class("hat")))
@@ -130,6 +158,62 @@ func TestJoinAttrs(t *testing.T) {
 	t.Run("ignores nodes that can't render", func(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("party"), ID("hey"), &brokenNode{first: true}, Class("hat")))
 		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
+	})
+
+	t.Run("does not render a node it skips because its Type is ElementType", func(t *testing.T) {
+		w := &wiretap{}
+
+		result := JoinAttrs("class", Class("party"), g.Text("before"), w, g.Text("after"), Class("hat"))
+		if w.rendered {
+			t.Fatal("wiretap was rendered while JoinAttrs was still deciding what to do with it")
+		}
+
+		assert.Equal(t, `<div class="party hat">beforebuggedafter</div>`, Div(result))
+		if !w.rendered {
+			t.Fatal("wiretap was never rendered, so this test proves nothing")
+		}
+	})
+
+	t.Run("does not render a node it skips because it has no Type method", func(t *testing.T) {
+		m := &mole{}
+
+		result := JoinAttrs("class", Class("party"), g.Text("before"), m, g.Text("after"), Class("hat"))
+		if m.rendered {
+			t.Fatal("mole was rendered while JoinAttrs was still deciding what to do with it")
+		}
+
+		assert.Equal(t, `<div class="party hat">beforeunmaskedafter</div>`, Div(result))
+		if !m.rendered {
+			t.Fatal("mole was never rendered, so this test proves nothing")
+		}
+	})
+
+	t.Run("does not render a skipped node nested in a group", func(t *testing.T) {
+		w := &wiretap{}
+
+		result := JoinAttrs("class", Class("party"), g.Group{g.Text("before"), w, g.Text("after")}, Class("hat"))
+		if w.rendered {
+			t.Fatal("wiretap was rendered while JoinAttrs was still deciding what to do with it")
+		}
+
+		assert.Equal(t, `<div class="party hat">beforebuggedafter</div>`, Div(result))
+		if !w.rendered {
+			t.Fatal("wiretap was never rendered, so this test proves nothing")
+		}
+	})
+
+	t.Run("does not render a skipped node nested in a group nested in another group", func(t *testing.T) {
+		m := &mole{}
+
+		result := JoinAttrs("class", Class("party"), g.Group{g.Group{g.Text("before"), m, g.Text("after")}}, Class("hat"))
+		if m.rendered {
+			t.Fatal("mole was rendered while JoinAttrs was still deciding what to do with it")
+		}
+
+		assert.Equal(t, `<div class="party hat">beforeunmaskedafter</div>`, Div(result))
+		if !m.rendered {
+			t.Fatal("mole was never rendered, so this test proves nothing")
+		}
 	})
 
 	t.Run("discards empty-valued matching attributes", func(t *testing.T) {
