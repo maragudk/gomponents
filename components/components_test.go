@@ -111,6 +111,23 @@ func (b *brokenNode) Type() g.NodeType {
 	return g.AttributeType
 }
 
+// recorder is a [g.Node] that records whether Render was called on it.
+type recorder struct{ rendered bool }
+
+func (r *recorder) Render(out io.Writer) error {
+	r.rendered = true
+	_, err := io.WriteString(out, "!")
+	return err
+}
+
+// elementNode reports Type as [g.ElementType].
+type elementNode struct{ *recorder }
+
+func (elementNode) Type() g.NodeType { return g.ElementType }
+
+// defaultTypeNode has no Type method, so it defaults to [g.ElementType] per the [g.NodeType] contract.
+type defaultTypeNode struct{ *recorder }
+
 func TestJoinAttrs(t *testing.T) {
 	t.Run("joins classes", func(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("party"), ID("hey"), Class("hat")))
@@ -130,6 +147,46 @@ func TestJoinAttrs(t *testing.T) {
 	t.Run("ignores nodes that can't render", func(t *testing.T) {
 		n := Div(JoinAttrs("class", Class("party"), ID("hey"), &brokenNode{first: true}, Class("hat")))
 		assert.Equal(t, `<div class="party hat" id="hey"></div>`, n)
+	})
+
+	t.Run("does not eagerly render nodes classified as elements while inspecting attributes", func(t *testing.T) {
+		kinds := []struct {
+			name    string
+			newNode func() (g.Node, *recorder)
+		}{
+			{"element-typed node", func() (g.Node, *recorder) { r := &recorder{}; return elementNode{r}, r }},
+			{"default-typed node", func() (g.Node, *recorder) { r := &recorder{}; return defaultTypeNode{r}, r }},
+		}
+
+		scenarios := []struct {
+			name     string
+			attrName string
+			children func(n g.Node) []g.Node
+			expected string
+		}{
+			{"before the matching attribute", "class", func(n g.Node) []g.Node { return []g.Node{n, Class("party"), Class("hat")} }, `<div class="party hat">!</div>`},
+			{"nested one group deep", "class", func(n g.Node) []g.Node { return []g.Node{Class("party"), g.Group{n}} }, `<div class="party">!</div>`},
+			{"nested two groups deep", "class", func(n g.Node) []g.Node { return []g.Node{Class("party"), g.Group{g.Group{n}}} }, `<div class="party">!</div>`},
+			{"when no attribute matches", "required", func(n g.Node) []g.Node { return []g.Node{n} }, `<div>!</div>`},
+		}
+
+		for _, kind := range kinds {
+			for _, scenario := range scenarios {
+				t.Run(kind.name+" "+scenario.name, func(t *testing.T) {
+					node, rec := kind.newNode()
+
+					result := JoinAttrs(scenario.attrName, scenario.children(node)...)
+					if rec.rendered {
+						t.Fatal("node was rendered while JoinAttrs was still inspecting attributes")
+					}
+
+					assert.Equal(t, scenario.expected, Div(result))
+					if !rec.rendered {
+						t.Fatal("node was never rendered, so this test proves nothing")
+					}
+				})
+			}
+		}
 	})
 
 	t.Run("discards empty-valued matching attributes", func(t *testing.T) {
@@ -197,4 +254,3 @@ func TestJoinAttrs(t *testing.T) {
 		assert.Equal(t, `<div class="x y">ab</div>`, n)
 	})
 }
-
