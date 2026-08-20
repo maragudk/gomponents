@@ -130,7 +130,7 @@ func ExampleMap_withIndex() {
 
 func ExampleFilter() {
 	type Product struct {
-		Name   string
+		Name    string
 		InStock bool
 	}
 	products := []Product{
