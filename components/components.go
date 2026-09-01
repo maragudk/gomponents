@@ -79,8 +79,13 @@ func (c Classes) String() string {
 // Note that this renders all first-level attributes, at any group depth, to check whether they
 // should be processed.
 func JoinAttrs(name string, children ...g.Node) g.Node {
+	// The two shapes an attribute called name renders as. extractAttrValue compares against
+	// them for every child, so build them once instead of per child.
+	boolAttr := " " + name
+	attrPrefix := boolAttr + `="`
+
 	var attrValues []string
-	var result []g.Node
+	result := make([]g.Node, 0, len(children))
 	firstAttrIndex := -1
 	sawBoolAttr := false
 
@@ -95,7 +100,7 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 			return
 		}
 
-		isGivenAttr, attrValue := extractAttrValue(name, n)
+		isGivenAttr, attrValue := extractAttrValue(boolAttr, attrPrefix, n)
 		if !isGivenAttr {
 			result = append(result, n)
 			return
@@ -107,6 +112,11 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 				result = append(result, nil)
 			}
 			return
+		}
+		if attrValues == nil {
+			// Only reached when there is something to join, so don't allocate for the
+			// common case of a child list with no matching attribute at all.
+			attrValues = make([]string, 0, len(children))
 		}
 		attrValues = append(attrValues, attrValue)
 		if firstAttrIndex == -1 {
@@ -137,7 +147,7 @@ type nodeTypeDescriber interface {
 	Type() g.NodeType
 }
 
-func extractAttrValue(name string, n g.Node) (bool, string) {
+func extractAttrValue(boolAttr, attrPrefix string, n g.Node) (bool, string) {
 	// Ignore everything that is not an attribute
 	if n, ok := n.(nodeTypeDescriber); !ok || n.Type() == g.ElementType {
 		return false, ""
@@ -151,15 +161,15 @@ func extractAttrValue(name string, n g.Node) (bool, string) {
 	rendered := b.String()
 
 	// Match boolean attribute (e.g., ` required`)
-	if rendered == " "+name {
+	if rendered == boolAttr {
 		return true, ""
 	}
 
-	if !strings.HasPrefix(rendered, " "+name+`="`) || !strings.HasSuffix(rendered, `"`) {
+	if !strings.HasPrefix(rendered, attrPrefix) || !strings.HasSuffix(rendered, `"`) {
 		return false, ""
 	}
 
-	v := strings.TrimPrefix(rendered, " "+name+`="`)
+	v := strings.TrimPrefix(rendered, attrPrefix)
 	v = strings.TrimSuffix(v, `"`)
 	// Unescape to get the original value, since it will be escaped again when the joined attribute is rendered
 	v = html.UnescapeString(v)
