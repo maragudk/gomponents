@@ -111,6 +111,17 @@ func (b *brokenNode) Type() g.NodeType {
 	return g.AttributeType
 }
 
+// truncatedAttrNode renders as an attribute whose value is cut off after the opening quote,
+// which is the one shape where the rendered text ends with the same quote it starts the value with.
+type truncatedAttrNode struct{ name string }
+
+func (t truncatedAttrNode) Render(w io.Writer) error {
+	_, err := io.WriteString(w, " "+t.name+`="`)
+	return err
+}
+
+func (truncatedAttrNode) Type() g.NodeType { return g.AttributeType }
+
 // recorder is a [g.Node] that records whether Render was called on it.
 type recorder struct{ rendered bool }
 
@@ -142,6 +153,16 @@ func TestJoinAttrs(t *testing.T) {
 	t.Run("does nothing if attribute not found", func(t *testing.T) {
 		n := Div(JoinAttrs("style", Class("party"), ID("hey"), Class("hat")))
 		assert.Equal(t, `<div class="party" id="hey" class="hat"></div>`, n)
+	})
+
+	t.Run("treats an attribute truncated after the opening quote as having no value", func(t *testing.T) {
+		n := Div(JoinAttrs("class", truncatedAttrNode{name: "class"}))
+		assert.Equal(t, `<div class></div>`, n)
+	})
+
+	t.Run("lets a real value win over a truncated one", func(t *testing.T) {
+		n := Div(JoinAttrs("class", truncatedAttrNode{name: "class"}, Class("hat")))
+		assert.Equal(t, `<div class="hat"></div>`, n)
 	})
 
 	t.Run("ignores nodes that can't render", func(t *testing.T) {
