@@ -48,6 +48,10 @@ func Draggable(v string) g.Node {
 	return g.Attr("draggable", v)
 }
 
+func Inert() g.Node {
+	return g.Attr("inert")
+}
+
 func Loop() g.Node {
 	return g.Attr("loop")
 }
@@ -84,6 +88,10 @@ func Accept(v string) g.Node {
 	return g.Attr("accept", v)
 }
 
+func AccessKey(v string) g.Node {
+	return g.Attr("accesskey", v)
+}
+
 func Action(v string) g.Node {
 	return g.Attr("action", v)
 }
@@ -102,8 +110,16 @@ func As(v string) g.Node {
 	return g.Attr("as", v)
 }
 
+func AutoCapitalize(v string) g.Node {
+	return g.Attr("autocapitalize", v)
+}
+
 func AutoComplete(v string) g.Node {
 	return g.Attr("autocomplete", v)
+}
+
+func AutoCorrect(v string) g.Node {
+	return g.Attr("autocorrect", v)
 }
 
 func Charset(v string) g.Node {
@@ -130,6 +146,10 @@ func Content(v string) g.Node {
 	return g.Attr("content", v)
 }
 
+func ContentEditable(v string) g.Node {
+	return g.Attr("contenteditable", v)
+}
+
 // Data attributes automatically have their name prefixed with "data-".
 // The name is rendered unescaped and must be a trusted value, never user-controlled data; the value is escaped.
 func Data(name, v string) g.Node {
@@ -147,6 +167,10 @@ func DataAttr(name, v string) g.Node {
 
 func SlotAttr(v string) g.Node {
 	return g.Attr("slot", v)
+}
+
+func EnterKeyHint(v string) g.Node {
+	return g.Attr("enterkeyhint", v)
 }
 
 func For(v string) g.Node {
@@ -193,8 +217,16 @@ func ID(v string) g.Node {
 	return g.Attr("id", v)
 }
 
+func InputMode(v string) g.Node {
+	return g.Attr("inputmode", v)
+}
+
 func Integrity(v string) g.Node {
 	return g.Attr("integrity", v)
+}
+
+func Is(v string) g.Node {
+	return g.Attr("is", v)
 }
 
 func LabelAttr(v string) g.Node {
@@ -235,6 +267,10 @@ func MinLength(v string) g.Node {
 
 func Name(v string) g.Node {
 	return g.Attr("name", v)
+}
+
+func Nonce(v string) g.Node {
+	return g.Attr("nonce", v)
 }
 
 func Pattern(v string) g.Node {
@@ -339,6 +375,10 @@ func TitleAttr(v string) g.Node {
 	return Title(v)
 }
 
+func Translate(v string) g.Node {
+	return g.Attr("translate", v)
+}
+
 func Type(v string) g.Node {
 	return g.Attr("type", v)
 }
@@ -349,6 +389,10 @@ func Value(v string) g.Node {
 
 func Width(v string) g.Node {
 	return g.Attr("width", v)
+}
+
+func WritingSuggestions(v string) g.Node {
+	return g.Attr("writingsuggestions", v)
 }
 
 func EncType(v string) g.Node {
