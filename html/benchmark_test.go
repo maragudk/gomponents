@@ -3,14 +3,19 @@
 package html_test
 
 import (
+	"bufio"
 	"fmt"
-	"strings"
+	"io"
 	"testing"
 
 	g "maragu.dev/gomponents"
 	c "maragu.dev/gomponents/components"
 	. "maragu.dev/gomponents/html"
 )
+
+// responseBufferSize is the size of the [bufio.Writer] that net/http puts in front of a
+// handler's [http.ResponseWriter], its bufferBeforeChunkingSize.
+const responseBufferSize = 2048
 
 // BenchmarkRealisticPage benchmarks rendering a full, realistic HTML page
 // resembling a typical web application dashboard with navigation, sidebar,
@@ -275,19 +280,36 @@ func BenchmarkRealisticPage(b *testing.B) {
 	}
 
 	b.Run("construct and render", func(b *testing.B) {
-		var sb strings.Builder
-		for b.Loop() {
-			_ = page().Render(&sb)
-			sb.Reset()
-		}
+		b.Run("discarded", func(b *testing.B) {
+			for b.Loop() {
+				_ = page().Render(io.Discard)
+			}
+		})
+
+		b.Run("buffered", func(b *testing.B) {
+			w := bufio.NewWriterSize(io.Discard, responseBufferSize)
+			for b.Loop() {
+				_ = page().Render(w)
+				_ = w.Flush()
+			}
+		})
 	})
 
 	b.Run("render pre-built tree", func(b *testing.B) {
-		var sb strings.Builder
 		p := page()
-		for b.Loop() {
-			_ = p.Render(&sb)
-			sb.Reset()
-		}
+
+		b.Run("discarded", func(b *testing.B) {
+			for b.Loop() {
+				_ = p.Render(io.Discard)
+			}
+		})
+
+		b.Run("buffered", func(b *testing.B) {
+			w := bufio.NewWriterSize(io.Discard, responseBufferSize)
+			for b.Loop() {
+				_ = p.Render(w)
+				_ = w.Flush()
+			}
+		})
 	})
 }
