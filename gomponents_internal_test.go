@@ -1,12 +1,69 @@
 package gomponents
 
-import "testing"
+import (
+	"html/template"
+	"testing"
+)
 
 func TestRaw(t *testing.T) {
 	t.Run("r.String() == string(r)", func(t *testing.T) {
 		r := raw("<p>raw</p>")
 		if r.String() != string(r) {
 			t.Fail()
+		}
+	})
+}
+
+func TestEscapeString(t *testing.T) {
+	// escapeString must agree with template.HTMLEscapeString on every input, because it
+	// decides whether escaping happens at all. A false negative would pass markup through.
+	same := func(t *testing.T, s string) {
+		t.Helper()
+		if got, want := escapeString(s), template.HTMLEscapeString(s); got != want {
+			t.Fatalf("escapeString(%q) = %q, template.HTMLEscapeString = %q", s, got, want)
+		}
+	}
+
+	t.Run("every single byte", func(t *testing.T) {
+		for i := 0; i < 256; i++ {
+			same(t, string([]byte{byte(i)}))
+		}
+	})
+
+	t.Run("every pair of bytes", func(t *testing.T) {
+		for i := 0; i < 256; i++ {
+			for j := 0; j < 256; j++ {
+				same(t, string([]byte{byte(i), byte(j)}))
+			}
+		}
+	})
+
+	t.Run("longer than the eight bytes that switch strings.IndexAny strategy", func(t *testing.T) {
+		for i := 0; i < 256; i++ {
+			same(t, "0123456789"+string([]byte{byte(i)})+"0123456789")
+		}
+	})
+
+	t.Run("strings worth naming", func(t *testing.T) {
+		for _, s := range []string{
+			"", " ", "hat", "party hat",
+			"<script>", "a&b", `"quoted"`, "'single'", ">", "<", "&", "\x00",
+			"&amp;", "&lt;script&gt;",
+			"héj", "日本語", "🎉", "héj & 日本語 <b>",
+			"a" + string([]byte{0}) + "b",
+		} {
+			same(t, s)
+		}
+	})
+}
+
+func FuzzEscapeString(f *testing.F) {
+	for _, s := range []string{"", "hat", "<script>", "a&b", `"x"`, "日本語", "\x00"} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, s string) {
+		if got, want := escapeString(s), template.HTMLEscapeString(s); got != want {
+			t.Fatalf("escapeString(%q) = %q, template.HTMLEscapeString = %q", s, got, want)
 		}
 	})
 }
