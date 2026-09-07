@@ -219,6 +219,23 @@ func booleanAttr(name string) Node {
 	})
 }
 
+// htmlEscapeSet holds the characters that [template.HTMLEscapeString] escapes.
+// It checks for them with [strings.ContainsAny], which rebuilds an ASCII bitmap from its
+// constant cutset on every call; this table is built once instead.
+var htmlEscapeSet = [256]bool{0: true, '\'': true, '"': true, '&': true, '<': true, '>': true}
+
+// escapeString is [template.HTMLEscapeString], but it decides whether there is anything to
+// escape without rebuilding that bitmap. Strings with nothing to escape, which is nearly all
+// of them, are returned untouched, exactly as [template.HTMLEscapeString] returns them.
+func escapeString(s string) string {
+	for i := 0; i < len(s); i++ {
+		if htmlEscapeSet[s[i]] {
+			return template.HTMLEscapeString(s)
+		}
+	}
+	return s
+}
+
 // valueAttr creates a name-value attribute Node.
 func valueAttr(name, value string) Node {
 	return attrFunc(func(w io.Writer) error {
@@ -234,7 +251,7 @@ func valueAttr(name, value string) Node {
 			return err
 		}
 
-		if _, err := io.WriteString(w, template.HTMLEscapeString(value)); err != nil {
+		if _, err := io.WriteString(w, escapeString(value)); err != nil {
 			return err
 		}
 
@@ -276,12 +293,12 @@ func (a attrFunc) String() string {
 
 // Text creates a text DOM [Node] that Renders the escaped string t.
 func Text(t string) Node {
-	return raw(template.HTMLEscapeString(t))
+	return raw(escapeString(t))
 }
 
 // Textf creates a text DOM [Node] that Renders the interpolated and escaped string format.
 func Textf(format string, a ...interface{}) Node {
-	return raw(template.HTMLEscapeString(fmt.Sprintf(format, a...)))
+	return raw(escapeString(fmt.Sprintf(format, a...)))
 }
 
 // Compile-time check that [raw] implements [fmt.Stringer], [Node], and [nodeTypeDescriber].
