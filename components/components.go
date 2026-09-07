@@ -2,6 +2,7 @@
 package components
 
 import (
+	"bytes"
 	"html"
 	"io"
 	"sort"
@@ -79,8 +80,17 @@ func (c Classes) String() string {
 // Note that this renders all first-level attributes, at any group depth, to check whether they
 // should be processed.
 func JoinAttrs(name string, children ...g.Node) g.Node {
+	// The two shapes an attribute called name renders as. extractAttrValue compares against
+	// them for every child, so build them once instead of per child.
+	boolAttr := []byte(" " + name)
+	attrPrefix := []byte(" " + name + `="`)
+
+	// One buffer for every child. bytes.Buffer.Reset keeps its capacity, so inspecting the
+	// second child doesn't re-grow it from nil the way a fresh strings.Builder would.
+	var buf bytes.Buffer
+
 	var attrValues []string
-	var result []g.Node
+	result := make([]g.Node, 0, len(children))
 	firstAttrIndex := -1
 	sawBoolAttr := false
 
@@ -95,7 +105,7 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 			return
 		}
 
-		isGivenAttr, attrValue := extractAttrValue(name, n)
+		isGivenAttr, attrValue := extractAttrValue(&buf, boolAttr, attrPrefix, n)
 		if !isGivenAttr {
 			result = append(result, n)
 			return
@@ -107,6 +117,11 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 				result = append(result, nil)
 			}
 			return
+		}
+		if attrValues == nil {
+			// Only reached when there is something to join, so don't allocate for the
+			// common case of a child list with no matching attribute at all.
+			attrValues = make([]string, 0, len(children))
 		}
 		attrValues = append(attrValues, attrValue)
 		if firstAttrIndex == -1 {
@@ -133,36 +148,43 @@ func JoinAttrs(name string, children ...g.Node) g.Node {
 	return g.Group(result)
 }
 
+var quote = []byte(`"`)
+
 type nodeTypeDescriber interface {
 	Type() g.NodeType
 }
 
-func extractAttrValue(name string, n g.Node) (bool, string) {
+func extractAttrValue(buf *bytes.Buffer, boolAttr, attrPrefix []byte, n g.Node) (bool, string) {
 	// Ignore everything that is not an attribute
 	if n, ok := n.(nodeTypeDescriber); !ok || n.Type() == g.ElementType {
 		return false, ""
 	}
 
-	var b strings.Builder
-	if err := n.Render(&b); err != nil {
+	buf.Reset()
+	if err := n.Render(buf); err != nil {
 		return false, ""
 	}
 
-	rendered := b.String()
+	// Only valid until the next Reset, so it must not outlive this call.
+	rendered := buf.Bytes()
 
 	// Match boolean attribute (e.g., ` required`)
-	if rendered == " "+name {
+	if bytes.Equal(rendered, boolAttr) {
 		return true, ""
 	}
 
-	if !strings.HasPrefix(rendered, " "+name+`="`) || !strings.HasSuffix(rendered, `"`) {
+	if !bytes.HasPrefix(rendered, attrPrefix) || !bytes.HasSuffix(rendered, quote) {
 		return false, ""
 	}
 
-	v := strings.TrimPrefix(rendered, " "+name+`="`)
-	v = strings.TrimSuffix(v, `"`)
+	// A node that rendered as just ` name="` has the prefix's own quote as its suffix and
+	// nothing in between, so there is no value to take.
+	if len(rendered) == len(attrPrefix) {
+		return true, ""
+	}
+
 	// Unescape to get the original value, since it will be escaped again when the joined attribute is rendered
-	v = html.UnescapeString(v)
+	v := html.UnescapeString(string(rendered[len(attrPrefix) : len(rendered)-1]))
 	// Treat whitespace-only values the same as empty
 	if strings.TrimSpace(v) == "" {
 		return true, ""
