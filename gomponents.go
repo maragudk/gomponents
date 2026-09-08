@@ -23,7 +23,6 @@ package gomponents
 
 import (
 	"fmt"
-	"html/template"
 	"io"
 	"strings"
 )
@@ -219,18 +218,28 @@ func booleanAttr(name string) Node {
 	})
 }
 
-// htmlEscapeSet holds the characters that [template.HTMLEscapeString] escapes.
-// It checks for them with [strings.ContainsAny], which rebuilds an ASCII bitmap from its
-// constant cutset on every call; this table is built once instead.
+// htmlEscapeSet holds the characters that need escaping, and htmlEscaper is what escapes
+// them. Both are the six replacements [text/template.HTMLEscape] makes, and escapeString
+// is required by test to agree with [text/template.HTMLEscapeString] on every input.
 var htmlEscapeSet = [256]bool{0: true, '\'': true, '"': true, '&': true, '<': true, '>': true}
 
-// escapeString is [template.HTMLEscapeString], but it decides whether there is anything to
-// escape without rebuilding that bitmap. Strings with nothing to escape, which is nearly all
-// of them, are returned untouched, exactly as [template.HTMLEscapeString] returns them.
+var htmlEscaper = strings.NewReplacer(
+	"\x00", "\uFFFD",
+	`"`, "&#34;",
+	"'", "&#39;",
+	"&", "&amp;",
+	"<", "&lt;",
+	">", "&gt;",
+)
+
+// escapeString escapes the characters that HTML gives meaning to, deciding whether there is
+// anything to escape with a table built once rather than with [strings.ContainsAny], which
+// rebuilds an ASCII bitmap from its constant cutset on every call. Strings with nothing to
+// escape, which is nearly all of them, are returned untouched.
 func escapeString(s string) string {
 	for i := 0; i < len(s); i++ {
 		if htmlEscapeSet[s[i]] {
-			return template.HTMLEscapeString(s)
+			return htmlEscaper.Replace(s)
 		}
 	}
 	return s
