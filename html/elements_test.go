@@ -21,6 +21,11 @@ func TestDoctype(t *testing.T) {
 		assert.Equal(t, `<!doctype html><html></html>`, Doctype(g.El("html")))
 	})
 
+	t.Run("ignores a nil sibling", func(t *testing.T) {
+		assert.Equal(t, `<!doctype html>`, Doctype(nil))
+		assert.Equal(t, `<!doctype html>`, Doctype(g.If(false, g.El("html"))))
+	})
+
 	t.Run("errors on write error in Render", func(t *testing.T) {
 		err := Doctype(g.El("html")).Render(&erroringWriter{})
 		assert.Error(t, err)

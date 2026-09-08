@@ -12,11 +12,17 @@ import (
 )
 
 // Doctype returns a special kind of [g.Node] that prefixes its sibling with the string "<!doctype html>".
+// A nil sibling is ignored, like nil nodes are elsewhere in the library.
 func Doctype(sibling g.Node) g.Node {
 	return g.NodeFunc(func(w io.Writer) error {
 		if _, err := io.WriteString(w, "<!doctype html>"); err != nil {
 			return err
 		}
+
+		if sibling == nil {
+			return nil
+		}
+
 		return sibling.Render(w)
 	})
 }
