@@ -4,6 +4,7 @@ package gomponents_test
 
 import (
 	"io"
+	"strings"
 	"testing"
 
 	g "maragu.dev/gomponents"
@@ -20,6 +21,13 @@ func BenchmarkAttr(b *testing.B) {
 	b.Run("name-value attributes", func(b *testing.B) {
 		for b.Loop() {
 			a := g.Attr("hat", "party")
+			_ = a.Render(io.Discard)
+		}
+	})
+
+	b.Run("name-value attributes needing escaping", func(b *testing.B) {
+		for b.Loop() {
+			a := g.Attr("hat", `"party" & fun`)
 			_ = a.Render(io.Discard)
 		}
 	})
@@ -56,6 +64,24 @@ func BenchmarkText(b *testing.B) {
 	b.Run("simple text element", func(b *testing.B) {
 		for b.Loop() {
 			e := g.Text("some simple text")
+			_ = e.Render(io.Discard)
+		}
+	})
+
+	b.Run("text element needing escaping", func(b *testing.B) {
+		for b.Loop() {
+			e := g.Text("It's a sentence & it needs escaping.")
+			_ = e.Render(io.Discard)
+		}
+	})
+
+	b.Run("prose element needing escaping", func(b *testing.B) {
+		// English prose contains apostrophes, which on its own is enough to take the
+		// escaping path.
+		prose := strings.Repeat("It's a paragraph of user-written text, with quotes & apostrophes in it. ", 40)
+
+		for b.Loop() {
+			e := g.Text(prose)
 			_ = e.Render(io.Discard)
 		}
 	})
