@@ -10,10 +10,6 @@ import (
 	g "maragu.dev/gomponents"
 )
 
-// escapedProse is the kind of user-written text that takes the escaping path. English prose
-// contains apostrophes, which is enough on its own.
-var escapedProse = strings.Repeat("It's a paragraph of user-written text, with quotes & apostrophes in it. ", 40)
-
 func BenchmarkAttr(b *testing.B) {
 	b.Run("boolean attributes", func(b *testing.B) {
 		for b.Loop() {
@@ -80,8 +76,12 @@ func BenchmarkText(b *testing.B) {
 	})
 
 	b.Run("prose element needing escaping", func(b *testing.B) {
+		// English prose contains apostrophes, which on its own is enough to take the
+		// escaping path.
+		prose := strings.Repeat("It's a paragraph of user-written text, with quotes & apostrophes in it. ", 40)
+
 		for b.Loop() {
-			e := g.Text(escapedProse)
+			e := g.Text(prose)
 			_ = e.Render(io.Discard)
 		}
 	})
