@@ -36,7 +36,8 @@ Check out [www.gomponents.com](https://www.gomponents.com) for an introduction o
   - `Text` and `Textf` that insert HTML-escaped text,
   - `Raw` and `Rawf` for inserting raw strings,
   - `Map` for mapping data to components and `Group` for grouping components,
-  - and `If`/`Iff` for conditional rendering.
+  - `If`/`Iff` for conditional rendering,
+  - and `Static` for caching large static element trees.
 - No external dependencies
 - Mature and stable, no breaking changes
 
@@ -93,6 +94,7 @@ When you create a void element, any child nodes that are not attributes will be 
 
 gomponents renders directly to an `io.Writer`, making it efficient for server-side rendering.
 The library avoids unnecessary allocations where possible.
+For large element trees that never depend on request data, user data, or changing state, wrap them in `Static` once at package scope and reuse the node. `Static` is useful only when the returned node is reused.
 
 ## FAQ
 

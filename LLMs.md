@@ -65,6 +65,7 @@ Core interfaces and helper functions:
 - `Map[T]([]T, func(T) Node)` - transform slices to nodes
 - `If(condition bool, node Node)` - conditional rendering
 - `Iff(condition bool, func() Node)` - lazy conditional rendering
+- `Static(node Node)` - pre-render and cache a large static element tree
 
 ### maragu.dev/gomponents/html
 All HTML5 elements and attributes as Go functions:
@@ -176,7 +177,7 @@ import (
 func NavBar(isLoggedIn bool, username string) Node {
     return Nav(
         A(Href("/"), Text("Home")),
-        If(isLoggedIn, 
+        If(isLoggedIn,
             Span(Text("Welcome, " + username))),
         If(!isLoggedIn,
             A(Href("/login"), Text("Login"))),
@@ -231,7 +232,7 @@ Img(Src("pic.jpg"), Text("ignored"))
 ```go
 import (
     "net/http"
-    
+
     . "maragu.dev/gomponents"
     . "maragu.dev/gomponents/html"
     ghttp "maragu.dev/gomponents/http"
@@ -249,7 +250,7 @@ http.HandleFunc("/", ghttp.Adapt(HomeHandler))
 ```go
 import (
     "net/http"
-    
+
     . "maragu.dev/gomponents"
     ghttp "maragu.dev/gomponents/http"
 )
@@ -327,6 +328,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
+Use `Static` for large element trees that never depend on request data, user data, or changing state. It is useful only when the returned node is reused. Define it once at package scope; don't create it per request. Don't use it for attributes.
+```go
+var staticHead = Static(Head(
+    TitleEl(Text("My site")),
+    Link(Rel("stylesheet"), Href("/app.css")),
+))
+```
+
 ### 4. Testing
 Components are pure functions, making testing straightforward:
 ```go
@@ -337,10 +346,10 @@ import (
 
 func TestButton(t *testing.T) {
     btn := Button("Click me")
-    
+
     var buf bytes.Buffer
     btn.Render(&buf)
-    
+
     expected := `<button>Click me</button>`
     if buf.String() != expected {
         t.Errorf("got %q, want %q", buf.String(), expected)
@@ -361,10 +370,10 @@ func LoginForm() Node {
     return Form(Method("post"), Action("/login"),
         Label(For("email"), Text("Email:")),
         Input(Type("email"), ID("email"), Name("email"), Required()),
-        
+
         Label(For("password"), Text("Password:")),
         Input(Type("password"), ID("password"), Name("password"), Required()),
-        
+
         Button(Type("submit"), Text("Login")),
     )
 }
@@ -466,7 +475,7 @@ import (
 )
 
 // <my-component attr="value">Content</my-component>
-El("my-component", 
+El("my-component",
     Attr("attr", "value"),
     Text("Content"),
 )
@@ -479,7 +488,7 @@ All nodes implement String() for debugging:
 ```go
 import (
     "fmt"
-    
+
     . "maragu.dev/gomponents"
     . "maragu.dev/gomponents/html"
 )
