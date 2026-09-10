@@ -260,7 +260,7 @@ func valueAttr(name, value string) Node {
 			return err
 		}
 
-		if _, err := io.WriteString(w, escapeString(value)); err != nil {
+		if _, err := htmlEscaper.WriteString(w, value); err != nil {
 			return err
 		}
 
