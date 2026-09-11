@@ -15,9 +15,9 @@ gomponents enables building HTML components using pure Go functions instead of t
 
 The project is organized into focused packages:
 
-- **Core (`gomponents.go`)**: Main interfaces (`Node`), element/attribute creators (`El`, `Attr`), text rendering (`Text`, `Raw`), and helpers (`Map`, `Group`, `If`, `Iff`)
+- **Core (`gomponents.go`)**: Main interfaces (`Node`), element/attribute creators (`El`, `Attr`), text rendering (`Text`/`Textf`, `Raw`/`Rawf`), and helpers (`Map`, `Group`, `If`, `Iff`)
 - **html/**: All HTML5 elements and attributes as Go functions
-- **components/**: Higher-level components like `HTML5` document structure and `Classes` helper
+- **components/**: Higher-level components like `HTML5` document structure, `Classes` and `JoinAttrs` helpers, and more
 - **http/**: HTTP handler utilities for web servers
 - **internal/examples/app/**: Example application showing usage patterns
 
@@ -31,86 +31,21 @@ The project is organized into focused packages:
 - HTML element/attribute names match their HTML equivalents exactly
 
 ### Testing
+
 - Run tests: `make test` or `go test -shuffle on ./...`
 - Run linting: `make lint` or `golangci-lint run`
+- Run benchmarks: `make benchmark` or `go test -bench . -benchmem ./...`
+- Run fuzzing: `make fuzz`
 - Maintain 100% test coverage
 - Use table-driven tests where appropriate
 - Test both successful rendering and error cases
 
 ### Performance Considerations
+
 - Render directly to `io.Writer` without intermediate allocations
 - Use `io.StringWriter` optimization when available
 - Avoid reflection in hot paths
 - Keep void element checks efficient
-
-## Key Concepts
-
-### Node Interface
-Everything implements the core `Node` interface:
-```go
-type Node interface {
-    Render(w io.Writer) error
-}
-```
-
-### Node Types
-- `ElementType`: HTML elements and text content
-- `AttributeType`: HTML attributes (render in different phase)
-
-### Void Elements
-Self-closing HTML elements (br, img, input, etc.) are handled specially - non-attribute children are ignored to ensure valid HTML.
-
-### Attribute vs Element Disambiguation
-Some HTML names conflict (e.g., `style`). Convention:
-- Most common usage gets the simple name (`Style` for attribute)
-- Alternative gets suffix (`StyleEl` for element)
-- Both variants exist; deprecated aliases (`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, `TitleAttr`) remain for backwards compatibility
-
-## Common Patterns
-
-### Creating Elements
-```go
-// Basic element
-Div(Class("container"), Text("Hello"))
-
-// Custom element
-El("custom-element", Attr("data-value", "123"))
-```
-
-### Conditional Rendering
-```go
-If(condition, someNode)       // Eager evaluation
-Iff(condition, func() Node {  // Lazy evaluation
-    return expensiveNode()
-})
-```
-
-### Data Mapping
-```go
-Map(items, func(item Item) Node {
-    return Li(Text(item.Name))
-})
-```
-
-## Testing Guidelines
-
-Test both the structure and actual HTML output:
-```go
-func TestComponent(t *testing.T) {
-    node := MyComponent("test")
-
-    var buf bytes.Buffer
-    err := node.Render(&buf)
-    // Check err and buf.String()
-}
-```
-
-## HTML Generation Best Practices
-
-1. **Always escape user content**: Use `Text()` for user data, `Raw()` only for trusted HTML
-2. **Leverage type safety**: Create typed component functions rather than generic ones
-3. **Use Groups for multiple nodes**: Return `Group{node1, node2}` when multiple nodes needed
-4. **Handle nil nodes gracefully**: The library safely ignores nil nodes during rendering
 
 ## Contributing Guidelines
 
