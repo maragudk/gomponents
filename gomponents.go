@@ -245,6 +245,20 @@ func escapeString(s string) string {
 	return s
 }
 
+func writeEscaped(w io.Writer, s string) (int, error) {
+	for i := 0; i < len(s); i++ {
+		if htmlEscapeSet[s[i]] {
+			if _, ok := w.(io.StringWriter); ok {
+				return htmlEscaper.WriteString(w, s)
+			}
+
+			return w.Write([]byte(htmlEscaper.Replace(s)))
+		}
+	}
+
+	return io.WriteString(w, s)
+}
+
 // valueAttr creates a name-value attribute Node.
 func valueAttr(name, value string) Node {
 	return attrFunc(func(w io.Writer) error {
@@ -260,7 +274,7 @@ func valueAttr(name, value string) Node {
 			return err
 		}
 
-		if _, err := htmlEscaper.WriteString(w, value); err != nil {
+		if _, err := writeEscaped(w, value); err != nil {
 			return err
 		}
 
