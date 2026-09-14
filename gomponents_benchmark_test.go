@@ -48,16 +48,17 @@ func BenchmarkAttr(b *testing.B) {
 		{Name: "long value, much escaping", Value: value(256, 64)},
 	}
 
-	// The buffered writers are the size of the [bufio.Writer] that net/http puts in front
-	// of a handler's response writer, its bufferBeforeChunkingSize.
+	// Each sub-benchmark gets its own writer, so a buffer's fill level cannot carry over
+	// from one to the next. The buffered writers are the size of the [bufio.Writer] that
+	// net/http puts in front of a handler's response writer, its bufferBeforeChunkingSize.
 	writers := []struct {
 		Name string
-		W    io.Writer
+		New  func() io.Writer
 	}{
-		{Name: "discarded", W: io.Discard},
-		{Name: "buffered", W: bufio.NewWriterSize(io.Discard, 2048)},
-		{Name: "write-only", W: writeOnly{w: io.Discard}},
-		{Name: "write-only buffered", W: writeOnly{w: bufio.NewWriterSize(io.Discard, 2048)}},
+		{Name: "discarded", New: func() io.Writer { return io.Discard }},
+		{Name: "buffered", New: func() io.Writer { return bufio.NewWriterSize(io.Discard, 2048) }},
+		{Name: "write-only", New: func() io.Writer { return writeOnly{w: io.Discard} }},
+		{Name: "write-only buffered", New: func() io.Writer { return writeOnly{w: bufio.NewWriterSize(io.Discard, 2048)} }},
 	}
 
 	attr := func(v struct {
@@ -77,18 +78,20 @@ func BenchmarkAttr(b *testing.B) {
 				// Nodes in a page are kept by their parent, so keep this one too, or the
 				// compiler puts it on the stack and the construction cost disappears.
 				var node g.Node
+				w := w.New()
 
 				for b.Loop() {
 					node = attr(v)
-					_ = node.Render(w.W)
+					_ = node.Render(w)
 				}
 			})
 
 			b.Run("render pre-built/"+w.Name+"/"+v.Name, func(b *testing.B) {
 				a := attr(v)
+				w := w.New()
 
 				for b.Loop() {
-					_ = a.Render(w.W)
+					_ = a.Render(w)
 				}
 			})
 		}
