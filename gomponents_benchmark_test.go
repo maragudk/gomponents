@@ -22,19 +22,20 @@ func (w writeOnly) Write(p []byte) (int, error) {
 }
 
 func BenchmarkAttr(b *testing.B) {
-	// A boolean attribute has no value; the rest are name-value attributes with values
-	// named after what they stress.
+	// A boolean attribute has no value; the rest are name-value attributes with short and
+	// long values at each level of escaping.
 	values := []struct {
 		Name    string
 		Boolean bool
 		Value   string
 	}{
 		{Name: "boolean", Boolean: true},
-		{Name: "no escaping", Value: "party"},
-		{Name: "long value needing no escaping", Value: strings.Repeat("a title with no quotes or apostrophes in it ", 4)},
-		{Name: "needing escaping", Value: `"party" & fun`},
-		{Name: "many characters needing escaping", Value: strings.Repeat(`"hat" & `, 6)},
-		{Name: "long value with few characters needing escaping", Value: strings.Repeat("It's a title with quotes & apostrophes in it. ", 4)},
+		{Name: "short value, no escaping", Value: "party"},
+		{Name: "long value, no escaping", Value: strings.Repeat("a title with no quotes or apostrophes in it ", 4)},
+		{Name: "short value, little escaping", Value: `"party" & fun`},
+		{Name: "long value, little escaping", Value: strings.Repeat("It's a title with quotes & apostrophes in it. ", 4)},
+		{Name: "short value, much escaping", Value: strings.Repeat(`"hat" & `, 6)},
+		{Name: "long value, much escaping", Value: strings.Repeat(`"hat" & `, 24)},
 	}
 
 	// The buffered writers are the size of the [bufio.Writer] that net/http puts in front
