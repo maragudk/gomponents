@@ -21,31 +21,18 @@ func (w writeOnly) Write(p []byte) (int, error) {
 	return w.w.Write(p)
 }
 
+// node keeps a constructed [g.Node] reachable across benchmark iterations.
+var node g.Node
+
 func BenchmarkAttr(b *testing.B) {
-	b.Run("boolean attributes", func(b *testing.B) {
-		for b.Loop() {
-			a := g.Attr("hat")
-			_ = a.Render(io.Discard)
-		}
-	})
-
-	b.Run("name-value attributes", func(b *testing.B) {
-		for b.Loop() {
-			a := g.Attr("hat", "party")
-			_ = a.Render(io.Discard)
-		}
-	})
-
-	b.Run("name-value attributes needing escaping", func(b *testing.B) {
-		for b.Loop() {
-			a := g.Attr("hat", `"party" & fun`)
-			_ = a.Render(io.Discard)
-		}
-	})
-
+	// A boolean attribute has no value; the rest are name-value attributes with values
+	// named after what they stress.
 	values := []struct {
-		Name, Value string
+		Name    string
+		Boolean bool
+		Value   string
 	}{
+		{Name: "boolean", Boolean: true},
 		{Name: "no escaping", Value: "party"},
 		{Name: "long value needing no escaping", Value: strings.Repeat("a title with no quotes or apostrophes in it ", 4)},
 		{Name: "needing escaping", Value: `"party" & fun`},
@@ -65,10 +52,30 @@ func BenchmarkAttr(b *testing.B) {
 		{Name: "write-only buffered", W: writeOnly{w: bufio.NewWriterSize(io.Discard, 2048)}},
 	}
 
+	attr := func(v struct {
+		Name    string
+		Boolean bool
+		Value   string
+	}) g.Node {
+		if v.Boolean {
+			return g.Attr("hat")
+		}
+		return g.Attr("hat", v.Value)
+	}
+
 	for _, w := range writers {
 		for _, v := range values {
+			b.Run("construct and render/"+w.Name+"/"+v.Name, func(b *testing.B) {
+				for b.Loop() {
+					// Nodes in a page are kept by their parent, so keep this one too, or the
+					// compiler puts it on the stack and the construction cost disappears.
+					node = attr(v)
+					_ = node.Render(w.W)
+				}
+			})
+
 			b.Run("render pre-built/"+w.Name+"/"+v.Name, func(b *testing.B) {
-				a := g.Attr("hat", v.Value)
+				a := attr(v)
 
 				for b.Loop() {
 					_ = a.Render(w.W)
