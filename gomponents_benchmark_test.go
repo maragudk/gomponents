@@ -21,6 +21,16 @@ func (w writeOnly) Write(p []byte) (int, error) {
 	return w.w.Write(p)
 }
 
+// value returns n bytes of plain text with the given number of bytes, spread evenly,
+// swapped for ones that need escaping, cycling through the three most common.
+func value(n, escapes int) string {
+	b := []byte(strings.Repeat("party hat ", n/10+1)[:n])
+	for i := 0; i < escapes; i++ {
+		b[(i+1)*n/(escapes+1)] = `"&'`[i%3]
+	}
+	return string(b)
+}
+
 func BenchmarkAttr(b *testing.B) {
 	// A boolean attribute has no value; the rest are name-value attributes with short and
 	// long values at each level of escaping.
@@ -30,12 +40,12 @@ func BenchmarkAttr(b *testing.B) {
 		Value   string
 	}{
 		{Name: "boolean", Boolean: true},
-		{Name: "short value, no escaping", Value: "party"},
-		{Name: "long value, no escaping", Value: strings.Repeat("a title with no quotes or apostrophes in it ", 4)},
-		{Name: "short value, little escaping", Value: `"party" & fun`},
-		{Name: "long value, little escaping", Value: strings.Repeat("It's a title with quotes & apostrophes in it. ", 4)},
-		{Name: "short value, much escaping", Value: strings.Repeat(`"hat" & `, 6)},
-		{Name: "long value, much escaping", Value: strings.Repeat(`"hat" & `, 24)},
+		{Name: "short value, no escaping", Value: value(16, 0)},
+		{Name: "long value, no escaping", Value: value(256, 0)},
+		{Name: "short value, little escaping", Value: value(16, 1)},
+		{Name: "long value, little escaping", Value: value(256, 16)},
+		{Name: "short value, much escaping", Value: value(16, 4)},
+		{Name: "long value, much escaping", Value: value(256, 64)},
 	}
 
 	// The buffered writers are the size of the [bufio.Writer] that net/http puts in front
