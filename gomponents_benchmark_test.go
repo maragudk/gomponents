@@ -51,6 +51,7 @@ func BenchmarkAttrRender(b *testing.B) {
 		Name, Value string
 	}{
 		{Name: "no escaping", Value: "party"},
+		{Name: "long value needing no escaping", Value: strings.Repeat("a title with no quotes or apostrophes in it ", 4)},
 		{Name: "needing escaping", Value: `"party" & fun`},
 		{Name: "many characters needing escaping", Value: strings.Repeat(`"hat" & `, 6)},
 		{Name: "long value with few characters needing escaping", Value: strings.Repeat("It's a title with quotes & apostrophes in it. ", 4)},
