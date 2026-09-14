@@ -21,9 +21,6 @@ func (w writeOnly) Write(p []byte) (int, error) {
 	return w.w.Write(p)
 }
 
-// node keeps a constructed [g.Node] reachable across benchmark iterations.
-var node g.Node
-
 func BenchmarkAttr(b *testing.B) {
 	// A boolean attribute has no value; the rest are name-value attributes with values
 	// named after what they stress.
@@ -66,9 +63,11 @@ func BenchmarkAttr(b *testing.B) {
 	for _, w := range writers {
 		for _, v := range values {
 			b.Run("construct and render/"+w.Name+"/"+v.Name, func(b *testing.B) {
+				// Nodes in a page are kept by their parent, so keep this one too, or the
+				// compiler puts it on the stack and the construction cost disappears.
+				var node g.Node
+
 				for b.Loop() {
-					// Nodes in a page are kept by their parent, so keep this one too, or the
-					// compiler puts it on the stack and the construction cost disappears.
 					node = attr(v)
 					_ = node.Render(w.W)
 				}
