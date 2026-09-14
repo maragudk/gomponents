@@ -11,6 +11,16 @@ import (
 	g "maragu.dev/gomponents"
 )
 
+// writeOnly is an [io.Writer] without a WriteString method, like a struct that embeds an
+// [io.Writer] and promotes only Write.
+type writeOnly struct {
+	w io.Writer
+}
+
+func (w writeOnly) Write(p []byte) (int, error) {
+	return w.w.Write(p)
+}
+
 func BenchmarkAttr(b *testing.B) {
 	b.Run("boolean attributes", func(b *testing.B) {
 		for b.Loop() {
@@ -32,21 +42,7 @@ func BenchmarkAttr(b *testing.B) {
 			_ = a.Render(io.Discard)
 		}
 	})
-}
 
-// writeOnly is an [io.Writer] without a WriteString method, like a struct that embeds an
-// [io.Writer] and promotes only Write.
-type writeOnly struct {
-	w io.Writer
-}
-
-func (w writeOnly) Write(p []byte) (int, error) {
-	return w.w.Write(p)
-}
-
-// BenchmarkAttrRender renders pre-built name-value attributes to writers with different
-// write costs, with values that take different paths through escaping.
-func BenchmarkAttrRender(b *testing.B) {
 	values := []struct {
 		Name, Value string
 	}{
@@ -71,7 +67,7 @@ func BenchmarkAttrRender(b *testing.B) {
 
 	for _, w := range writers {
 		for _, v := range values {
-			b.Run(w.Name+"/"+v.Name, func(b *testing.B) {
+			b.Run("render pre-built/"+w.Name+"/"+v.Name, func(b *testing.B) {
 				a := g.Attr("hat", v.Value)
 
 				for b.Loop() {
