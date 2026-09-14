@@ -52,8 +52,8 @@ func BenchmarkAttrRender(b *testing.B) {
 	}{
 		{Name: "no escaping", Value: "party"},
 		{Name: "needing escaping", Value: `"party" & fun`},
-		{Name: "JSON needing escaping", Value: `{"hat":"party","glitter":true,"guests":["you","me"]}`},
-		{Name: "prose needing escaping", Value: strings.Repeat("It's a title with quotes & apostrophes in it. ", 4)},
+		{Name: "many characters needing escaping", Value: strings.Repeat(`"hat" & `, 6)},
+		{Name: "long value with few characters needing escaping", Value: strings.Repeat("It's a title with quotes & apostrophes in it. ", 4)},
 	}
 
 	// The buffered writers are the size of the [bufio.Writer] that net/http puts in front
