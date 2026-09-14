@@ -30,13 +30,13 @@ Compiling both test binaries once and alternating them across rounds gave stable
 
 ### What didn't work
 
-The first attempt at a helper test used `v[:min(len(v), 40)]`. It failed to compile because `/go.mod` declares `go 1.18` and the test file inherits that language version:
+Nothing failed in this step. One constraint carried over from the review of #352 three days earlier: a throwaway variant of `escapeString` written as `for i := range len(s)` failed to compile because `/go.mod` declares `go 1.18` and every file inherits that language version:
 
 ```
 ./gomponents.go:240:17: cannot range over len(s) (value of type int): requires go1.22 or later (-lang was set to go1.18; check go.mod)
 ```
 
-That one was from an earlier experiment with `for i := range len(s)`; the `min` builtin failed the same way. Anything written in this repo's test files has to be Go 1.18 syntax.
+Anything written in this repo, test files included, has to be Go 1.18 syntax.
 
 ### What I learned
 
