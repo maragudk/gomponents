@@ -3,6 +3,7 @@
 package gomponents_test
 
 import (
+	"bufio"
 	"io"
 	"strings"
 	"testing"
@@ -31,6 +32,53 @@ func BenchmarkAttr(b *testing.B) {
 			_ = a.Render(io.Discard)
 		}
 	})
+}
+
+// writeOnly is an [io.Writer] without a WriteString method, like a struct that embeds an
+// [io.Writer] and promotes only Write.
+type writeOnly struct {
+	w io.Writer
+}
+
+func (w writeOnly) Write(p []byte) (int, error) {
+	return w.w.Write(p)
+}
+
+// BenchmarkAttrRender renders pre-built name-value attributes to writers with different
+// write costs, with values that take different paths through escaping.
+func BenchmarkAttrRender(b *testing.B) {
+	values := []struct {
+		Name, Value string
+	}{
+		{Name: "no escaping", Value: "party"},
+		{Name: "needing escaping", Value: `"party" & fun`},
+		{Name: "JSON needing escaping", Value: `{"hat":"party","glitter":true,"guests":["you","me"]}`},
+		{Name: "prose needing escaping", Value: strings.Repeat("It's a title with quotes & apostrophes in it. ", 4)},
+	}
+
+	// The buffered writers are the size of the [bufio.Writer] that net/http puts in front
+	// of a handler's response writer, its bufferBeforeChunkingSize.
+	writers := []struct {
+		Name string
+		W    io.Writer
+	}{
+		{Name: "discarded", W: io.Discard},
+		{Name: "buffered", W: bufio.NewWriterSize(io.Discard, 2048)},
+		{Name: "write-only", W: writeOnly{w: io.Discard}},
+		{Name: "write-only buffered", W: writeOnly{w: bufio.NewWriterSize(io.Discard, 2048)}},
+	}
+
+	for _, w := range writers {
+		for _, v := range values {
+			b.Run(w.Name+"/"+v.Name, func(b *testing.B) {
+				a := g.Attr("hat", v.Value)
+
+				for b.Loop() {
+					_ = a.Render(w.W)
+				}
+			})
+		}
+	}
 }
 
 func BenchmarkEl(b *testing.B) {
