@@ -21,6 +21,25 @@ func value(n, escapes int) string {
 	return string(b)
 }
 
+// writers to render to, each constructed anew by New so that a buffer's fill level cannot
+// carry over from one sub-benchmark to the next. The buffered writers are the size of the
+// [bufio.Writer] that net/http puts in front of a handler's response writer, its
+// bufferBeforeChunkingSize.
+func writers() []struct {
+	Name string
+	New  func() io.Writer
+} {
+	return []struct {
+		Name string
+		New  func() io.Writer
+	}{
+		{Name: "discarded", New: func() io.Writer { return io.Discard }},
+		{Name: "buffered", New: func() io.Writer { return bufio.NewWriterSize(io.Discard, 2048) }},
+		{Name: "write-only", New: func() io.Writer { return writeOnly{w: io.Discard} }},
+		{Name: "write-only buffered", New: func() io.Writer { return writeOnly{w: bufio.NewWriterSize(io.Discard, 2048)} }},
+	}
+}
+
 func BenchmarkAttr(b *testing.B) {
 	// A boolean attribute has no value; the rest are name-value attributes with short and
 	// long values at each level of escaping.
@@ -38,19 +57,6 @@ func BenchmarkAttr(b *testing.B) {
 		{Name: "long value, much escaping", Value: value(256, 64)},
 	}
 
-	// Each sub-benchmark gets its own writer, so a buffer's fill level cannot carry over
-	// from one to the next. The buffered writers are the size of the [bufio.Writer] that
-	// net/http puts in front of a handler's response writer, its bufferBeforeChunkingSize.
-	writers := []struct {
-		Name string
-		New  func() io.Writer
-	}{
-		{Name: "discarded", New: func() io.Writer { return io.Discard }},
-		{Name: "buffered", New: func() io.Writer { return bufio.NewWriterSize(io.Discard, 2048) }},
-		{Name: "write-only", New: func() io.Writer { return writeOnly{w: io.Discard} }},
-		{Name: "write-only buffered", New: func() io.Writer { return writeOnly{w: bufio.NewWriterSize(io.Discard, 2048)} }},
-	}
-
 	attr := func(v struct {
 		Name    string
 		Boolean bool
@@ -62,7 +68,7 @@ func BenchmarkAttr(b *testing.B) {
 		return g.Attr("hat", v.Value)
 	}
 
-	for _, w := range writers {
+	for _, w := range writers() {
 		for _, v := range values {
 			b.Run("construct and render/"+w.Name+"/"+v.Name, func(b *testing.B) {
 				// Nodes in a page are kept by their parent, so keep this one too, or the
@@ -116,30 +122,42 @@ func BenchmarkRawf(b *testing.B) {
 }
 
 func BenchmarkText(b *testing.B) {
-	b.Run("simple text element", func(b *testing.B) {
-		for b.Loop() {
-			e := g.Text("some simple text")
-			_ = e.Render(io.Discard)
-		}
-	})
+	// Short and long text at each level of escaping.
+	values := []struct {
+		Name, Value string
+	}{
+		{Name: "short text, no escaping", Value: value(16, 0)},
+		{Name: "long text, no escaping", Value: value(256, 0)},
+		{Name: "short text, little escaping", Value: value(16, 1)},
+		{Name: "long text, little escaping", Value: value(256, 16)},
+		{Name: "short text, much escaping", Value: value(16, 4)},
+		{Name: "long text, much escaping", Value: value(256, 64)},
+	}
 
-	b.Run("text element needing escaping", func(b *testing.B) {
-		for b.Loop() {
-			e := g.Text("It's a sentence & it needs escaping.")
-			_ = e.Render(io.Discard)
-		}
-	})
+	for _, w := range writers() {
+		for _, v := range values {
+			b.Run("construct and render/"+w.Name+"/"+v.Name, func(b *testing.B) {
+				// Nodes in a page are kept by their parent, so keep this one too, or the
+				// compiler puts it on the stack and the construction cost disappears.
+				var node g.Node
+				w := w.New()
 
-	b.Run("prose element needing escaping", func(b *testing.B) {
-		// English prose contains apostrophes, which on its own is enough to take the
-		// escaping path.
-		prose := strings.Repeat("It's a paragraph of user-written text, with quotes & apostrophes in it. ", 40)
+				for b.Loop() {
+					node = g.Text(v.Value)
+					_ = node.Render(w)
+				}
+			})
 
-		for b.Loop() {
-			e := g.Text(prose)
-			_ = e.Render(io.Discard)
+			b.Run("render pre-built/"+w.Name+"/"+v.Name, func(b *testing.B) {
+				t := g.Text(v.Value)
+				w := w.New()
+
+				for b.Loop() {
+					_ = t.Render(w)
+				}
+			})
 		}
-	})
+	}
 }
 
 func BenchmarkTextf(b *testing.B) {
