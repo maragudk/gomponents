@@ -317,8 +317,9 @@ func Textf(format string, a ...interface{}) Node {
 	return text(fmt.Sprintf(format, a...))
 }
 
-// Compile-time check that [text] implements [Node] and [nodeTypeDescriber].
+// Compile-time check that [text] implements [fmt.Stringer], [Node], and [nodeTypeDescriber].
 var _ interface {
+	fmt.Stringer
 	Node
 	nodeTypeDescriber
 } = text("")
@@ -330,6 +331,13 @@ type text string
 func (t text) Render(w io.Writer) error {
 	_, err := writeEscaped(w, string(t))
 	return err
+}
+
+// String satisfies [fmt.Stringer] with the escaped string.
+func (t text) String() string {
+	var b strings.Builder
+	_ = t.Render(&b)
+	return b.String()
 }
 
 func (t text) Type() NodeType {
