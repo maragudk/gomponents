@@ -1,6 +1,7 @@
 package gomponents_test
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -62,6 +63,25 @@ func TestAttr(t *testing.T) {
 	t.Run("escapes attribute values", func(t *testing.T) {
 		a := g.Attr(`id`, `hat"><script`)
 		assert.Equal(t, ` id="hat&#34;&gt;&lt;script"`, a)
+	})
+
+	t.Run("works with io.Writer", func(t *testing.T) {
+		a := g.Attr("name", "<value>")
+
+		b := bytes.Buffer{}
+		w := writeOnly{&b}
+
+		err := a.Render(w)
+		if err != nil {
+			t.Fatalf("rendering error: %v", err)
+		}
+
+		const expected = ` name="&lt;value&gt;"`
+		got := b.String()
+		if expected != got {
+			t.Errorf("expected %q, got %q", expected, got)
+			t.Fail()
+		}
 	})
 }
 
@@ -179,6 +199,16 @@ func (w *stringWriter) Write(p []byte) (n int, err error) {
 
 func (w *stringWriter) WriteString(s string) (n int, err error) {
 	return w.w.Write([]byte(s))
+}
+
+// writeOnly is an [io.Writer] without a WriteString method, like a struct that embeds an
+// [io.Writer] and promotes only Write.
+type writeOnly struct {
+	w io.Writer
+}
+
+func (w writeOnly) Write(p []byte) (int, error) {
+	return w.w.Write(p)
 }
 
 func TestText(t *testing.T) {
