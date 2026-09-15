@@ -12,7 +12,7 @@ fuzz:
 	done
 
 .PHONY: cover
-cover:
+cover: cover.out
 	go tool cover -html=cover.out
 
 .PHONY: lint
@@ -21,4 +21,8 @@ lint:
 
 .PHONY: test
 test:
+	go test -shuffle on ./...
+
+.PHONY: cover.out
+cover.out:
 	go test -coverprofile=cover.out -shuffle on ./...
