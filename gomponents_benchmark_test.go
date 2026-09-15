@@ -11,16 +11,6 @@ import (
 	g "maragu.dev/gomponents"
 )
 
-// writeOnly is an [io.Writer] without a WriteString method, like a struct that embeds an
-// [io.Writer] and promotes only Write.
-type writeOnly struct {
-	w io.Writer
-}
-
-func (w writeOnly) Write(p []byte) (int, error) {
-	return w.w.Write(p)
-}
-
 // value returns n bytes of plain text with the given number of bytes, spread evenly,
 // swapped for ones that need escaping, cycling through the three most common.
 func value(n, escapes int) string {
