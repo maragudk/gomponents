@@ -317,6 +317,25 @@ func Textf(format string, a ...interface{}) Node {
 	return text(fmt.Sprintf(format, a...))
 }
 
+// Compile-time check that [text] implements [Node] and [nodeTypeDescriber].
+var _ interface {
+	Node
+	nodeTypeDescriber
+} = text("")
+
+// text is a text DOM [Node] that escapes the underlying string as it Renders, against the
+// writer rather than into a new string.
+type text string
+
+func (t text) Render(w io.Writer) error {
+	_, err := writeEscaped(w, string(t))
+	return err
+}
+
+func (t text) Type() NodeType {
+	return ElementType
+}
+
 // Compile-time check that [raw] implements [fmt.Stringer], [Node], and [nodeTypeDescriber].
 var _ interface {
 	fmt.Stringer
@@ -325,15 +344,6 @@ var _ interface {
 } = raw("")
 
 // raw is a text DOM [Node] that just Renders the unescaped, underlying string.
-// text is a string that escapes itself as it renders, so escaping happens against the
-// writer instead of into a new string.
-type text string
-
-func (t text) Render(w io.Writer) error {
-	_, err := writeEscaped(w, string(t))
-	return err
-}
-
 type raw string
 
 func (r raw) Render(w io.Writer) error {
