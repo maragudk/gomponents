@@ -219,7 +219,7 @@ func booleanAttr(name string) Node {
 }
 
 // htmlEscapeSet holds the characters that need escaping, and htmlEscaper is what escapes
-// them. Both are the six replacements [text/template.HTMLEscape] makes, and escapeString
+// them. Both are the six replacements [text/template.HTMLEscape] makes, and writeEscaped
 // is required by test to agree with [text/template.HTMLEscapeString] on every input.
 var htmlEscapeSet = [256]bool{0: true, '\'': true, '"': true, '&': true, '<': true, '>': true}
 
@@ -232,19 +232,12 @@ var htmlEscaper = strings.NewReplacer(
 	">", "&gt;",
 )
 
-// escapeString escapes the characters that HTML gives meaning to, deciding whether there is
-// anything to escape with a table built once rather than with [strings.ContainsAny], which
-// rebuilds an ASCII bitmap from its constant cutset on every call. Strings with nothing to
-// escape, which is nearly all of them, are returned untouched.
-func escapeString(s string) string {
-	for i := 0; i < len(s); i++ {
-		if htmlEscapeSet[s[i]] {
-			return htmlEscaper.Replace(s)
-		}
-	}
-	return s
-}
-
+// writeEscaped writes s to w with the characters that HTML gives meaning to escaped. It
+// decides whether there is anything to escape with a table built once rather than with
+// [strings.ContainsAny], which rebuilds an ASCII bitmap from its constant cutset on every
+// call, and strings with nothing to escape, which is nearly all of them, are written as they
+// are. When there is, an [io.StringWriter] gets the escaped runs streamed into it, and any
+// other writer gets one write of the escaped string.
 func writeEscaped(w io.Writer, s string) (int, error) {
 	for i := 0; i < len(s); i++ {
 		if htmlEscapeSet[s[i]] {
@@ -316,12 +309,39 @@ func (a attrFunc) String() string {
 
 // Text creates a text DOM [Node] that Renders the escaped string t.
 func Text(t string) Node {
-	return raw(escapeString(t))
+	return text(t)
 }
 
 // Textf creates a text DOM [Node] that Renders the interpolated and escaped string format.
 func Textf(format string, a ...interface{}) Node {
-	return raw(escapeString(fmt.Sprintf(format, a...)))
+	return text(fmt.Sprintf(format, a...))
+}
+
+// Compile-time check that [text] implements [fmt.Stringer], [Node], and [nodeTypeDescriber].
+var _ interface {
+	fmt.Stringer
+	Node
+	nodeTypeDescriber
+} = text("")
+
+// text is a text DOM [Node] that escapes the underlying string as it Renders, against the
+// writer rather than into a new string.
+type text string
+
+func (t text) Render(w io.Writer) error {
+	_, err := writeEscaped(w, string(t))
+	return err
+}
+
+// String satisfies [fmt.Stringer] with the escaped string.
+func (t text) String() string {
+	var b strings.Builder
+	_ = t.Render(&b)
+	return b.String()
+}
+
+func (t text) Type() NodeType {
+	return ElementType
 }
 
 // Compile-time check that [raw] implements [fmt.Stringer], [Node], and [nodeTypeDescriber].
