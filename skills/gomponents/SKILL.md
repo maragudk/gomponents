@@ -1,17 +1,17 @@
 ---
 name: gomponents
-description: Building, rendering, or editing any HTML or UI in a Go application means using gomponents — ALWAYS invoke this skill as your FIRST action, before any Read, Write, Edit, or Bash. This fires for any view, page, layout, component, form, table, navbar, footer, or list that renders to HTML; any function returning a `Node`; anything in the `html` package; and converting HTML or templates into Go. It is a hard requirement — the user writes all HTML through gomponents, a pure-Go component library whose conventions (dot imports, `Node` composition, `Map`/`If`/`Iff`, `Group`, HTML5 documents) ordinary Go and HTML habits get wrong. Load it even when a general Go skill also applies. Skip only when no HTML or view code is touched (pure database, handler, or business logic; plain `.css`/`.js`/`.html` files; conceptual questions with no code).
+description: Building, rendering, or editing any HTML or UI in a Go application means using gomponents — ALWAYS invoke this skill as your FIRST action, before any Read, Write, Edit, or Bash. This fires for any view, page, layout, component, form, table, navbar, footer, or list that renders to HTML; any function returning a `Node`; anything in the `html` package; and converting HTML or templates into Go. It is a hard requirement — the user writes all HTML through gomponents, a pure-Go component library whose conventions (dot imports, `Node` composition, `Map`/`If`/`Iff`, `Group`, HTML5 documents) ordinary Go and HTML habits get wrong. Skip only when no HTML or view code is touched (pure database, handler, or business logic; plain `.css`/`.js`/`.html` files; conceptual questions with no code).
 ---
 
 # gomponents
 
-gomponents is HTML components in pure Go. A view is a Go function that returns a `Node`, and a `Node` renders itself to an `io.Writer` as HTML5. There is no template language, no code generation, and no dependencies.
+gomponents is HTML components in pure Go. A component is a Go function that returns a `Node`, and a `Node` renders itself to an `io.Writer` as HTML5. There is no template language, no code generation, and no dependencies.
 
 ```sh
-go get maragu.dev/gomponents
+go get maragu.dev/gomponents@latest
 ```
 
-The import path is `maragu.dev/gomponents`, not the GitHub URL. It needs Go 1.18 or later. The API is stable and feature-complete: new elements and attributes get added, control-flow helpers such as `IfElse` do not. Keep small helpers like that in your own project.
+The import path is `maragu.dev/gomponents`, not the GitHub URL.
 
 ## Mental model
 
@@ -23,12 +23,30 @@ type Node interface {
 }
 ```
 
-Elements, attributes, text, and groups all implement it, and all are passed as children to the same variadic element functions. Four rules explain nearly all behaviour:
+Elements, attributes, text, and groups all implement it, and all are passed as children to the same variadic element functions. Three rules explain nearly all behaviour:
 
 1. **Attributes go in the tag, everything else between the tags.** An element renders its attribute children inside the opening tag and the rest between the tags, in whatever order you pass them. By convention, write attributes first.
 2. **`nil` children are skipped.** `If` depends on this: it returns `nil` when the condition is false.
-3. **Nodes are lazy.** Building a tree captures values in closures; nothing is written until `Render` runs. Build a fresh tree per request and render it straight to the response.
-4. **Nothing is added.** No whitespace appears between nodes: `Span(Text("a")), Span(Text("b"))` renders `<span>a</span><span>b</span>`. Add `Text(" ")` where inline spacing matters.
+3. **Building and rendering are separate.** Component calls run and build the tree; nothing is written until `Render` runs. Build a fresh tree per request and render it straight to the response.
+
+The core package provides these functions. Everything else is in the `html` and `components` packages.
+
+| Function | What it does |
+|---|---|
+| `Text(s)` / `Textf(format, args...)` | HTML-escaped text. The default for all content, and the only choice for anything user-controlled. |
+| `Raw(s)` / `Rawf(format, args...)` | Unescaped text. For markup you wrote yourself: inline SVG, `<script>` and `<style>` bodies. Never for user content. |
+| `Map(slice, func(T) Node) Group` | Turns a slice of data into nodes. Pass the result directly as a child; it is already a `Node`. |
+| `Group{...}` / `Group(nodes)` | A `[]Node` that renders as one node. Use it to return several siblings, or to pass a `children ...Node` slice on. |
+| `If(cond, node)` | `node` if `cond`, else `nil`. The node argument is evaluated either way. |
+| `Iff(cond, func() Node)` | Like `If`, but the function only runs when `cond` is true. |
+| `El(name, children...)` | Any element. Use it for elements the `html` package lacks: custom elements, or SVG children such as `El("path", Attr("d", "..."))`. |
+| `Attr(name)` / `Attr(name, value)` | Boolean or valued attribute. Use it for attributes the `html` package lacks: `Attr("hx-get", "/items")`, `Attr("onclick", "...")`. More than one value panics. |
+
+Element and attribute *names* are written verbatim, so they must be trusted compile-time values. Attribute *values*, `Text`, and `Textf` are escaped. Never build a name from user input, as in `Data(userKey, v)` or `El(tagFromRequest)`.
+
+Every built-in node implements `fmt.Stringer`, so `fmt.Println(node)` prints its HTML when debugging.
+
+One component using all of the above except `El` and `Attr`:
 
 ```go
 package html
@@ -39,96 +57,93 @@ import (
 	. "maragu.dev/gomponents/html"
 )
 
-func Navbar(authenticated bool, currentPath string) Node {
-	return Nav(Class("navbar"),
-		navbarLink("/", "Home", currentPath),
-		navbarLink("/about", "About", currentPath),
-		If(authenticated, navbarLink("/profile", "Profile", currentPath)),
-	)
+type NavLink struct {
+	Href, Text string
 }
 
-func navbarLink(href, name, currentPath string) Node {
-	return A(Href(href), Classes{"is-active": currentPath == href}, Text(name))
+type User struct {
+	Name   string
+	Unread int
+}
+
+// Navbar shows the site links and, for a logged-in user, their name and a log out link.
+// user is nil for a visitor.
+func Navbar(links []NavLink, currentPath string, user *User) Node {
+	return Nav(Class("navbar"),
+		// Map turns a slice into nodes, one per element.
+		Map(links, func(l NavLink) Node {
+			// Classes renders one class attribute from the keys that are true.
+			return A(Href(l.Href), Classes{"link": true, "is-active": l.Href == currentPath}, Text(l.Text))
+		}),
+
+		// If takes a ready-made node. user == nil is a plain bool, so building the node cannot fail.
+		If(user == nil, A(Href("/login"), Text("Log in"))),
+
+		// Iff takes a function, so user.Name only runs when user is not nil.
+		// Group returns several nodes as one.
+		Iff(user != nil, func() Node {
+			return Group{
+				Span(Textf("%v (%v unread)", user.Name, user.Unread)),
+				A(Href("/logout"), Text("Log out")),
+			}
+		}),
+
+		// Raw is for markup you wrote yourself, never for user content.
+		Raw(`<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="7"/></svg>`),
+	)
+}
+```
+
+## Common patterns
+
+- **`If` builds its node before checking the condition.** `If(user != nil, Text(user.Name))` panics when `user` is nil, because `user.Name` runs first. Use `Iff` when the node reads through a pointer, indexes a slice, or does work worth skipping.
+- **There is no `IfElse`.** Use two `If`s with opposite conditions, or a function with a `switch` when the branches are more than one node.
+- **`Map` has no index.** When you need one, keep a counter in the closure, or use `maragu.dev/gomponents/x/slices`, whose `Map` and `Filter` pass the index and return plain slices to spread with `...`. Packages under `x/` are experimental and may change, although they probably won't.
+- **Building blocks take `children ...Node`** and pass them on with `Group(children)`. Groups are transparent, so a caller's attributes (`ID`, `Attr("hx-target", ...)`) are placed on the root element: `input(Type("email"), Name("email"), Required())` needs no parameters of its own.
+- **Placement classes come from the caller.** A block used in several places takes a `class string` first and joins it with its own classes, as in the example below. Use `JoinAttrs` instead when callers pass attribute nodes rather than a string.
+- **One look, several elements: pass the element function.** `heading(H1, "", Text(title))` and `heading(Dt, "", Text(name))` share one style.
+- **Many options: use a props struct**, as `HTML5Props` does, rather than a long parameter list.
+- **Components take plain values.** Load data and handle errors before calling the component; `Render` fails only on a write error, so a component has no error path.
+- **Dynamic attributes** work like dynamic elements, because `nil` is skipped inside the tag too: `If(disabled, Disabled())`, `Classes{...}`, `Value(u.Email)`.
+- **Fragments** for htmx and similar are blocks rendered without the layout. Return a `Group` when a fragment has several root elements.
+- **`<script>` and `<style>` bodies need `Raw`.** `Text` would turn `&&` into `&amp;&amp;` and break the code. Keep user data out of those bodies; pass it through `Data` attributes instead, which are escaped and unescaped by the browser.
+- **Two `Class` calls make two attributes**, and the browser keeps only the first. Combine them into one string, use `Classes`, or use `JoinAttrs`.
+- **`Classes` sorts.** `Classes{"tier": true, "popular": true}` renders `class="popular tier"`. Fine for CSS, but a test that pins the exact string must expect the sorted order.
+- **Void elements silently ignore non-attribute children.** `Img(Text("x"))` renders `<img>` with no error.
+- **`Attr` with two or more values panics** at construction time, not at render time.
+
+```go
+func container(class string, children ...Node) Node {
+	return Div(classes(class, "mx-auto max-w-7xl px-6 lg:px-8"), Group(children))
+}
+
+func heading(el func(...Node) Node, class string, children ...Node) Node {
+	return el(classes(class, "text-4xl font-bold tracking-tight"), Group(children))
+}
+
+// classes puts the caller's placement classes before the block's own.
+func classes(own, base string) Node {
+	if own == "" {
+		return Class(base)
+	}
+	return Class(own + " " + base)
 }
 ```
 
 ## Imports and package layout
 
-Dot-import the three main packages so views read like HTML. This is the strongly preferred style unless the project already imports them another way. Whichever style the project uses, use it in every file that mentions a `Node`, handler files included: write `Node`, not `g.Node`.
+Dot-import the three main packages so components read like HTML. This is the strongly preferred style unless the project already imports them another way. Whichever style the project uses, use it in every file that mentions a `Node`, handler files included: write `Node`, not `g.Node`.
 
-Put views in a package named `html`, as the gomponents example app and starter kit do, unless the project already has a views package under another name. A package named `html` can dot-import `maragu.dev/gomponents/html` without conflict.
+Put components in a package named `html`, unless the project already has one under another name. A package named `html` can dot-import `maragu.dev/gomponents/html` without conflict.
 
-Inside that package, export only what another package uses, which is usually just the pages:
+Inside that package, export only what another package uses, which is usually just the pages and fragments:
 
-- **Exported pages** are named `XxxPage` and take a props struct: `func LoginPage(props LoginPageProps) Node`.
+- **Exported pages and fragments** are named for what they are and take a props struct: `func LoginPage(props LoginPageProps) Node`, `func UserRow(u User) Node`.
 - **Unexported building blocks** are named in lower case after the element they wrap: `button`, `input`, `label`, `a`, `card`, `container`. Lower-case names cannot collide with the dot-imported `Button`, `Input`, `Label`, and `A`. When a block does need exporting, give it a specific name (`SubmitButton`, not `Button`) rather than dropping the dot import.
-
-`staticcheck` flags dot imports by default, so whitelist them in `.golangci.yml`:
-
-```yaml
-version: "2"
-linters:
-  settings:
-    staticcheck:
-      dot-import-whitelist:
-        - "maragu.dev/gomponents"
-        - "maragu.dev/gomponents/components"
-        - "maragu.dev/gomponents/html"
-```
 
 The `http` package clashes with `net/http`, so alias it: `ghttp "maragu.dev/gomponents/http"`.
 
-## Core package: `maragu.dev/gomponents`
-
-| Function | What it does |
-|---|---|
-| `El(name, children...)` | Any element. Use it for elements the `html` package lacks: custom elements, or SVG children such as `El("path", Attr("d", "..."))`. |
-| `Attr(name)` / `Attr(name, value)` | Boolean or valued attribute. Use it for attributes the `html` package lacks: `Attr("hx-get", "/items")`, `Attr("onclick", "...")`. More than one value panics. |
-| `Text(s)` / `Textf(format, args...)` | HTML-escaped text. The default for all content, and the only choice for anything user-controlled. |
-| `Raw(s)` / `Rawf(format, args...)` | Unescaped text. For markup you wrote yourself: inline SVG, `<script>` and `<style>` bodies, entities like `&copy;`. Never for user content. |
-| `Map(slice, func(T) Node) Group` | Turns a slice of data into nodes. Pass the result directly as a child; it is already a `Node`. |
-| `Group{...}` / `Group(nodes)` | A `[]Node` that renders as one node. Use it to return several siblings, or to pass a `children ...Node` slice on. |
-| `If(cond, node)` | `node` if `cond`, else `nil`. The node argument is evaluated either way. |
-| `Iff(cond, func() Node)` | Like `If`, but the function only runs when `cond` is true. |
-
-Element and attribute *names* are written verbatim, so they must be trusted compile-time values. Attribute *values*, `Text`, and `Textf` are escaped. Never build a name from user input, as in `Data(userKey, v)` or `El(tagFromRequest)`.
-
-Every built-in node implements `fmt.Stringer`, so `fmt.Println(node)` prints its HTML when debugging.
-
-### `If` evaluates eagerly, `Iff` doesn't
-
-`If` is a plain function call, so Go builds its second argument before `If` sees the condition. When that argument reads through a nil pointer, it panics:
-
-```go
-var user *User // nil when nobody is logged in
-
-// Panics when user is nil: user.Name runs before If checks the condition.
-If(user != nil, Text(user.Name))
-
-// Safe: the function only runs when the condition is true.
-Iff(user != nil, func() Node { return Text(user.Name) })
-```
-
-Use `If` when building the node is cheap and cannot fail. Use `Iff` when the node reads through a pointer, indexes a slice, or does work worth skipping.
-
-### Conditionals and loops
-
-There is no `IfElse`, on purpose. Use two `If`s with opposite conditions, or a function with a `switch` when the branches are more than one node:
-
-```go
-P(
-	If(ok, Text("Saved.")),
-	If(!ok, Text("Something went wrong.")),
-)
-```
-
-`Map` has no index. When you need one, keep a counter in the closure, or use the experimental `maragu.dev/gomponents/x/slices` package, whose `Map` and `Filter` pass the index and return plain slices to spread with `...`. Packages under `x/` may change without notice.
-
-```go
-Ul(Map(items, func(item Item) Node {
-	return Li(Text(item.Name))
-}))
-```
+For linter setup, see `references/linting.md`.
 
 ## The `html` package: elements and attributes
 
@@ -226,42 +241,6 @@ mux.Handle("GET /users/{id}", ghttp.Adapt(func(w http.ResponseWriter, r *http.Re
 	return html.UserPage(u), nil
 }))
 ```
-
-## Common patterns
-
-- **Building blocks take `children ...Node`** and pass them on with `Group(children)`. Groups are transparent, so a caller's attributes (`ID`, `Attr("hx-target", ...)`) are placed on the root element: `input(Type("email"), Name("email"), Required())` needs no parameters of its own.
-- **Placement classes come from the caller.** A block used in several places takes a `class string` first and joins it with its own classes. Use `JoinAttrs` instead when callers pass attribute nodes rather than a string.
-- **One look, several elements: pass the element function.** `heading(H1, "", Text(title))` and `heading(Dt, "", Text(name))` share one style.
-- **Many options: use a props struct**, as `HTML5Props` does, rather than a long parameter list.
-- **Views take plain values.** Load data and handle errors before calling the view; `Render` fails only on a write error, so a component has no error path.
-- **Dynamic attributes** work like dynamic elements, because `nil` is skipped inside the tag too: `If(disabled, Disabled())`, `Classes{...}`, `Value(u.Email)`.
-- **Fragments** for htmx and similar are blocks rendered without the layout. Return a `Group` when a fragment has several root elements.
-
-```go
-func container(class string, children ...Node) Node {
-	return Div(classes(class, "mx-auto max-w-7xl px-6 lg:px-8"), Group(children))
-}
-
-func heading(el func(...Node) Node, class string, children ...Node) Node {
-	return el(classes(class, "text-4xl font-bold tracking-tight"), Group(children))
-}
-
-// classes puts the caller's placement classes before the block's own.
-func classes(own, base string) Node {
-	if own == "" {
-		return Class(base)
-	}
-	return Class(own + " " + base)
-}
-```
-
-## Gotchas
-
-- **`<script>` and `<style>` bodies need `Raw`.** `Text` would turn `&&` into `&amp;&amp;` and break the code. Keep user data out of those bodies; pass it through `Data` attributes instead, which are escaped and unescaped by the browser.
-- **Two `Class` calls make two attributes.** Combine them into one string, use `Classes`, or use `JoinAttrs`.
-- **Void elements silently ignore non-attribute children.** `Img(Text("x"))` renders `<img>` with no error.
-- **`Attr` with two or more values panics** at construction time, not at render time.
-- **`Classes` sorts.** `Classes{"tier": true, "popular": true}` renders `class="popular tier"`. Fine for CSS, but a test that pins the exact string must expect the sorted order.
 
 ## Testing components
 
