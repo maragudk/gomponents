@@ -23,30 +23,34 @@ type Node interface {
 }
 ```
 
-Elements, attributes, text, and groups all implement it, and all are passed as children to the same variadic element functions. Three rules explain nearly all behaviour:
+Elements, attributes, and text all implement it, and all are passed as children to the same variadic element functions. The result is a DSL for HTML that is also valid Go: an element function takes children, an attribute function takes a value, and nesting calls mirrors nesting tags. Attribute children go in the tag and everything else goes between the tags, whatever order you pass them in; by convention, write attributes first.
 
-1. **Attributes go in the tag, everything else between the tags.** An element renders its attribute children inside the opening tag and the rest between the tags, in whatever order you pass them. By convention, write attributes first.
-2. **`nil` children are skipped.** `If` depends on this: it returns `nil` when the condition is false.
-3. **Building and rendering are separate.** Component calls run and build the tree; nothing is written until `Render` runs. Build a fresh tree per request and render it straight to the response.
+```html
+<a href="/about" class="nav-link">About</a>
+```
+
+```go
+A(Href("/about"), Class("nav-link"), Text("About"))
+```
+
+You write it declaratively, but a component is an ordinary function and can be as imperative as it needs to be.
 
 The core package provides these functions. Everything else is in the `html` and `components` packages.
 
 | Function | What it does |
 |---|---|
 | `Text(s)` / `Textf(format, args...)` | HTML-escaped text. The default for all content, and the only choice for anything user-controlled. |
-| `Raw(s)` / `Rawf(format, args...)` | Unescaped text. For markup you wrote yourself: inline SVG, `<script>` and `<style>` bodies. Never for user content. |
-| `Map(slice, func(T) Node) Group` | Turns a slice of data into nodes. Pass the result directly as a child; it is already a `Node`. |
+| `Raw(s)` / `Rawf(format, args...)` | Unescaped text. For markup you wrote yourself: inline SVG, `<script>` and `<style>` bodies. Never for unsanitized user content. |
+| `Map(slice, func(T) Node) Group` | Turns a slice of data into nodes. |
 | `Group{...}` / `Group(nodes)` | A `[]Node` that renders as one node. Use it to return several siblings, or to pass a `children ...Node` slice on. |
-| `If(cond, node)` | `node` if `cond`, else `nil`. The node argument is evaluated either way. |
+| `If(cond, node)` | `node` if `cond`, else `nil`, and `nil` children are skipped. The node argument is evaluated either way. |
 | `Iff(cond, func() Node)` | Like `If`, but the function only runs when `cond` is true. |
 | `El(name, children...)` | Any element. Use it for elements the `html` package lacks: custom elements, or SVG children such as `El("path", Attr("d", "..."))`. |
 | `Attr(name)` / `Attr(name, value)` | Boolean or valued attribute. Use it for attributes the `html` package lacks: `Attr("hx-get", "/items")`, `Attr("onclick", "...")`. More than one value panics. |
 
 Element and attribute *names* are written verbatim, so they must be trusted compile-time values. Attribute *values*, `Text`, and `Textf` are escaped. Never build a name from user input, as in `Data(userKey, v)` or `El(tagFromRequest)`.
 
-Every built-in node implements `fmt.Stringer`, so `fmt.Println(node)` prints its HTML when debugging.
-
-One component using all of the above except `El` and `Attr`:
+An example component using all of the above except `El` and `Attr`:
 
 ```go
 package html
@@ -99,36 +103,15 @@ func Navbar(links []NavLink, currentPath string, user *User) Node {
 - **`If` builds its node before checking the condition.** `If(user != nil, Text(user.Name))` panics when `user` is nil, because `user.Name` runs first. Use `Iff` when the node reads through a pointer, indexes a slice, or does work worth skipping.
 - **There is no `IfElse`.** Use two `If`s with opposite conditions, or a function with a `switch` when the branches are more than one node.
 - **`Map` has no index.** When you need one, keep a counter in the closure, or use `maragu.dev/gomponents/x/slices`, whose `Map` and `Filter` pass the index and return plain slices to spread with `...`. Packages under `x/` are experimental and may change, although they probably won't.
-- **Building blocks take `children ...Node`** and pass them on with `Group(children)`. Groups are transparent, so a caller's attributes (`ID`, `Attr("hx-target", ...)`) are placed on the root element: `input(Type("email"), Name("email"), Required())` needs no parameters of its own.
-- **Placement classes come from the caller.** A block used in several places takes a `class string` first and joins it with its own classes, as in the example below. Use `JoinAttrs` instead when callers pass attribute nodes rather than a string.
-- **One look, several elements: pass the element function.** `heading(H1, "", Text(title))` and `heading(Dt, "", Text(name))` share one style.
-- **Many options: use a props struct**, as `HTML5Props` does, rather than a long parameter list.
-- **Components take plain values.** Load data and handle errors before calling the component; `Render` fails only on a write error, so a component has no error path.
+- **Building blocks take `children ...Node`** and pass them on with `Group(children)`. Groups are transparent, so a caller's attributes (`ID`, `Name`) are placed on the root element. A block like `input(children ...Node)` that only adds classes to `Input` needs no parameters, because callers pass `Type("email")`, `Name("email")`, or `Required()` as children and they land on the input.
+- **Callers add classes through `JoinAttrs`.** A block joins its own `Class` with whatever the caller passes, so `card(Class("mt-4"), ...)` renders one `class` attribute. See the `components` package below.
 - **Dynamic attributes** work like dynamic elements, because `nil` is skipped inside the tag too: `If(disabled, Disabled())`, `Classes{...}`, `Value(u.Email)`.
-- **Fragments** for htmx and similar are blocks rendered without the layout. Return a `Group` when a fragment has several root elements.
+- **Fragments** are components rendered without the layout. Return a `Group` when a fragment has several root elements.
+- **Print a node to see its HTML.** Every built-in node implements `fmt.Stringer`, so `fmt.Println(node)` works when debugging.
 - **`<script>` and `<style>` bodies need `Raw`.** `Text` would turn `&&` into `&amp;&amp;` and break the code. Keep user data out of those bodies; pass it through `Data` attributes instead, which are escaped and unescaped by the browser.
 - **Two `Class` calls make two attributes**, and the browser keeps only the first. Combine them into one string, use `Classes`, or use `JoinAttrs`.
 - **`Classes` sorts.** `Classes{"tier": true, "popular": true}` renders `class="popular tier"`. Fine for CSS, but a test that pins the exact string must expect the sorted order.
 - **Void elements silently ignore non-attribute children.** `Img(Text("x"))` renders `<img>` with no error.
-- **`Attr` with two or more values panics** at construction time, not at render time.
-
-```go
-func container(class string, children ...Node) Node {
-	return Div(classes(class, "mx-auto max-w-7xl px-6 lg:px-8"), Group(children))
-}
-
-func heading(el func(...Node) Node, class string, children ...Node) Node {
-	return el(classes(class, "text-4xl font-bold tracking-tight"), Group(children))
-}
-
-// classes puts the caller's placement classes before the block's own.
-func classes(own, base string) Node {
-	if own == "" {
-		return Class(base)
-	}
-	return Class(own + " " + base)
-}
-```
 
 ## Imports and package layout
 
@@ -244,7 +227,7 @@ mux.Handle("GET /users/{id}", ghttp.Adapt(func(w http.ResponseWriter, r *http.Re
 
 ## Testing components
 
-Test exported pages and components: one `TestComponent` function per exported component, with subtests for one happy path, the error cases, and the edge cases. Test what matters in each: the branch that depends on input, the value that must be escaped, the link that appears for one kind of user and not another. An expected string for a whole page restates the component and breaks on every unrelated change, so reserve exact-string comparison for small blocks and fragments, even when converting existing HTML. gomponents has no public test helpers, so render to a `strings.Builder` through a small helper and check with `strings.Contains`:
+Test exported pages and components: one `TestComponent` function per exported component, with subtests for one happy path, the error cases, and the edge cases. Test what matters in each: the branch that depends on input, the value that must be escaped, the link that appears for one kind of user and not another. An expected string for a whole page restates the component and breaks on every unrelated change, so reserve exact-string comparison for small blocks and fragments, even when converting existing HTML. Programming errors in a component, such as `Attr` given two values, panic when the component is built, so rendering each component in a test catches them. gomponents has no public test helpers, so render to a `strings.Builder` through a small helper and check with `strings.Contains`:
 
 ```go
 func TestNavbar(t *testing.T) {
