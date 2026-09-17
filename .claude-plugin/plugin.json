@@ -2,7 +2,7 @@
   "name": "gomponents",
   "description": "Write HTML in Go with gomponents.",
   "author": {
-    "name": "Markus Wüstenberg",
+    "name": "Maragu ApS",
     "email": "markus@maragu.dk"
   }
 }
