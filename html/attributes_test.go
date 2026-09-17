@@ -35,8 +35,16 @@ func TestBooleanAttributes(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			n := g.El("div", test.Func())
-			assert.Equal(t, fmt.Sprintf(`<div %v></div>`, test.Name), n)
+			t.Run("renders as a name-only attribute", func(t *testing.T) {
+				n := g.El("div", test.Func())
+				assert.Equal(t, fmt.Sprintf(`<div %v></div>`, test.Name), n)
+			})
+
+			t.Run("allocates nothing, ever", func(t *testing.T) {
+				assertNoAllocs(t, func() {
+					sink = test.Func()
+				})
+			})
 		})
 	}
 }

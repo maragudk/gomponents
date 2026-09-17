@@ -5,24 +5,34 @@ import (
 )
 
 func Async() g.Node {
-	return g.Attr("async")
+	return asyncAttr
 }
+
+var asyncAttr = g.Attr("async")
 
 func AutoFocus() g.Node {
-	return g.Attr("autofocus")
+	return autofocusAttr
 }
+
+var autofocusAttr = g.Attr("autofocus")
 
 func AutoPlay() g.Node {
-	return g.Attr("autoplay")
+	return autoplayAttr
 }
+
+var autoplayAttr = g.Attr("autoplay")
 
 func Checked() g.Node {
-	return g.Attr("checked")
+	return checkedAttr
 }
 
+var checkedAttr = g.Attr("checked")
+
 func Controls() g.Node {
-	return g.Attr("controls")
+	return controlsAttr
 }
+
+var controlsAttr = g.Attr("controls")
 
 func CrossOrigin(v string) g.Node {
 	return g.Attr("crossorigin", v)
@@ -33,12 +43,16 @@ func DateTime(v string) g.Node {
 }
 
 func Defer() g.Node {
-	return g.Attr("defer")
+	return deferAttr
 }
 
+var deferAttr = g.Attr("defer")
+
 func Disabled() g.Node {
-	return g.Attr("disabled")
+	return disabledAttr
 }
+
+var disabledAttr = g.Attr("disabled")
 
 func Download(v string) g.Node {
 	return g.Attr("download", v)
@@ -49,40 +63,58 @@ func Draggable(v string) g.Node {
 }
 
 func Inert() g.Node {
-	return g.Attr("inert")
+	return inertAttr
 }
+
+var inertAttr = g.Attr("inert")
 
 func Loop() g.Node {
-	return g.Attr("loop")
+	return loopAttr
 }
+
+var loopAttr = g.Attr("loop")
 
 func Multiple() g.Node {
-	return g.Attr("multiple")
+	return multipleAttr
 }
+
+var multipleAttr = g.Attr("multiple")
 
 func Muted() g.Node {
-	return g.Attr("muted")
+	return mutedAttr
 }
+
+var mutedAttr = g.Attr("muted")
 
 func Open() g.Node {
-	return g.Attr("open")
+	return openAttr
 }
+
+var openAttr = g.Attr("open")
 
 func PlaysInline() g.Node {
-	return g.Attr("playsinline")
+	return playsinlineAttr
 }
+
+var playsinlineAttr = g.Attr("playsinline")
 
 func ReadOnly() g.Node {
-	return g.Attr("readonly")
+	return readonlyAttr
 }
+
+var readonlyAttr = g.Attr("readonly")
 
 func Required() g.Node {
-	return g.Attr("required")
+	return requiredAttr
 }
 
+var requiredAttr = g.Attr("required")
+
 func Selected() g.Node {
-	return g.Attr("selected")
+	return selectedAttr
 }
+
+var selectedAttr = g.Attr("selected")
 
 func Accept(v string) g.Node {
 	return g.Attr("accept", v)
@@ -194,8 +226,10 @@ func FormMethod(v string) g.Node {
 }
 
 func FormNoValidate() g.Node {
-	return g.Attr("formnovalidate")
+	return formnovalidateAttr
 }
+
+var formnovalidateAttr = g.Attr("formnovalidate")
 
 func FormTarget(v string) g.Node {
 	return g.Attr("formtarget", v)

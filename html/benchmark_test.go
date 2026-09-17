@@ -17,6 +17,24 @@ import (
 // handler's [http.ResponseWriter], its bufferBeforeChunkingSize.
 const responseBufferSize = 2048
 
+func BenchmarkElement(b *testing.B) {
+	b.Run("element without children", func(b *testing.B) {
+		for b.Loop() {
+			e := Br()
+			_ = e.Render(io.Discard)
+		}
+	})
+}
+
+func BenchmarkBooleanAttribute(b *testing.B) {
+	b.Run("boolean attribute", func(b *testing.B) {
+		for b.Loop() {
+			a := Async()
+			_ = a.Render(io.Discard)
+		}
+	})
+}
+
 // BenchmarkRealisticPage benchmarks rendering a full, realistic HTML page
 // resembling a typical web application dashboard with navigation, sidebar,
 // content cards, a data table, and a footer.
