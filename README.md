@@ -131,7 +131,7 @@ That said, both `html/template` and Templ will do the same thing as gomponents i
 ### Is gomponents fast?
 
 Yes. gomponents renders directly to an `io.Writer`, making it efficient for server-side rendering.
-The library avoids unnecessary allocations where possible.
+The library avoids unnecessary memory allocations where possible.
 There's also an extensive benchmark suite to keep it that way, which you can run with `make benchmark`.
 
 Some highlights from an Apple M4, constructing and rendering to `io.Discard`:
