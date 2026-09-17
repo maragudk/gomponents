@@ -134,6 +134,21 @@ Yes. gomponents renders directly to an `io.Writer`, making it efficient for serv
 The library avoids unnecessary allocations where possible.
 There's also an extensive benchmark suite to keep it that way, which you can run with `make benchmark`.
 
+Some highlights from an Apple M4, constructing and rendering to `io.Discard`:
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| `El`, normal element | 17 | 48 | 1 |
+| `Attr`, boolean | 11 | 24 | 1 |
+| `Attr`, short value | 20 | 48 | 1 |
+| `Text`, short text | 14 | 16 | 1 |
+| `Textf` | 44 | 40 | 2 |
+| `Raw` | 3 | 0 | 0 |
+| `Rawf` | 38 | 40 | 2 |
+| `components.JoinAttrs` | 302 | 512 | 10 |
+| Realistic full page | 68624 | 129686 | 3044 |
+| Realistic full page, pre-built tree | 44298 | 1408 | 18 |
+
 ### I don't like how HTML looks in Go.
 
 First of all, that's not a question. 😉
