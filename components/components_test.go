@@ -4,6 +4,10 @@ import (
 	"errors"
 	"io"
 	"os"
+	"runtime"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	g "maragu.dev/gomponents"
@@ -274,4 +278,305 @@ func TestJoinAttrs(t *testing.T) {
 		n := Div(JoinAttrs("class", g.Group{g.Text("a"), g.Group{Class("x"), g.Text("b")}, Class("y")}))
 		assert.Equal(t, `<div class="x y">ab</div>`, n)
 	})
+}
+
+// failingWriter fails every write.
+type failingWriter struct{}
+
+func (failingWriter) Write([]byte) (int, error) {
+	return 0, errors.New("no thanks")
+}
+
+func TestStatic(t *testing.T) {
+	t.Run("renders the node once and reuses the cached HTML on later renders", func(t *testing.T) {
+		var slot string
+		var renders int32
+		child := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&renders, 1)
+			_, err := io.WriteString(w, `<p class="hat">Party hat</p>`)
+			return err
+		})
+
+		// A new Static call each time, like a component called per request.
+		for i := 0; i < 3; i++ {
+			assert.Equal(t, `<p class="hat">Party hat</p>`, Static(&slot, child))
+		}
+
+		if renders != 1 {
+			t.Fatalf("expected 1 render, got %v", renders)
+		}
+		if slot != `<p class="hat">Party hat</p>` {
+			t.Fatalf("expected the slot to hold the HTML, got %q", slot)
+		}
+	})
+
+	t.Run("returns a render error, leaves the slot empty, and retries on the next render", func(t *testing.T) {
+		var slot string
+		var renders int32
+		child := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&renders, 1)
+			return errors.New("oh no")
+		})
+
+		for i := 0; i < 2; i++ {
+			err := Static(&slot, child).Render(io.Discard)
+			assert.Error(t, err)
+			if slot != "" {
+				t.Fatalf("expected an empty slot after a render error, got %q", slot)
+			}
+		}
+
+		if renders != 2 {
+			t.Fatalf("expected 2 renders, got %v", renders)
+		}
+	})
+
+	t.Run("returns a write error but keeps the cache and does not render the node again", func(t *testing.T) {
+		var slot string
+		var renders int32
+		child := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&renders, 1)
+			_, err := io.WriteString(w, "<p>hat</p>")
+			return err
+		})
+
+		err := Static(&slot, child).Render(failingWriter{})
+		assert.Error(t, err)
+		if slot != "<p>hat</p>" {
+			t.Fatalf("expected the slot to be filled despite the write error, got %q", slot)
+		}
+
+		assert.Equal(t, "<p>hat</p>", Static(&slot, child))
+		if renders != 1 {
+			t.Fatalf("expected 1 render, got %v", renders)
+		}
+	})
+
+	t.Run("renders a node with empty output every time", func(t *testing.T) {
+		var slot string
+		var renders int32
+		child := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&renders, 1)
+			return nil
+		})
+
+		for i := 0; i < 3; i++ {
+			assert.Equal(t, "", Static(&slot, child))
+		}
+
+		if renders != 3 {
+			t.Fatalf("expected 3 renders, got %v", renders)
+		}
+	})
+
+	t.Run("renders the node once when many goroutines render the same slot concurrently", func(t *testing.T) {
+		const goroutines = 64
+
+		var slot string
+		var renders, entered int32
+		release := make(chan struct{})
+		child := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&renders, 1)
+			// Hold the lock until every goroutine has called Render, so they all pile up on it.
+			<-release
+			_, err := io.WriteString(w, "<p>hat</p>")
+			return err
+		})
+
+		outputs := make([]string, goroutines)
+		errs := make([]error, goroutines)
+		var wg sync.WaitGroup
+		for i := 0; i < goroutines; i++ {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				var b strings.Builder
+				atomic.AddInt32(&entered, 1)
+				errs[i] = Static(&slot, child).Render(&b)
+				outputs[i] = b.String()
+			}(i)
+		}
+
+		for atomic.LoadInt32(&entered) < goroutines {
+			runtime.Gosched()
+		}
+		close(release)
+		wg.Wait()
+
+		for i := 0; i < goroutines; i++ {
+			if errs[i] != nil {
+				t.Fatalf("goroutine %v got error %v", i, errs[i])
+			}
+			if outputs[i] != "<p>hat</p>" {
+				t.Fatalf("goroutine %v got %q", i, outputs[i])
+			}
+		}
+		if renders != 1 {
+			t.Fatalf("expected 1 render, got %v", renders)
+		}
+	})
+
+	t.Run("lets readers of a filled slot finish while another slot's first render is blocked", func(t *testing.T) {
+		// The RWMutex is shared by all slots, so readers arriving while a writer holds it wait
+		// until the writer is done. This asserts that everyone finishes with the right output,
+		// not that readers proceed during the write.
+		const readers = 32
+
+		var slotA, slotB string
+		var rendersA, rendersB int32
+		childA := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&rendersA, 1)
+			_, err := io.WriteString(w, "<p>a</p>")
+			return err
+		})
+		assert.Equal(t, "<p>a</p>", Static(&slotA, childA))
+
+		started := make(chan struct{})
+		release := make(chan struct{})
+		var startedOnce sync.Once
+		childB := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&rendersB, 1)
+			startedOnce.Do(func() { close(started) })
+			<-release
+			_, err := io.WriteString(w, "<p>b</p>")
+			return err
+		})
+
+		var wg sync.WaitGroup
+		wg.Add(1)
+		var outputB string
+		var errB error
+		go func() {
+			defer wg.Done()
+			var b strings.Builder
+			errB = Static(&slotB, childB).Render(&b)
+			outputB = b.String()
+		}()
+		// Now the writer holds the lock, inside childB.
+		<-started
+
+		outputs := make([]string, readers)
+		errs := make([]error, readers)
+		var entered int32
+		for i := 0; i < readers; i++ {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				var b strings.Builder
+				atomic.AddInt32(&entered, 1)
+				errs[i] = Static(&slotA, childA).Render(&b)
+				outputs[i] = b.String()
+			}(i)
+		}
+		for atomic.LoadInt32(&entered) < readers {
+			runtime.Gosched()
+		}
+		close(release)
+		wg.Wait()
+
+		if errB != nil {
+			t.Fatal("writer got error:", errB)
+		}
+		if outputB != "<p>b</p>" {
+			t.Fatalf("writer got %q", outputB)
+		}
+		for i := 0; i < readers; i++ {
+			if errs[i] != nil {
+				t.Fatalf("reader %v got error %v", i, errs[i])
+			}
+			if outputs[i] != "<p>a</p>" {
+				t.Fatalf("reader %v got %q", i, outputs[i])
+			}
+		}
+		if rendersA != 1 {
+			t.Fatalf("expected 1 render of a, got %v", rendersA)
+		}
+		if rendersB != 1 {
+			t.Fatalf("expected 1 render of b, got %v", rendersB)
+		}
+	})
+
+	t.Run("renders an empty slot once when its readers wake together after another slot's first render", func(t *testing.T) {
+		// Readers of the empty slot A queue behind the writer on slot B. When it unlocks, they
+		// all wake, all see the empty slot, and all try to become the writer; one renders and
+		// the rest find the slot filled when they get the lock.
+		const readers = 32
+
+		var slotA, slotB string
+		var rendersA, rendersB int32
+		childA := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&rendersA, 1)
+			_, err := io.WriteString(w, "<p>a</p>")
+			return err
+		})
+
+		started := make(chan struct{})
+		release := make(chan struct{})
+		var startedOnce sync.Once
+		childB := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&rendersB, 1)
+			startedOnce.Do(func() { close(started) })
+			<-release
+			_, err := io.WriteString(w, "<p>b</p>")
+			return err
+		})
+
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var b strings.Builder
+			if err := Static(&slotB, childB).Render(&b); err != nil || b.String() != "<p>b</p>" {
+				t.Errorf("writer got %q, %v", b.String(), err)
+			}
+		}()
+		<-started
+
+		outputs := make([]string, readers)
+		errs := make([]error, readers)
+		var entered int32
+		for i := 0; i < readers; i++ {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				var b strings.Builder
+				atomic.AddInt32(&entered, 1)
+				errs[i] = Static(&slotA, childA).Render(&b)
+				outputs[i] = b.String()
+			}(i)
+		}
+		for atomic.LoadInt32(&entered) < readers {
+			runtime.Gosched()
+		}
+		close(release)
+		wg.Wait()
+
+		for i := 0; i < readers; i++ {
+			if errs[i] != nil {
+				t.Fatalf("reader %v got error %v", i, errs[i])
+			}
+			if outputs[i] != "<p>a</p>" {
+				t.Fatalf("reader %v got %q", i, outputs[i])
+			}
+		}
+		if rendersA != 1 {
+			t.Fatalf("expected 1 render of a, got %v", rendersA)
+		}
+		if rendersB != 1 {
+			t.Fatalf("expected 1 render of b, got %v", rendersB)
+		}
+	})
+}
+
+// head is the cache slot for [ExampleStatic]. In an application, it is a package-level variable
+// next to the component that uses it.
+var head string
+
+func ExampleStatic() {
+	e := HTML(
+		Static(&head, Head(TitleEl(g.Text("My site")), Link(Rel("stylesheet"), Href("/app.css")))),
+		Body(g.Text("Hello")),
+	)
+	_ = e.Render(os.Stdout)
+	// Output: <html><head><title>My site</title><link rel="stylesheet" href="/app.css"></head><body>Hello</body></html>
 }
