@@ -36,7 +36,7 @@ Check out [www.gomponents.com](https://www.gomponents.com) for an introduction o
   - `Raw` and `Rawf` for inserting raw strings,
   - `Map` for mapping data to components and `Group` for grouping components,
   - `If`/`Iff` for conditional rendering,
-  - and `components.Static` for caching static element trees.
+  - and `components.Static` for caching the rendered HTML of static element trees.
 - No external dependencies
 - Mature and stable, no breaking changes
 

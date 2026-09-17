@@ -74,9 +74,9 @@ func BenchmarkJoinAttrs(b *testing.B) {
 // with a couple of dozen links, the kind of thing [Static] is for. It is built anew on each call,
 // like a component called per request.
 func staticTree() g.Node {
-	links := make([]g.Node, 0, 24)
-	for i := 0; i < 24; i++ {
-		links = append(links, Li(A(Href("/docs/section-"+strconv.Itoa(i)), Class("nav-link"), g.Text("Section "+strconv.Itoa(i)))))
+	links := make([]g.Node, 24)
+	for i := range links {
+		links[i] = Li(A(Href("/docs/section-"+strconv.Itoa(i)), Class("nav-link"), g.Text("Section "+strconv.Itoa(i))))
 	}
 	return g.Group{
 		Head(
@@ -92,8 +92,8 @@ func staticTree() g.Node {
 }
 
 func BenchmarkStatic(b *testing.B) {
-	// The buffered writer is the size of the [bufio.Writer] that net/http puts in front of a
-	// handler's response writer.
+	// The buffered writer makes the many short writes of a direct render cost something, unlike
+	// [io.Discard], and is the size of the buffer net/http puts in front of a response writer.
 	writers := []struct {
 		Name string
 		New  func() io.Writer

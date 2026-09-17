@@ -199,13 +199,19 @@ var staticMutex sync.RWMutex
 // Static renders node once into the string pointed to by s and writes the cached HTML on every later render.
 // Use it for large element trees that are the same on every render: the tree must not depend on request data,
 // user data, or any other changing state, because only the first render is ever written out.
+// Note that node is still constructed on every call; only its rendering is skipped.
 //
 // s is the cache slot and should be a package-level variable. Each call site needs its own slot;
-// two call sites sharing one would render whichever tree came first. Reset a slot to the empty string
-// to render the tree again.
+// two call sites sharing one would render whichever tree came first. A slot can be reset to the empty
+// string to render the tree again, but only while nothing is rendering, for example in tests,
+// because Static does not synchronize with writes to the slot made outside of it.
 //
 // A render error from node is returned and nothing is cached, so the next render tries again.
-// An empty render result is never cached either, so a tree that renders to nothing is rendered every time.
+// An empty render result, including a nil node, is never cached either, so a tree that renders to nothing
+// is rendered every time.
+//
+// The first render of a slot holds a lock shared by all slots while node renders, so node must not
+// contain another Static, and a slow first render briefly delays other slots.
 //
 // The returned node is an element node, so don't use it for attributes.
 //
@@ -219,17 +225,17 @@ var staticMutex sync.RWMutex
 func Static(s *string, node g.Node) g.Node {
 	return g.NodeFunc(func(w io.Writer) error {
 		staticMutex.RLock()
-		html := *s
+		cached := *s
 		staticMutex.RUnlock()
 
-		if html == "" {
+		if cached == "" {
 			var err error
-			if html, err = renderStatic(s, node); err != nil {
+			if cached, err = renderStatic(s, node); err != nil {
 				return err
 			}
 		}
 
-		_, err := io.WriteString(w, html)
+		_, err := io.WriteString(w, cached)
 		return err
 	})
 }
@@ -241,6 +247,10 @@ func renderStatic(s *string, node g.Node) (string, error) {
 
 	if *s != "" {
 		return *s, nil
+	}
+
+	if node == nil {
+		return "", nil
 	}
 
 	var b strings.Builder
