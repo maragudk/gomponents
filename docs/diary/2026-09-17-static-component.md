@@ -94,3 +94,47 @@ The deadlock the reviewers found is inherent to the specified design, not a slip
 ### Future work
 
 Decide between rendering outside the lock (nesting works, no user code under the global lock, benign duplicate renders on a cold start) and keeping exactly-once with the documented restriction. If the former, drop `renderStatic`, fold the compare-and-store into `Static`, and change the concurrent test's `renders == 1` assertion. `LLMs.md` no longer exists on main (deleted in `833b404`), so the brief's mention there went to `/AGENTS.md` instead.
+
+## Step 3: Render outside the lock
+
+**Author:** static-builder
+
+### Prompt Context
+
+**Verbatim prompt:** "Go with option (a): render outside the lock, then Lock, store only if *s is still empty, Unlock, write the local copy. Remove the nesting restriction from the godoc and replace it with one sentence saying concurrent first renders of a slot may each render the tree and the first result is kept. Add a test that nested Static works (outer and inner slots both filled, correct output). Change the 64-goroutine test to assert the slot is filled once and every goroutine gets the full output; you may additionally assert the stored value equals the child's output. Keep everything else as-is, including ExampleStatic in the test file. Re-run -race -count=20, coverage, lint, update the diary with a Step 3 for this change, then open the PR as planned with --reviewer markuswustenberg. Still no merge, no auto-merge, no comments on #325/#323. Report the PR URL and the final godoc when done."
+**Interpretation:** Trade "the child renders exactly once" for "no user code runs under the shared lock", keeping the `RWMutex` and the `*string` slot, and adjust the tests and docs to match.
+**Inferred intent:** Make `Static` safe to compose like any other component, including inside another `Static`, at the cost of a few duplicate renders of static content on a cold start.
+
+### What I did
+
+Folded `renderStatic` back into `Static` in `/components/components.go`: the fast path is unchanged, and the slow path now renders into a `strings.Builder` with no lock held, then takes `Lock`, stores only if `*s` is still empty, unlocks, and writes its own copy. A nil node skips the render, and empty output skips the store and the lock entirely. The godoc's nesting paragraph became one sentence: "Concurrent first renders of a slot may each render the tree, and the first result is kept."
+
+Tests in `/components/components_test.go`: added "fills both slots when one Static is nested in another". The 64-goroutine test no longer blocks the child; it gates the goroutines on a `start` channel, asserts every output, that the slot holds the child's output, and that the child rendered at least once. The filled-slot test now waits for all 32 readers of slot A *before* releasing slot B's blocked first render, which is a real assertion that readers proceed during a first render; under the previous design that `Wait` would have hung. The empty-slot test became "keeps the first result when concurrent first renders of a slot all try to store it": the child blocks until all 32 goroutines are inside it, so all 32 render and then all 32 try to store, and only the first one does. That is what covers the skip-store branch, deterministically now rather than by scheduling luck. The panic test is renamed to "leaves the slot empty when the node panics", since there is no lock to release any more.
+
+### Why
+
+The lead chose composability over exactly-once. With the render outside the lock, the shared `RWMutex` only guards a read and a compare-and-store, so nothing a user's tree does can block another slot, nesting is fine, and a failing or empty tree no longer serialises every `Static` in the process on every request.
+
+### What worked
+
+The blocking-child choreography from Step 2 carried over with the counters pointed at different things: spinning on `renders` instead of `entered` gives a hard guarantee that all goroutines rendered, because nobody can store before the child returns. `go test -race -shuffle on -count=20 ./components/...` passes in 1.4 seconds, also with `GOMAXPROCS=1 -race -count=5`; coverage is 100% in six of six runs; lint is clean; the package compiles under `-lang=go1.18`.
+
+### What didn't work
+
+Nothing failed in this step.
+
+### What I learned
+
+Re-measured `BenchmarkStatic` after the change and everything is within noise of Step 2: cached path 4.9 ns discarded and 28 ns buffered, construct-and-render 2.15 versus 4.32 µs discarded and 2.18 versus 5.68 µs buffered. The cached path's cost is one `RLock`/`RUnlock` pair plus the write, whichever design holds the lock during the first render.
+
+### What was tricky
+
+Keeping the two remaining concurrency tests distinct once both could render on every goroutine: the free-running one asserts the user-visible contract (full output everywhere, slot filled), the blocking one asserts the internal race (everyone renders, first store wins) and exists for branch coverage as much as for behaviour.
+
+### What warrants review
+
+The compare-and-store in `Static`, and whether "the first result is kept" is enough of a warning for trees whose renders can legitimately differ, which the godoc already forbids.
+
+### Future work
+
+None beyond what Step 2 lists.
