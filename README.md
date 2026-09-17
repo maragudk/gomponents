@@ -140,8 +140,8 @@ Some highlights from an Apple M4, constructing and rendering to `io.Discard`:
 |---|---:|---:|---:|
 | `El`, normal element | 17 | 48 | 1 |
 | `Attr`, boolean | 11 | 24 | 1 |
-| `Attr`, short value | 20 | 48 | 1 |
-| `Text`, short text | 14 | 16 | 1 |
+| `Attr` | 20 | 48 | 1 |
+| `Text` | 14 | 16 | 1 |
 | `Textf` | 44 | 40 | 2 |
 | `Raw` | 3 | 0 | 0 |
 | `Rawf` | 38 | 40 | 2 |
