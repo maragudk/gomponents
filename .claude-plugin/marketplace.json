@@ -1,0 +1,16 @@
+{
+  "name": "gomponents",
+  "owner": {
+    "name": "Maragu ApS"
+  },
+  "metadata": {
+    "description": "The gomponents plugin for coding agents."
+  },
+  "plugins": [
+    {
+      "name": "gomponents",
+      "source": "./",
+      "description": "Write HTML in Go with gomponents."
+    }
+  ]
+}
