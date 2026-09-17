@@ -145,7 +145,6 @@ Some highlights from an Apple M4, constructing and rendering to `io.Discard`:
 | `Textf` | 44 | 40 | 2 |
 | `Raw` | 3 | 0 | 0 |
 | `Rawf` | 38 | 40 | 2 |
-| `components.JoinAttrs` | 302 | 512 | 10 |
 | Realistic full page | 68624 | 129686 | 3044 |
 
 ### I don't like how HTML looks in Go.
