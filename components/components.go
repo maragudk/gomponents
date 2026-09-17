@@ -7,6 +7,7 @@ import (
 	"io"
 	"sort"
 	"strings"
+	"sync"
 
 	g "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -190,4 +191,62 @@ func extractAttrValue(buf *bytes.Buffer, boolAttr, attrPrefix []byte, n g.Node) 
 		return true, ""
 	}
 	return true, v
+}
+
+// staticMutex guards every slot passed to [Static].
+var staticMutex sync.RWMutex
+
+// Static renders node once into the string pointed to by s and writes the cached HTML on every later render.
+// Use it for large element trees that are the same on every render: the tree must not depend on request data,
+// user data, or any other changing state, because only the first render is ever written out.
+//
+// s is the cache slot and should be a package-level variable. Each call site needs its own slot;
+// two call sites sharing one would render whichever tree came first. Reset a slot to the empty string
+// to render the tree again.
+//
+// A render error from node is returned and nothing is cached, so the next render tries again.
+// An empty render result is never cached either, so a tree that renders to nothing is rendered every time.
+//
+// The returned node is an element node, so don't use it for attributes.
+//
+// For example:
+//
+//	var head string
+//
+//	func Page() Node {
+//		return HTML(Static(&head, Head(TitleEl(Text("My site")), Link(Rel("stylesheet"), Href("/app.css")))), Body())
+//	}
+func Static(s *string, node g.Node) g.Node {
+	return g.NodeFunc(func(w io.Writer) error {
+		staticMutex.RLock()
+		html := *s
+		staticMutex.RUnlock()
+
+		if html == "" {
+			var err error
+			if html, err = renderStatic(s, node); err != nil {
+				return err
+			}
+		}
+
+		_, err := io.WriteString(w, html)
+		return err
+	})
+}
+
+// renderStatic renders node into the slot s, unless another goroutine filled it first, and returns the HTML.
+func renderStatic(s *string, node g.Node) (string, error) {
+	staticMutex.Lock()
+	defer staticMutex.Unlock()
+
+	if *s != "" {
+		return *s, nil
+	}
+
+	var b strings.Builder
+	if err := node.Render(&b); err != nil {
+		return "", err
+	}
+	*s = b.String()
+	return *s, nil
 }
