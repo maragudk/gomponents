@@ -196,21 +196,22 @@ func extractAttrValue(buf *bytes.Buffer, boolAttr, attrPrefix []byte, n g.Node) 
 // staticMutex guards every slot passed to [Static].
 var staticMutex sync.RWMutex
 
-// Static renders node once into the string pointed to by s and writes the cached HTML on every later render.
-// Use it for large element trees that are the same on every render: the tree must not depend on request data,
-// user data, or any other changing state, because only the first render is ever written out.
-// Note that node is still constructed on every call; only its rendering is skipped.
+// Static renders the node returned by f once into the string pointed to by s and writes the cached HTML
+// on every later render. f is only called when the slot is empty, so neither building nor rendering the
+// tree is repeated. Use it for large element trees that are the same on every render: the tree must not
+// depend on request data, user data, or any other changing state, because only the first render is ever
+// written out.
 //
 // s is the cache slot and should be a package-level variable. Each call site needs its own slot;
 // two call sites sharing one would render whichever tree came first. A slot can be reset to the empty
-// string to render the tree again, but only while nothing is rendering, for example in tests,
+// string to build and render the tree again, but only while nothing is rendering, for example in tests,
 // because Static does not synchronize with writes to the slot made outside of it.
 //
-// A render error from node is returned and nothing is cached, so the next render tries again.
-// An empty render result, including a nil node, is never cached either, so a tree that renders to nothing
-// is rendered every time.
+// A render error from the node is returned and nothing is cached, so the next render tries again.
+// An empty render result, including a nil node returned by f, is never cached either, so a tree that
+// renders to nothing is built and rendered every time.
 //
-// Concurrent first renders of a slot may each render the tree, and the first result is kept.
+// Concurrent first renders of a slot may each build and render the tree, and the first result is kept.
 //
 // The returned node is an element node, so don't use it for attributes.
 //
@@ -219,9 +220,14 @@ var staticMutex sync.RWMutex
 //	var head string
 //
 //	func Page() Node {
-//		return HTML(Static(&head, Head(TitleEl(Text("My site")), Link(Rel("stylesheet"), Href("/app.css")))), Body())
+//		return HTML(
+//			Static(&head, func() Node {
+//				return Head(TitleEl(Text("My site")), Link(Rel("stylesheet"), Href("/app.css")))
+//			}),
+//			Body(),
+//		)
 //	}
-func Static(s *string, node g.Node) g.Node {
+func Static(s *string, f func() g.Node) g.Node {
 	return g.NodeFunc(func(w io.Writer) error {
 		staticMutex.RLock()
 		cached := *s
@@ -229,7 +235,7 @@ func Static(s *string, node g.Node) g.Node {
 
 		if cached == "" {
 			var b strings.Builder
-			if node != nil {
+			if node := f(); node != nil {
 				if err := node.Render(&b); err != nil {
 					return err
 				}
