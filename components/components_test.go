@@ -369,6 +369,64 @@ func TestStatic(t *testing.T) {
 		}
 	})
 
+	t.Run("renders nothing for a nil node", func(t *testing.T) {
+		var slot string
+
+		assert.Equal(t, "<div></div>", Div(Static(&slot, g.If(false, Span()))))
+		if slot != "" {
+			t.Fatalf("expected an empty slot, got %q", slot)
+		}
+	})
+
+	t.Run("renders whichever node came first when two call sites share a slot", func(t *testing.T) {
+		var slot string
+
+		assert.Equal(t, "<p>first</p>", Static(&slot, P(g.Text("first"))))
+		assert.Equal(t, "<p>first</p>", Static(&slot, P(g.Text("second"))))
+	})
+
+	t.Run("renders the node again after the slot is reset", func(t *testing.T) {
+		var slot string
+		var renders int32
+		child := g.NodeFunc(func(w io.Writer) error {
+			atomic.AddInt32(&renders, 1)
+			_, err := io.WriteString(w, "<p>hat</p>")
+			return err
+		})
+
+		assert.Equal(t, "<p>hat</p>", Static(&slot, child))
+		slot = ""
+		assert.Equal(t, "<p>hat</p>", Static(&slot, child))
+
+		if renders != 2 {
+			t.Fatalf("expected 2 renders, got %v", renders)
+		}
+	})
+
+	t.Run("renders as an element, not an attribute", func(t *testing.T) {
+		var slot string
+
+		assert.Equal(t, `<div> class="hat"</div>`, Div(Static(&slot, Class("hat"))))
+	})
+
+	t.Run("releases the lock when the node panics", func(t *testing.T) {
+		var slot string
+		child := g.NodeFunc(func(w io.Writer) error {
+			panic("oh no")
+		})
+
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Fatal("expected a panic")
+				}
+			}()
+			_ = Static(&slot, child).Render(io.Discard)
+		}()
+
+		assert.Equal(t, "<p>hat</p>", Static(&slot, P(g.Text("hat"))))
+	})
+
 	t.Run("renders the node once when many goroutines render the same slot concurrently", func(t *testing.T) {
 		const goroutines = 64
 
@@ -377,7 +435,7 @@ func TestStatic(t *testing.T) {
 		release := make(chan struct{})
 		child := g.NodeFunc(func(w io.Writer) error {
 			atomic.AddInt32(&renders, 1)
-			// Hold the lock until every goroutine has called Render, so they all pile up on it.
+			// Block the first render until every goroutine has started, so the rest arrive while it is in progress.
 			<-release
 			_, err := io.WriteString(w, "<p>hat</p>")
 			return err
@@ -416,10 +474,10 @@ func TestStatic(t *testing.T) {
 		}
 	})
 
-	t.Run("lets readers of a filled slot finish while another slot's first render is blocked", func(t *testing.T) {
-		// The RWMutex is shared by all slots, so readers arriving while a writer holds it wait
-		// until the writer is done. This asserts that everyone finishes with the right output,
-		// not that readers proceed during the write.
+	t.Run("gives readers of a filled slot the cached HTML once another slot's first render finishes", func(t *testing.T) {
+		// Readers arriving while another slot's first render is in progress wait for it, since the
+		// lock is shared by all slots. This asserts that everyone finishes with the right output
+		// and nothing is rendered twice, not that readers proceed during the first render.
 		const readers = 32
 
 		var slotA, slotB string
@@ -452,7 +510,7 @@ func TestStatic(t *testing.T) {
 			errB = Static(&slotB, childB).Render(&b)
 			outputB = b.String()
 		}()
-		// Now the writer holds the lock, inside childB.
+		// Now the first render of slot B is in progress, inside childB.
 		<-started
 
 		outputs := make([]string, readers)
@@ -497,9 +555,9 @@ func TestStatic(t *testing.T) {
 	})
 
 	t.Run("renders an empty slot once when its readers wake together after another slot's first render", func(t *testing.T) {
-		// Readers of the empty slot A queue behind the writer on slot B. When it unlocks, they
-		// all wake, all see the empty slot, and all try to become the writer; one renders and
-		// the rest find the slot filled when they get the lock.
+		// Readers of the empty slot A wait for the first render of slot B. When it finishes, they
+		// all wake, all see the empty slot, and all try to render it; one does, and the rest find
+		// the slot filled by the time it is their turn.
 		const readers = 32
 
 		var slotA, slotB string
