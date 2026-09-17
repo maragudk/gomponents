@@ -210,8 +210,7 @@ var staticMutex sync.RWMutex
 // An empty render result, including a nil node, is never cached either, so a tree that renders to nothing
 // is rendered every time.
 //
-// The first render of a slot holds a lock shared by all slots while node renders, so node must not
-// contain another Static, and a slow first render briefly delays other slots.
+// Concurrent first renders of a slot may each render the tree, and the first result is kept.
 //
 // The returned node is an element node, so don't use it for attributes.
 //
@@ -229,34 +228,24 @@ func Static(s *string, node g.Node) g.Node {
 		staticMutex.RUnlock()
 
 		if cached == "" {
-			var err error
-			if cached, err = renderStatic(s, node); err != nil {
-				return err
+			var b strings.Builder
+			if node != nil {
+				if err := node.Render(&b); err != nil {
+					return err
+				}
+			}
+			cached = b.String()
+
+			if cached != "" {
+				staticMutex.Lock()
+				if *s == "" {
+					*s = cached
+				}
+				staticMutex.Unlock()
 			}
 		}
 
 		_, err := io.WriteString(w, cached)
 		return err
 	})
-}
-
-// renderStatic renders node into the slot s, unless another goroutine filled it first, and returns the HTML.
-func renderStatic(s *string, node g.Node) (string, error) {
-	staticMutex.Lock()
-	defer staticMutex.Unlock()
-
-	if *s != "" {
-		return *s, nil
-	}
-
-	if node == nil {
-		return "", nil
-	}
-
-	var b strings.Builder
-	if err := node.Render(&b); err != nil {
-		return "", err
-	}
-	*s = b.String()
-	return *s, nil
 }
