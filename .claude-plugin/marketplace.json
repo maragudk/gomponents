@@ -1,8 +1,7 @@
 {
   "name": "gomponents",
   "owner": {
-    "name": "Maragu ApS",
-    "email": "markus@maragu.dk"
+    "name": "Maragu ApS"
   },
   "metadata": {
     "description": "The gomponents plugin for coding agents."
