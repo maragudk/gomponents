@@ -73,6 +73,15 @@ func NavbarLink(href, name, currentPath string) Node {
 For a more complete example, see [the examples directory](internal/examples/).
 There's also the [gomponents-starter-kit](https://github.com/maragudk/gomponents-starter-kit) for a full application template.
 
+### Coding agents
+
+There's a [skill](skills/gomponents/SKILL.md) that teaches coding agents how to use gomponents. Install it as a plugin in Claude Code:
+
+```shell
+/plugin marketplace add maragudk/gomponents
+/plugin install gomponents@gomponents
+```
+
 ## Architecture
 
 gomponents is organized into several packages:

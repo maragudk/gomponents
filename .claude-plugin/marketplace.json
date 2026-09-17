@@ -1,0 +1,17 @@
+{
+  "name": "gomponents",
+  "owner": {
+    "name": "Markus Wüstenberg",
+    "email": "markus@maragu.dk"
+  },
+  "metadata": {
+    "description": "The gomponents plugin for coding agents."
+  },
+  "plugins": [
+    {
+      "name": "gomponents",
+      "source": "./",
+      "description": "Write HTML in Go with gomponents."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "gomponents",
+  "description": "Write HTML in Go with gomponents.",
+  "author": {
+    "name": "Markus Wüstenberg",
+    "email": "markus@maragu.dk"
+  }
+}
