@@ -212,6 +212,14 @@ func (w writeOnly) Write(p []byte) (int, error) {
 }
 
 func TestText(t *testing.T) {
+	t.Run("satisfies fmt.Stringer with the escaped string", func(t *testing.T) {
+		e := g.Text("<div>")
+		s, ok := e.(fmt.Stringer)
+		if !ok || s.String() != "&lt;div&gt;" {
+			t.Fatalf("expected escaped string, got %v %q", ok, fmt.Sprint(e))
+		}
+	})
+
 	t.Run("renders escaped text", func(t *testing.T) {
 		e := g.Text("<div>")
 		assert.Equal(t, "&lt;div&gt;", e)
