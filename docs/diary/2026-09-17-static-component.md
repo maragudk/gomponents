@@ -138,3 +138,54 @@ The compare-and-store in `Static`, and whether "the first result is kept" is eno
 ### Future work
 
 None beyond what Step 2 lists.
+
+## Step 4: Take a `func() Node` so construction is skipped too
+
+**Author:** static-builder
+
+### Prompt Context
+
+**Verbatim prompt:** "Markus wants the signature changed to `func Static(s *string, f func() g.Node) g.Node`, like `Iff`, so construction is skipped too. Semantics otherwise unchanged: fast path never calls f; slow path calls f() with no lock held, renders the result outside the lock, stores if still empty. A nil node returned by f renders as nothing and is not cached, same as now. Update the godoc [...], the godoc example and ExampleStatic (`Static(&head, func() Node { return Head(...) })`), README and AGENTS.md usage lines, all tests [...], and the benchmark so the "construct and render" rows go through the closure [...]. Add a diary Step 4 with the new benchmark table." Then: "One more change after the func() Node switch: move ExampleStatic and its package-level `var head string` into their own file /components/example_static_test.go as a whole-file example (only that example function plus the var and imports in the file, so pkg.go.dev renders the declaration too)."
+**Interpretation:** Same cache, same lock, same slot; the second argument becomes a constructor that only runs when the slot is empty, and the example moves to a file of its own so the package-level slot shows in the rendered docs.
+**Inferred intent:** Make `Static` actually free on the hot path. Step 2's benchmark showed the render was skipped but the tree was still built and allocated on every call, which is most of what #323 wanted gone.
+
+### What I did
+
+Changed the signature in `/components/components.go` to `Static(s *string, f func() g.Node) g.Node`; the slow path now does `if node := f(); node != nil { node.Render(&b) }` with no lock held, and nothing else moved. The godoc lost the "node is still constructed on every call" sentence and says f is only called when the slot is empty, so neither building nor rendering is repeated; the example is `Static(&head, func() Node { return Head(...) })`. Rewrote every `TestStatic` subtest in `/components/components_test.go` to pass a constructor, with the counters now counting calls to f where the test is about how often the tree is built (once and reused, twice after a render error, once despite a write error, three times for empty output, twice after a reset, exactly 32 in the store race), and the nodes that block on channels or panic are returned by f. `ExampleStatic` and its `var head string` moved to `/components/example_static_test.go`, which holds only the example, the variable, and imports, so Go renders it as a whole-file example and pkg.go.dev shows the package-level slot next to the call. In `/components/benchmark_test.go` the "construct and render" rows pass `staticTree` itself as f, and the pre-built rows pass a closure returning the pre-built tree. README and AGENTS.md only name `Static` and carry no usage snippet, so they needed no change.
+
+### Why
+
+`Iff` already sets the precedent for "give me a function so I can skip the work", and with a plain node argument the caller's `Head(...)` ran and allocated on every request whether or not the slot was full. The whole-file example is the fix for the review note in Step 2 that pkg.go.dev shows only the example's body, which hid the one thing the example is meant to show.
+
+### What worked
+
+Rewriting the test block in one go with a small script in the scratchpad, rather than a dozen edits. Passing `staticTree` directly as f in the benchmark, since it already had the right type.
+
+### What didn't work
+
+Nothing failed in this step. All checks pass: `go test -race -shuffle on -count=20 ./components/...` in 1.4 seconds, `GOMAXPROCS=1 -race -count=5`, coverage 100% in six of six runs, `make lint` clean, `-lang=go1.18` compiles.
+
+### What I learned
+
+The construction cost was the whole story for per-request use. Same machine and method as before (Apple M4, Go 1.27.1, six runs, benchstat):
+
+| Case | Direct | `Static` |
+|---|---|---|
+| render pre-built, discarded | 2.15 µs, 0 allocs | 4.7 ns, 0 allocs |
+| render pre-built, buffered | 3.54 µs, 0 allocs | 28.1 ns, 0 allocs |
+| construct and render, discarded | 4.21 µs, 8.9 KB, 252 allocs | 4.9 ns, 0 allocs |
+| construct and render, buffered | 5.85 µs, 8.9 KB, 252 allocs | 28.9 ns, 0 allocs |
+
+The "construct and render" rows through `Static` went from about half the direct cost with the same 252 allocations to three orders of magnitude less with none, and are now the same as the pre-built rows, which is the point: after the first call, `Static` costs a read lock and one write.
+
+### What was tricky
+
+Deciding what the counters mean in each test once f and the node are separate. The rule used: count f calls when the test is about whether the tree is rebuilt, and keep the blocking or panicking behaviour in the node f returns, since that is where a real tree does its work.
+
+### What warrants review
+
+Whether the godoc's "f is only called when the slot is empty" reads clearly enough that f must be cheap to write but may be expensive to run. The whole-file example on pkg.go.dev once the PR is merged, since that is the only place it can be seen rendered.
+
+### Future work
+
+None.

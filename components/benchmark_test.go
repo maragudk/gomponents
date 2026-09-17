@@ -104,7 +104,7 @@ func BenchmarkStatic(b *testing.B) {
 
 	for _, w := range writers {
 		// Built once and rendered repeatedly, to separate the cost of rendering from the cost
-		// of building the tree, which Static does not skip.
+		// of building the tree.
 		b.Run("direct/render pre-built/"+w.Name, func(b *testing.B) {
 			tree := staticTree()
 			w := w.New()
@@ -116,7 +116,8 @@ func BenchmarkStatic(b *testing.B) {
 
 		b.Run("static/render pre-built/"+w.Name, func(b *testing.B) {
 			var slot string
-			node := Static(&slot, staticTree())
+			tree := staticTree()
+			node := Static(&slot, func() g.Node { return tree })
 			w := w.New()
 
 			for b.Loop() {
@@ -124,7 +125,8 @@ func BenchmarkStatic(b *testing.B) {
 			}
 		})
 
-		// Built and rendered on every iteration, like a component called per request.
+		// Called on every iteration, like a component called per request. The direct case builds
+		// and renders the tree every time, and Static only on the first call.
 		b.Run("direct/construct and render/"+w.Name, func(b *testing.B) {
 			w := w.New()
 
@@ -138,7 +140,7 @@ func BenchmarkStatic(b *testing.B) {
 			w := w.New()
 
 			for b.Loop() {
-				_ = Static(&slot, staticTree()).Render(w)
+				_ = Static(&slot, staticTree).Render(w)
 			}
 		})
 	}

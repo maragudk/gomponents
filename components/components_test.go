@@ -288,91 +288,91 @@ func (failingWriter) Write([]byte) (int, error) {
 }
 
 func TestStatic(t *testing.T) {
-	t.Run("renders the node once and reuses the cached HTML on later renders", func(t *testing.T) {
+	t.Run("calls f and renders the node once and reuses the cached HTML on later renders", func(t *testing.T) {
 		var slot string
-		var renders int32
-		child := g.NodeFunc(func(w io.Writer) error {
-			atomic.AddInt32(&renders, 1)
-			_, err := io.WriteString(w, `<p class="hat">Party hat</p>`)
-			return err
-		})
+		var calls int32
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return P(Class("hat"), g.Text("Party hat"))
+		}
 
 		// A new Static call each time, like a component called per request.
 		for i := 0; i < 3; i++ {
-			assert.Equal(t, `<p class="hat">Party hat</p>`, Static(&slot, child))
+			assert.Equal(t, `<p class="hat">Party hat</p>`, Static(&slot, f))
 		}
 
-		if renders != 1 {
-			t.Fatalf("expected 1 render, got %v", renders)
+		if calls != 1 {
+			t.Fatalf("expected 1 call, got %v", calls)
 		}
 		if slot != `<p class="hat">Party hat</p>` {
 			t.Fatalf("expected the slot to hold the HTML, got %q", slot)
 		}
 	})
 
-	t.Run("returns a render error, leaves the slot empty, and retries on the next render", func(t *testing.T) {
+	t.Run("returns a render error, leaves the slot empty, and calls f again on the next render", func(t *testing.T) {
 		var slot string
-		var renders int32
-		child := g.NodeFunc(func(w io.Writer) error {
-			atomic.AddInt32(&renders, 1)
-			return errors.New("oh no")
-		})
+		var calls int32
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return g.NodeFunc(func(w io.Writer) error {
+				return errors.New("oh no")
+			})
+		}
 
 		for i := 0; i < 2; i++ {
-			err := Static(&slot, child).Render(io.Discard)
+			err := Static(&slot, f).Render(io.Discard)
 			assert.Error(t, err)
 			if slot != "" {
 				t.Fatalf("expected an empty slot after a render error, got %q", slot)
 			}
 		}
 
-		if renders != 2 {
-			t.Fatalf("expected 2 renders, got %v", renders)
+		if calls != 2 {
+			t.Fatalf("expected 2 calls, got %v", calls)
 		}
 	})
 
-	t.Run("returns a write error but keeps the cache and does not render the node again", func(t *testing.T) {
+	t.Run("returns a write error but keeps the cache and does not call f again", func(t *testing.T) {
 		var slot string
-		var renders int32
-		child := g.NodeFunc(func(w io.Writer) error {
-			atomic.AddInt32(&renders, 1)
-			_, err := io.WriteString(w, "<p>hat</p>")
-			return err
-		})
+		var calls int32
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return P(g.Text("hat"))
+		}
 
-		err := Static(&slot, child).Render(failingWriter{})
+		err := Static(&slot, f).Render(failingWriter{})
 		assert.Error(t, err)
 		if slot != "<p>hat</p>" {
 			t.Fatalf("expected the slot to be filled despite the write error, got %q", slot)
 		}
 
-		assert.Equal(t, "<p>hat</p>", Static(&slot, child))
-		if renders != 1 {
-			t.Fatalf("expected 1 render, got %v", renders)
+		assert.Equal(t, "<p>hat</p>", Static(&slot, f))
+		if calls != 1 {
+			t.Fatalf("expected 1 call, got %v", calls)
 		}
 	})
 
-	t.Run("renders a node with empty output every time", func(t *testing.T) {
+	t.Run("calls f every time when the node renders nothing", func(t *testing.T) {
 		var slot string
-		var renders int32
-		child := g.NodeFunc(func(w io.Writer) error {
-			atomic.AddInt32(&renders, 1)
-			return nil
-		})
+		var calls int32
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return g.Group{}
+		}
 
 		for i := 0; i < 3; i++ {
-			assert.Equal(t, "", Static(&slot, child))
+			assert.Equal(t, "", Static(&slot, f))
 		}
 
-		if renders != 3 {
-			t.Fatalf("expected 3 renders, got %v", renders)
+		if calls != 3 {
+			t.Fatalf("expected 3 calls, got %v", calls)
 		}
 	})
 
-	t.Run("renders nothing for a nil node", func(t *testing.T) {
+	t.Run("renders nothing when f returns nil", func(t *testing.T) {
 		var slot string
 
-		assert.Equal(t, "<div></div>", Div(Static(&slot, g.If(false, Span()))))
+		assert.Equal(t, "<div></div>", Div(Static(&slot, func() g.Node { return g.If(false, Span()) })))
 		if slot != "" {
 			t.Fatalf("expected an empty slot, got %q", slot)
 		}
@@ -381,38 +381,39 @@ func TestStatic(t *testing.T) {
 	t.Run("renders whichever node came first when two call sites share a slot", func(t *testing.T) {
 		var slot string
 
-		assert.Equal(t, "<p>first</p>", Static(&slot, P(g.Text("first"))))
-		assert.Equal(t, "<p>first</p>", Static(&slot, P(g.Text("second"))))
+		assert.Equal(t, "<p>first</p>", Static(&slot, func() g.Node { return P(g.Text("first")) }))
+		assert.Equal(t, "<p>first</p>", Static(&slot, func() g.Node { return P(g.Text("second")) }))
 	})
 
-	t.Run("renders the node again after the slot is reset", func(t *testing.T) {
+	t.Run("calls f again after the slot is reset", func(t *testing.T) {
 		var slot string
-		var renders int32
-		child := g.NodeFunc(func(w io.Writer) error {
-			atomic.AddInt32(&renders, 1)
-			_, err := io.WriteString(w, "<p>hat</p>")
-			return err
-		})
+		var calls int32
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return P(g.Text("hat"))
+		}
 
-		assert.Equal(t, "<p>hat</p>", Static(&slot, child))
+		assert.Equal(t, "<p>hat</p>", Static(&slot, f))
 		slot = ""
-		assert.Equal(t, "<p>hat</p>", Static(&slot, child))
+		assert.Equal(t, "<p>hat</p>", Static(&slot, f))
 
-		if renders != 2 {
-			t.Fatalf("expected 2 renders, got %v", renders)
+		if calls != 2 {
+			t.Fatalf("expected 2 calls, got %v", calls)
 		}
 	})
 
 	t.Run("renders as an element, not an attribute", func(t *testing.T) {
 		var slot string
 
-		assert.Equal(t, `<div> class="hat"</div>`, Div(Static(&slot, Class("hat"))))
+		assert.Equal(t, `<div> class="hat"</div>`, Div(Static(&slot, func() g.Node { return Class("hat") })))
 	})
 
 	t.Run("fills both slots when one Static is nested in another", func(t *testing.T) {
 		var outer, inner string
 
-		assert.Equal(t, "<div><span>hat</span></div>", Static(&outer, Div(Static(&inner, Span(g.Text("hat"))))))
+		assert.Equal(t, "<div><span>hat</span></div>", Static(&outer, func() g.Node {
+			return Div(Static(&inner, func() g.Node { return Span(g.Text("hat")) }))
+		}))
 		if outer != "<div><span>hat</span></div>" {
 			t.Fatalf("expected the outer slot to be filled, got %q", outer)
 		}
@@ -423,9 +424,11 @@ func TestStatic(t *testing.T) {
 
 	t.Run("leaves the slot empty when the node panics", func(t *testing.T) {
 		var slot string
-		child := g.NodeFunc(func(w io.Writer) error {
-			panic("oh no")
-		})
+		f := func() g.Node {
+			return g.NodeFunc(func(w io.Writer) error {
+				panic("oh no")
+			})
+		}
 
 		func() {
 			defer func() {
@@ -433,23 +436,25 @@ func TestStatic(t *testing.T) {
 					t.Fatal("expected a panic")
 				}
 			}()
-			_ = Static(&slot, child).Render(io.Discard)
+			_ = Static(&slot, f).Render(io.Discard)
 		}()
 
-		assert.Equal(t, "<p>hat</p>", Static(&slot, P(g.Text("hat"))))
+		if slot != "" {
+			t.Fatalf("expected an empty slot, got %q", slot)
+		}
+		assert.Equal(t, "<p>hat</p>", Static(&slot, func() g.Node { return P(g.Text("hat")) }))
 	})
 
 	t.Run("fills the slot and gives every goroutine the full output when many render it concurrently", func(t *testing.T) {
 		const goroutines = 64
 
 		var slot string
-		var renders int32
+		var calls int32
 		start := make(chan struct{})
-		child := g.NodeFunc(func(w io.Writer) error {
-			atomic.AddInt32(&renders, 1)
-			_, err := io.WriteString(w, "<p>hat</p>")
-			return err
-		})
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return P(g.Text("hat"))
+		}
 
 		outputs := make([]string, goroutines)
 		errs := make([]error, goroutines)
@@ -460,7 +465,7 @@ func TestStatic(t *testing.T) {
 				defer wg.Done()
 				<-start
 				var b strings.Builder
-				errs[i] = Static(&slot, child).Render(&b)
+				errs[i] = Static(&slot, f).Render(&b)
 				outputs[i] = b.String()
 			}(i)
 		}
@@ -478,8 +483,8 @@ func TestStatic(t *testing.T) {
 		if slot != "<p>hat</p>" {
 			t.Fatalf("expected the slot to hold the HTML, got %q", slot)
 		}
-		if renders < 1 {
-			t.Fatal("expected at least 1 render")
+		if calls < 1 {
+			t.Fatal("expected at least 1 call")
 		}
 	})
 
@@ -487,22 +492,23 @@ func TestStatic(t *testing.T) {
 		const readers = 32
 
 		var slotA, slotB string
-		var rendersA int32
-		childA := g.NodeFunc(func(w io.Writer) error {
-			atomic.AddInt32(&rendersA, 1)
-			_, err := io.WriteString(w, "<p>a</p>")
-			return err
-		})
-		assert.Equal(t, "<p>a</p>", Static(&slotA, childA))
+		var callsA int32
+		fA := func() g.Node {
+			atomic.AddInt32(&callsA, 1)
+			return P(g.Text("a"))
+		}
+		assert.Equal(t, "<p>a</p>", Static(&slotA, fA))
 
 		started := make(chan struct{})
 		release := make(chan struct{})
-		childB := g.NodeFunc(func(w io.Writer) error {
-			close(started)
-			<-release
-			_, err := io.WriteString(w, "<p>b</p>")
-			return err
-		})
+		fB := func() g.Node {
+			return g.NodeFunc(func(w io.Writer) error {
+				close(started)
+				<-release
+				_, err := io.WriteString(w, "<p>b</p>")
+				return err
+			})
+		}
 
 		var writer sync.WaitGroup
 		writer.Add(1)
@@ -511,10 +517,10 @@ func TestStatic(t *testing.T) {
 		go func() {
 			defer writer.Done()
 			var b strings.Builder
-			errB = Static(&slotB, childB).Render(&b)
+			errB = Static(&slotB, fB).Render(&b)
 			outputB = b.String()
 		}()
-		// Now the first render of slot B is in progress, inside childB, until release is closed.
+		// Now the first render of slot B is in progress, inside its node, until release is closed.
 		<-started
 
 		outputs := make([]string, readers)
@@ -525,7 +531,7 @@ func TestStatic(t *testing.T) {
 			go func(i int) {
 				defer wg.Done()
 				var b strings.Builder
-				errs[i] = Static(&slotA, childA).Render(&b)
+				errs[i] = Static(&slotA, fA).Render(&b)
 				outputs[i] = b.String()
 			}(i)
 		}
@@ -548,25 +554,27 @@ func TestStatic(t *testing.T) {
 				t.Fatalf("reader %v got %q", i, outputs[i])
 			}
 		}
-		if rendersA != 1 {
-			t.Fatalf("expected 1 render of a, got %v", rendersA)
+		if callsA != 1 {
+			t.Fatalf("expected 1 call for a, got %v", callsA)
 		}
 	})
 
 	t.Run("keeps the first result when concurrent first renders of a slot all try to store it", func(t *testing.T) {
-		// Every goroutine sees the empty slot and renders the tree, since the node blocks until all
-		// of them are inside it. They then all try to store their result, and only the first one does.
+		// Every goroutine sees the empty slot and calls f, since the node blocks until all of them
+		// have. They then all try to store their result, and only the first one does.
 		const goroutines = 32
 
 		var slot string
-		var renders int32
+		var calls int32
 		release := make(chan struct{})
-		child := g.NodeFunc(func(w io.Writer) error {
-			atomic.AddInt32(&renders, 1)
-			<-release
-			_, err := io.WriteString(w, "<p>hat</p>")
-			return err
-		})
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return g.NodeFunc(func(w io.Writer) error {
+				<-release
+				_, err := io.WriteString(w, "<p>hat</p>")
+				return err
+			})
+		}
 
 		outputs := make([]string, goroutines)
 		errs := make([]error, goroutines)
@@ -576,11 +584,11 @@ func TestStatic(t *testing.T) {
 			go func(i int) {
 				defer wg.Done()
 				var b strings.Builder
-				errs[i] = Static(&slot, child).Render(&b)
+				errs[i] = Static(&slot, f).Render(&b)
 				outputs[i] = b.String()
 			}(i)
 		}
-		for atomic.LoadInt32(&renders) < goroutines {
+		for atomic.LoadInt32(&calls) < goroutines {
 			runtime.Gosched()
 		}
 		close(release)
@@ -597,21 +605,8 @@ func TestStatic(t *testing.T) {
 		if slot != "<p>hat</p>" {
 			t.Fatalf("expected the slot to hold the HTML, got %q", slot)
 		}
-		if renders != goroutines {
-			t.Fatalf("expected %v renders, got %v", goroutines, renders)
+		if calls != goroutines {
+			t.Fatalf("expected %v calls, got %v", goroutines, calls)
 		}
 	})
-}
-
-// head is the cache slot for [ExampleStatic]. In an application, it is a package-level variable
-// next to the component that uses it.
-var head string
-
-func ExampleStatic() {
-	e := HTML(
-		Static(&head, Head(TitleEl(g.Text("My site")), Link(Rel("stylesheet"), Href("/app.css")))),
-		Body(g.Text("Hello")),
-	)
-	_ = e.Render(os.Stdout)
-	// Output: <html><head><title>My site</title><link rel="stylesheet" href="/app.css"></head><body>Hello</body></html>
 }
