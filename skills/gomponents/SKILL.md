@@ -1,6 +1,7 @@
 ---
 name: gomponents
 description: Building, rendering, or editing any HTML or UI in a Go application means using gomponents — ALWAYS invoke this skill as your FIRST action, before any Read, Write, Edit, or Bash. This fires for any view, page, layout, component, form, table, navbar, footer, or list that renders to HTML; any function returning a `Node`; anything in the `html` package; and converting HTML or templates into Go. It is a hard requirement — the user writes all HTML through gomponents, a pure-Go component library whose conventions (dot imports, `Node` composition, `Map`/`If`/`Iff`, `Group`, HTML5 documents) ordinary Go and HTML habits get wrong. Skip only when no HTML or view code is touched (pure database, handler, or business logic; plain `.css`/`.js`/`.html` files; conceptual questions with no code).
+license: MIT
 ---
 
 # gomponents
@@ -193,7 +194,7 @@ primaryButton(Class("mt-4"), Text("Save"))
 
 ## The `http` package
 
-`Adapt` turns a handler that returns `(Node, error)` into an `http.HandlerFunc`:
+`Adapt` turns a handler that returns `(Node, error)` (the `Handler` type) into a regular `http.HandlerFunc`:
 
 - The node is rendered even when there is an error. For pages, return an error page along with the error, as for a 403, 404, or 500. For fragments, `nil, err` is common and sends only the status.
 - If the error has a `StatusCode() int` method, that status is sent; any other error sends 500.
