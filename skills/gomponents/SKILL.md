@@ -11,8 +11,6 @@ gomponents is HTML components in pure Go. A component is a Go function that retu
 go get maragu.dev/gomponents@latest
 ```
 
-The import path is `maragu.dev/gomponents`, not the GitHub URL.
-
 ## Mental model
 
 Everything is a `Node`:
@@ -23,7 +21,7 @@ type Node interface {
 }
 ```
 
-Elements, attributes, and text all implement it, and all are passed as children to the same variadic element functions. The result is a DSL for HTML that is also valid Go: an element function takes children, an attribute function takes a value, and nesting calls mirrors nesting tags. Attribute children go in the tag and everything else goes between the tags, whatever order you pass them in; by convention, write attributes first.
+Elements, attributes, and text all implement it, and all are passed as children to the same variadic element functions. The result is like a DSL for HTML, in valid Go: an element function takes children, an attribute function takes a value, and nesting calls mirrors nesting tags. Attribute children go in the tag and everything else goes between the tags, whatever order you pass them in; by convention, write attributes first.
 
 ```html
 <a href="/about" class="nav-link">About</a>
@@ -33,13 +31,13 @@ Elements, attributes, and text all implement it, and all are passed as children 
 A(Href("/about"), Class("nav-link"), Text("About"))
 ```
 
-You write it declaratively, but a component is an ordinary function and can be as imperative as it needs to be.
+The idiomatic way is to write it declaratively, but a component is an ordinary function and can be as imperative as it needs to be. gomponents does not check that the result is valid HTML, by design, just as writing HTML by hand doesn't.
 
 The core package provides these functions. Everything else is in the `html` and `components` packages.
 
 | Function | What it does |
 |---|---|
-| `Text(s)` / `Textf(format, args...)` | HTML-escaped text. The default for all content, and the only choice for anything user-controlled. |
+| `Text(s)` / `Textf(format, args...)` | HTML-escaped text. The default for all content, and the strongly recommended choice for unsanitized user content. |
 | `Raw(s)` / `Rawf(format, args...)` | Unescaped text. For markup you wrote yourself: inline SVG, `<script>` and `<style>` bodies. Never for unsanitized user content. |
 | `Map(slice, func(T) Node) Group` | Turns a slice of data into nodes. |
 | `Group{...}` / `Group(nodes)` | A `[]Node` that renders as one node. Use it to return several siblings, or to pass a `children ...Node` slice on. |
@@ -74,17 +72,13 @@ type User struct {
 // user is nil for a visitor.
 func Navbar(links []NavLink, currentPath string, user *User) Node {
 	return Nav(Class("navbar"),
-		// Map turns a slice into nodes, one per element.
 		Map(links, func(l NavLink) Node {
-			// Classes renders one class attribute from the keys that are true.
 			return A(Href(l.Href), Classes{"link": true, "is-active": l.Href == currentPath}, Text(l.Text))
 		}),
 
-		// If takes a ready-made node. user == nil is a plain bool, so building the node cannot fail.
 		If(user == nil, A(Href("/login"), Text("Log in"))),
 
-		// Iff takes a function, so user.Name only runs when user is not nil.
-		// Group returns several nodes as one.
+		// user.Name must only run when user is not nil.
 		Iff(user != nil, func() Node {
 			return Group{
 				Span(Textf("%v (%v unread)", user.Name, user.Unread)),
@@ -92,7 +86,6 @@ func Navbar(links []NavLink, currentPath string, user *User) Node {
 			}
 		}),
 
-		// Raw is for markup you wrote yourself, never for user content.
 		Raw(`<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="7"/></svg>`),
 	)
 }
@@ -106,11 +99,10 @@ func Navbar(links []NavLink, currentPath string, user *User) Node {
 - **Building blocks take `children ...Node`** and pass them on with `Group(children)`. Groups are transparent, so a caller's attributes (`ID`, `Name`) are placed on the root element. A block like `input(children ...Node)` that only adds classes to `Input` needs no parameters, because callers pass `Type("email")`, `Name("email")`, or `Required()` as children and they land on the input.
 - **Callers add classes through `JoinAttrs`.** A block joins its own `Class` with whatever the caller passes, so `card(Class("mt-4"), ...)` renders one `class` attribute. See the `components` package below.
 - **Dynamic attributes** work like dynamic elements, because `nil` is skipped inside the tag too: `If(disabled, Disabled())`, `Classes{...}`, `Value(u.Email)`.
-- **Fragments** are components rendered without the layout. Return a `Group` when a fragment has several root elements.
+- **A fragment is just a component** returned without the layout; gomponents has no special notion of it. Return a `Group` when it has several root elements.
 - **Print a node to see its HTML.** Every built-in node implements `fmt.Stringer`, so `fmt.Println(node)` works when debugging.
-- **`<script>` and `<style>` bodies need `Raw`.** `Text` would turn `&&` into `&amp;&amp;` and break the code. Keep user data out of those bodies; pass it through `Data` attributes instead, which are escaped and unescaped by the browser.
+- **`<script>` and `<style>` bodies need `Raw`.** `Text` would turn `&&` into `&amp;&amp;` and break the code. Keep unsanitized user data out of those bodies; pass it through `Data` attributes instead, which are escaped and unescaped by the browser.
 - **Two `Class` calls make two attributes**, and the browser keeps only the first. Combine them into one string, use `Classes`, or use `JoinAttrs`.
-- **`Classes` sorts.** `Classes{"tier": true, "popular": true}` renders `class="popular tier"`. Fine for CSS, but a test that pins the exact string must expect the sorted order.
 - **Void elements silently ignore non-attribute children.** `Img(Text("x"))` renders `<img>` with no error.
 
 ## Imports and package layout
@@ -122,15 +114,13 @@ Put components in a package named `html`, unless the project already has one und
 Inside that package, export only what another package uses, which is usually just the pages and fragments:
 
 - **Exported pages and fragments** are named for what they are and take a props struct: `func LoginPage(props LoginPageProps) Node`, `func UserRow(u User) Node`.
-- **Unexported building blocks** are named in lower case after the element they wrap: `button`, `input`, `label`, `a`, `card`, `container`. Lower-case names cannot collide with the dot-imported `Button`, `Input`, `Label`, and `A`. When a block does need exporting, give it a specific name (`SubmitButton`, not `Button`) rather than dropping the dot import.
+- **Unexported building blocks** are camelCase with a lower-case first letter, named after the element they wrap: `button`, `input`, `label`, `a`, `card`, `container`. Names with a lower-case first letter cannot collide with the dot-imported `Button`, `Input`, `Label`, and `A`. When a block does need exporting, give it a specific name (`SubmitButton`, not `Button`) rather than dropping the dot import.
 
-The `http` package clashes with `net/http`, so alias it: `ghttp "maragu.dev/gomponents/http"`.
-
-For linter setup, see `references/linting.md`.
+The `http` package often clashes with `net/http`, so consider aliasing it: `ghttp "maragu.dev/gomponents/http"`.
 
 ## The `html` package: elements and attributes
 
-Element functions take `...Node`. Attribute functions take one `string` value, or nothing for boolean attributes (`Required()`, `Disabled()`, `Checked()`). All values are strings, so convert numbers yourself: `Width(strconv.Itoa(w))`.
+Element functions take `...Node`. Attribute functions take one `string` value, or nothing for boolean attributes (`Required()`, `Disabled()`, `Checked()`). A few take `...string`, for attributes that are valid both with and without a value. All values are strings, so convert numbers yourself: `Width(strconv.Itoa(w))`.
 
 Names follow the HTML names with Go casing: word boundaries are capitalized (`ColSpan`, `TabIndex`, `MaxLength`, `FieldSet`, `FigCaption`, `SrcSet`, `AutoComplete`) and initialisms are upper-case (`ID`, `HTML`, `SVG`, `IFrame`, `THead`, `TBody`, `TFoot`, `HGroup`). A few HTML names are both an element and an attribute, so one side gets a suffix:
 
@@ -144,9 +134,9 @@ Names follow the HTML names with Go casing: word boundaries are capitalized (`Co
 | `style` | `StyleEl` | `Style` |
 | `title` | `TitleEl` | `Title` |
 
-`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, and `TitleAttr` still compile but are deprecated; do not use them in new code.
+`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, and `TitleAttr` still compile but are deprecated.
 
-`Data("id", v)` renders `data-id="..."` and `Aria("label", v)` renders `aria-label="..."`. `Doctype(node)` prefixes `<!doctype html>`; `HTML5` already calls it.
+`Data("id", v)` renders `data-id="..."` and `Aria("label", v)` renders `aria-label="..."`.
 
 When unsure whether a helper exists or how it is cased, check rather than guess:
 
@@ -154,17 +144,19 @@ When unsure whether a helper exists or how it is cased, check rather than guess:
 go doc maragu.dev/gomponents/html | grep -i colspan
 ```
 
-If nothing turns up, `El` and `Attr` produce the same output a dedicated helper would. Left out on purpose: SVG child elements, `on*` event handler attributes, and framework attributes. For htmx and Datastar there are typed helpers in `maragu.dev/gomponents-htmx` and `maragu.dev/gomponents-datastar`; otherwise `Attr("hx-get", ...)` is fine.
+If nothing turns up, `El` and `Attr` produce the same output a dedicated helper would.
 
 ## The `components` package
 
-**`HTML5`** renders a complete document: doctype, `<html>`, a `<head>` with charset, viewport, title, and optional description, and the `<body>`. Attribute nodes in `Body` or `Head` are placed on that element. Every app has one layout function like this, and every page calls it:
+**`HTML5`** renders a complete document: doctype, `<html>`, a `<head>` with charset, viewport, title, and optional description, and the `<body>`. Attribute nodes in `Body` or `Head` are placed on that element. Most apps have one layout function like this, and their pages call it:
 
 ```go
-func page(title string, body ...Node) Node {
+func page(title, description string, body ...Node) Node {
 	return HTML5(HTML5Props{
-		Title:    title + " - MyApp",
-		Language: "en",
+		Title:       title + " - MyApp",
+		Description: description,
+		Language:    "en",
+		HTMLAttrs:   Group{Class("h-full")},
 		Head: Group{
 			Link(Rel("stylesheet"), Href("/static/app.css")),
 			Script(Src("/static/app.js"), Defer()),
@@ -203,9 +195,9 @@ primaryButton(Class("mt-4"), Text("Save"))
 
 `Adapt` turns a handler that returns `(Node, error)` into an `http.HandlerFunc`:
 
-- The node is rendered even when there is an error, so return an error page along with the error.
+- The node is rendered even when there is an error. For pages, return an error page along with the error, as for a 403, 404, or 500. For fragments, `nil, err` is common and sends only the status.
 - If the error has a `StatusCode() int` method, that status is sent; any other error sends 500.
-- A `nil` node writes nothing; return it after you have issued a redirect yourself.
+- A `nil` node writes nothing, so also return it after writing the response yourself, such as a redirect.
 
 ```go
 type notFoundError struct{}
@@ -227,7 +219,7 @@ mux.Handle("GET /users/{id}", ghttp.Adapt(func(w http.ResponseWriter, r *http.Re
 
 ## Testing components
 
-Test exported pages and components: one `TestComponent` function per exported component, with subtests for one happy path, the error cases, and the edge cases. Test what matters in each: the branch that depends on input, the value that must be escaped, the link that appears for one kind of user and not another. An expected string for a whole page restates the component and breaks on every unrelated change, so reserve exact-string comparison for small blocks and fragments, even when converting existing HTML. Programming errors in a component, such as `Attr` given two values, panic when the component is built, so rendering each component in a test catches them. gomponents has no public test helpers, so render to a `strings.Builder` through a small helper and check with `strings.Contains`:
+Test exported pages and components: one `TestComponent` function per exported component, with subtests for one happy path, the error cases, and the edge cases. Test what matters in each, for example the branch that depends on input, the value that must be escaped, or the link that appears for one kind of user and not another. An expected string for a whole page restates the component and breaks on every unrelated change, so reserve exact-string comparison for small blocks and fragments, even when converting existing HTML. Programming errors in a component, such as `Attr` given two values, panic when the component is built, so rendering each component in a test catches them. gomponents has no public test helpers, so render to a `strings.Builder` through a small helper and check with `strings.Contains`:
 
 ```go
 func TestNavbar(t *testing.T) {
@@ -253,10 +245,11 @@ func render(t *testing.T, n Node) string {
 
 Test handlers through `Adapt` with `httptest.NewRecorder`, and assert on the status code and a few body markers.
 
-Unexported blocks are tested from inside the package. To reach them from an external `_test` package, re-export them in an `export_internal_test.go` file with `var Card = card`. That re-export collides with dot-imported element names just as an exported function would, so it works for `card` but not for `button`.
+To test unexported blocks, use an internal test package, or re-export them for an external `_test` package in an `export_internal_test.go` file with `var Card = card`, according to project preference. That re-export collides with dot-imported element names just as an exported function would, so it works for `card` but not for `button`.
+
+For linter setup, see `references/linting.md`.
 
 ## Further reading
 
-- API reference: https://pkg.go.dev/maragu.dev/gomponents
-- Guides: https://www.gomponents.com
+- API reference: `go doc maragu.dev/gomponents`, and likewise for `/html`, `/components`, and `/http`.
 - Full application template: https://github.com/maragudk/gomponents-starter-kit
