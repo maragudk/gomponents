@@ -1,6 +1,7 @@
 package gomponents
 
 import (
+	"bytes"
 	"html/template"
 	"strings"
 	"testing"
@@ -15,14 +16,39 @@ func TestRaw(t *testing.T) {
 	})
 }
 
-func TestEscapeString(t *testing.T) {
-	// escapeString must agree with template.HTMLEscapeString on every input. It no longer
-	// calls it — it decides whether to escape and then escapes on its own — so this is what
-	// holds the two together. A false negative would pass markup through.
+// writeOnlyBuffer is a [bytes.Buffer] without its WriteString method, so that writeEscaped
+// takes the path for writers that only have Write.
+type writeOnlyBuffer struct {
+	b *bytes.Buffer
+}
+
+func (w writeOnlyBuffer) Write(p []byte) (int, error) {
+	return w.b.Write(p)
+}
+
+func TestWriteEscaped(t *testing.T) {
+	// writeEscaped must agree with template.HTMLEscapeString on every input, through both
+	// the streaming path for an io.StringWriter and the one write for any other writer. It
+	// never calls it, so this is what holds the two together. A false negative would pass
+	// markup through.
 	same := func(t *testing.T, s string) {
 		t.Helper()
-		if got, want := escapeString(s), template.HTMLEscapeString(s); got != want {
-			t.Fatalf("escapeString(%q) = %q, template.HTMLEscapeString = %q", s, got, want)
+		want := template.HTMLEscapeString(s)
+
+		var sb strings.Builder
+		if _, err := writeEscaped(&sb, s); err != nil {
+			t.Fatal(err)
+		}
+		if got := sb.String(); got != want {
+			t.Fatalf("writeEscaped(strings.Builder, %q) = %q, template.HTMLEscapeString = %q", s, got, want)
+		}
+
+		var bb bytes.Buffer
+		if _, err := writeEscaped(writeOnlyBuffer{&bb}, s); err != nil {
+			t.Fatal(err)
+		}
+		if got := bb.String(); got != want {
+			t.Fatalf("writeEscaped(write-only, %q) = %q, template.HTMLEscapeString = %q", s, got, want)
 		}
 	}
 
@@ -85,13 +111,27 @@ func TestEscapeString(t *testing.T) {
 	})
 }
 
-func FuzzEscapeString(f *testing.F) {
+func FuzzWriteEscaped(f *testing.F) {
 	for _, s := range []string{"", "hat", "<script>", "a&b", `"x"`, "日本語", "\x00"} {
 		f.Add(s)
 	}
 	f.Fuzz(func(t *testing.T, s string) {
-		if got, want := escapeString(s), template.HTMLEscapeString(s); got != want {
-			t.Fatalf("escapeString(%q) = %q, template.HTMLEscapeString = %q", s, got, want)
+		want := template.HTMLEscapeString(s)
+
+		var sb strings.Builder
+		if _, err := writeEscaped(&sb, s); err != nil {
+			t.Fatal(err)
+		}
+		if got := sb.String(); got != want {
+			t.Fatalf("writeEscaped(strings.Builder, %q) = %q, template.HTMLEscapeString = %q", s, got, want)
+		}
+
+		var bb bytes.Buffer
+		if _, err := writeEscaped(writeOnlyBuffer{&bb}, s); err != nil {
+			t.Fatal(err)
+		}
+		if got := bb.String(); got != want {
+			t.Fatalf("writeEscaped(write-only, %q) = %q, template.HTMLEscapeString = %q", s, got, want)
 		}
 	})
 }

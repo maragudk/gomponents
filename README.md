@@ -138,14 +138,14 @@ Some highlights from an Apple M4, constructing and rendering to `io.Discard`:
 
 | Benchmark | ns/op | B/op | allocs/op |
 |---|---:|---:|---:|
-| `El` | 17 | 48 | 1 |
-| `Attr`, boolean | 11 | 24 | 1 |
-| `Attr`, key-value | 20 | 48 | 1 |
-| `Text` | 14 | 16 | 1 |
-| `Textf` | 44 | 40 | 2 |
+| `El` | 16 | 48 | 1 |
+| `Attr`, boolean | 10 | 24 | 1 |
+| `Attr`, key-value | 18 | 48 | 1 |
+| `Text` | 13 | 16 | 1 |
+| `Textf` | 41 | 40 | 2 |
 | `Raw` | 3 | 0 | 0 |
-| `Rawf` | 38 | 40 | 2 |
-| Realistic full page | 68624 | 129686 | 3044 |
+| `Rawf` | 36 | 40 | 2 |
+| Realistic full page | 63560 | 126580 | 2858 |
 
 ### I don't like how HTML looks in Go.
 
