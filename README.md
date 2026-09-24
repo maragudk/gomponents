@@ -35,7 +35,8 @@ Check out [www.gomponents.com](https://www.gomponents.com) for an introduction o
   - `Text` and `Textf` that insert HTML-escaped text,
   - `Raw` and `Rawf` for inserting raw strings,
   - `Map` for mapping data to components and `Group` for grouping components,
-  - and `If`/`Iff` for conditional rendering.
+  - `If`/`Iff` for conditional rendering,
+  - and `components.Static` for caching the rendered HTML of static element trees.
 - No external dependencies
 - Mature and stable, no breaking changes
 

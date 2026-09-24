@@ -7,6 +7,7 @@ import (
 	"io"
 	"sort"
 	"strings"
+	"sync"
 
 	g "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -190,4 +191,67 @@ func extractAttrValue(buf *bytes.Buffer, boolAttr, attrPrefix []byte, n g.Node) 
 		return true, ""
 	}
 	return true, v
+}
+
+// staticMutex guards every slot passed to [Static].
+var staticMutex sync.RWMutex
+
+// Static renders the node returned by f once into the string pointed to by s and writes the cached HTML
+// on every later render. f is only called when the slot is empty, so neither building nor rendering the
+// tree is repeated. Use it for large element trees that are the same on every render: the tree must not
+// depend on request data, user data, or any other changing state, because only the first render is ever
+// written out.
+//
+// s is the cache slot and should be a package-level variable. Each call site needs its own slot;
+// two call sites sharing one would render whichever tree came first. A slot can be reset to the empty
+// string to build and render the tree again, but only while nothing is rendering, for example in tests,
+// because Static does not synchronize with writes to the slot made outside of it.
+//
+// A render error from the node is returned and nothing is cached, so the next render tries again.
+// An empty render result, including a nil node returned by f, is never cached either, so a tree that
+// renders to nothing is built and rendered every time.
+//
+// Concurrent first renders of a slot may each build and render the tree, and the first result is kept.
+//
+// The returned node is an element node, so don't use it for attributes.
+//
+// For example:
+//
+//	var head string
+//
+//	func Page() Node {
+//		return HTML(
+//			Static(&head, func() Node {
+//				return Head(TitleEl(Text("My site")), Link(Rel("stylesheet"), Href("/app.css")))
+//			}),
+//			Body(),
+//		)
+//	}
+func Static(s *string, f func() g.Node) g.Node {
+	return g.NodeFunc(func(w io.Writer) error {
+		staticMutex.RLock()
+		cached := *s
+		staticMutex.RUnlock()
+
+		if cached == "" {
+			var b strings.Builder
+			if node := f(); node != nil {
+				if err := node.Render(&b); err != nil {
+					return err
+				}
+			}
+			cached = b.String()
+
+			if cached != "" {
+				staticMutex.Lock()
+				if *s == "" {
+					*s = cached
+				}
+				staticMutex.Unlock()
+			}
+		}
+
+		_, err := io.WriteString(w, cached)
+		return err
+	})
 }
