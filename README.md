@@ -5,7 +5,6 @@
 [![GoDoc](https://pkg.go.dev/badge/maragu.dev/gomponents)](https://pkg.go.dev/maragu.dev/gomponents)
 [![CI](https://github.com/maragudk/gomponents/actions/workflows/ci.yml/badge.svg)](https://github.com/maragudk/gomponents/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/maragudk/gomponents/branch/main/graph/badge.svg)](https://codecov.io/gh/maragudk/gomponents)
-[![Go Report Card](https://goreportcard.com/badge/maragu.dev/gomponents)](https://goreportcard.com/report/maragu.dev/gomponents)
 
 Try HTML components in pure Go.
 
@@ -115,11 +114,6 @@ Void elements in HTML (like `<br>`, `<img>`, `<input>`) don't have closing tags.
 gomponents handles these correctly by checking against an internal list of void elements during rendering.
 When you create a void element, any child nodes that are not attributes will be ignored automatically to ensure valid HTML output.
 
-## Performance Considerations
-
-gomponents renders directly to an `io.Writer`, making it efficient for server-side rendering.
-The library avoids unnecessary allocations where possible.
-
 ## FAQ
 
 ### Is gomponents production-ready?
@@ -133,6 +127,25 @@ I wrote gomponents because I didn't like how I think it's hard to pass data arou
 gomponents is pure Go, with no extra build step like Templ, so it works with all tools that already support Go.
 
 That said, both `html/template` and Templ will do the same thing as gomponents in the end. Try them all and choose what you like!
+
+### Is gomponents fast?
+
+Yes. gomponents renders directly to an `io.Writer`, making it efficient for server-side rendering.
+The library avoids unnecessary memory allocations where possible.
+There's also an extensive benchmark suite to keep it that way, which you can run with `make benchmark`.
+
+Some highlights from an Apple M4, constructing and rendering to `io.Discard`:
+
+| Benchmark | ns/op | B/op | allocs/op |
+|---|---:|---:|---:|
+| `El` | 17 | 48 | 1 |
+| `Attr`, boolean | 11 | 24 | 1 |
+| `Attr`, key-value | 20 | 48 | 1 |
+| `Text` | 14 | 16 | 1 |
+| `Textf` | 44 | 40 | 2 |
+| `Raw` | 3 | 0 | 0 |
+| `Rawf` | 38 | 40 | 2 |
+| Realistic full page | 68624 | 129686 | 3044 |
 
 ### I don't like how HTML looks in Go.
 
@@ -183,30 +196,3 @@ I've chosen one or the other based on what I think is the common usage:
 - `title`: `TitleEl` (element) / `Title` (attribute)
 
 Deprecated aliases (`CiteEl`, `DataAttr`, `FormEl`, `LabelEl`, `StyleAttr`, `TitleAttr`) also exist for backwards compatibility but should not be used in new code.
-
-<details>
-	<summary>Example with `Style` and `StyleEl`</summary>
-
-```go
-package html
-
-import (
-	. "maragu.dev/gomponents"
-	. "maragu.dev/gomponents/components"
-	. "maragu.dev/gomponents/html"
-)
-
-func MyPage() Node {
-	return HTML5(HTML5Props{
-		Title: "My Page",
-		Head: []Node{
-			StyleEl(Raw("body {background-color: #fff; }")),
-		},
-		Body: []Node{
-			H1(Style("color: #000"), Text("My Page")),
-		},
-	})
-}
-```
-
-</details>
