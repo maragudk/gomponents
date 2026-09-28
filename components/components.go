@@ -221,37 +221,6 @@ type Cache interface {
 // result is cached like any other.
 //
 // The returned node is an element node, so don't use it for attributes.
-//
-// For example:
-//
-//	type cache struct {
-//		mu   sync.RWMutex
-//		html map[string]string
-//	}
-//
-//	func (c *cache) Get(key string) (string, bool) {
-//		c.mu.RLock()
-//		defer c.mu.RUnlock()
-//		html, ok := c.html[key]
-//		return html, ok
-//	}
-//
-//	func (c *cache) Set(key, html string) {
-//		c.mu.Lock()
-//		defer c.mu.Unlock()
-//		c.html[key] = html
-//	}
-//
-//	var c = &cache{html: map[string]string{}}
-//
-//	func Page(locale string) Node {
-//		return HTML(
-//			Cached(c, "head:"+locale, func() Node {
-//				return Head(TitleEl(Text("My site ("+locale+")")), Link(Rel("stylesheet"), Href("/app.css")))
-//			}),
-//			Body(),
-//		)
-//	}
 func Cached(cache Cache, key string, f func() g.Node) g.Node {
 	return g.NodeFunc(func(w io.Writer) error {
 		if cache != nil {
