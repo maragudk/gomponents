@@ -241,3 +241,58 @@ Whether `Get`/`Set` without errors is the right permanent shape, since users imp
 ### Future work
 
 None outstanding; the keyed design subsumes what `Static` was for.
+
+## Step 6: Build `Cached`, its tests, benchmark, and docs
+
+**Author:** cached-builder
+
+### Prompt Context
+
+**Verbatim prompt:** "You are replacing the `Static` component with a caller-owned-cache `Cached` component in the gomponents library. [...] PR #363 currently ships `Static(s *string, f func() g.Node) g.Node` plus a package-global `staticMutex`. All of that comes out. [...] In its place, in /components/components.go: `type Cache interface { Get(key string) (html string, ok bool); Set(key, html string) }` and `func Cached(cache Cache, key string, f func() g.Node) g.Node` [...] A nil node returned by `f` renders as nothing, and that empty result IS cached (unlike the old `Static`). [...] A nil `cache` renders every time and must not panic. [...] The library holds no lock and no global state. [...] Replace `BenchmarkStatic` [...] with `BenchmarkCached` [...] **Include `b.RunParallel` variants** [...] Self-review with the `fabrik:code-review` skill when implementation is done, and fix what you find. Push to `origin` branch `static-component` [...] and update PR #363 with `gh pr edit`."
+**Interpretation:** Delete `Static` and its lock entirely, implement the `Cache` interface and `Cached` exactly as specified, port the test suite to a counting test cache, move the example to a whole-file `ExampleCached`, add serial and parallel benchmarks, update the two doc mentions, self-review, and rewrite the PR.
+**Inferred intent:** Ship the Step 5 design with the concurrency cost made visible in the benchmark this time, and with the empty-output caching bug of the old sentinel design fixed and pinned by a test.
+
+### What I did
+
+Wrote `TestCached` first in `/components/components_test.go`, replacing `TestStatic` wholesale, and watched `go vet` fail with `undefined: Cached`. The tests use a `testCache` (map plus `sync.RWMutex`, with `int32` counters bumped through `atomic.AddInt32` since `atomic.Int32` is Go 1.19) and two assertion helpers, `assertCached` and `assertNotCached`. Then deleted `Static`, `staticMutex`, and the `sync` import from `/components/components.go` and added `Cache` and `Cached` (commit `1a991b4` after the rebase, `723a228` before). The example moved from the deleted `/components/example_static_test.go` to `/components/example_cached_test.go`, a whole-file example with the `cache` type, its methods, `var c`, a `page(locale)` function, and `ExampleCached`. The README bullet and the AGENTS.md `components/` line now name `Cached` (`3cd6e49`). `/docs/decisions.md` and the lead's Step 5 diary entry, both uncommitted when I started, went into the first commit since they document the pivot.
+
+`BenchmarkCached` in `/components/benchmark_test.go` (`72d89ab`) keeps the direct-versus-cached rows from `BenchmarkStatic` and adds a `b.RunParallel` row for each, with the cached rows run against two caches: the map-and-`RWMutex` one and a `sync.Map` one. Ran the code-review skill with two competing reviewers and fixed their consensus findings (`a77d2ec`): the godoc claimed concurrent misses all `Set` "the same HTML" and that the first render wins, which is wrong when two call sites with different trees miss at once, so it now says the last `Set` is kept and trees sharing a key must render the same HTML; the godoc example called an undefined `title(locale)`; "as they are in a web server" and "the caller owns the cache" looked outward from the package; the benchmark comment attributed the 2 KiB buffer to an unexported `net/http` constant; a redundant `int32()` conversion; the benchmark borrowed the example file's `cache` type, so it now has its own `rwMutexCache`; and the loop variables `w` and `c` shadowed each other and the example's package-level `c`. Two single-reviewer test gaps were cheap enough to take: the render-error test now asserts that nothing reaches the writer, and the write-error test also covers the hit path. Rebased onto `origin/main`, which had moved by #357 (render-time escaping of `Text`), with no conflicts.
+
+### Why
+
+The pivot's whole justification was measured, so the benchmark had to be able to see the thing that was measured: a parallel row. Adding a `sync.Map` cache next to the `RWMutex` one turns the benchmark into the argument for the design, since it shows the cached path costs exactly what the caller's cache costs and nothing the library adds. The empty-output-is-cached test exists because that was the one behaviour the old sentinel could not express; the `ok` return from `Get` is what makes it expressible, and the test pins it so it cannot regress to "empty means miss".
+
+### What worked
+
+Writing the whole test block before touching the implementation, since the spec listed the cases and the previous `TestStatic` had the choreography for the concurrent ones; the two blocking-node tests from Step 3 ported with the counters pointed at the cache instead of the slot. The `ok`-based miss detection made the implementation a single straight-line function with no special cases: hit, write; miss, render, `Set`, write.
+
+### What didn't work
+
+The harness refused three compound shell commands as "too complex to verify that it stays inside the worktree": a Python heredoc followed by `git rm` and a `cat` heredoc, and twice a `cat >> file <<'EOF'` append followed by `go vet`. Splitting them into single-purpose commands and using the Edit tool for the appends worked, as Step 2 found. The first full benchmark run overlapped with the reviewers' `go test -race -count=5` runs and the direct rows came back at ±36%, so it was re-run on a quiet machine after the review; the cached rows were within 8% either way.
+
+### What I learned
+
+The parallel row confirms Step 5's measurement and puts a number on the alternative. Same machine and method as Step 4 (Apple M4, Go 1.27.1, six runs, benchstat), with the direct rows now at 251 allocations after #357:
+
+| Case | Direct | `Cached`, `RWMutex` cache | `Cached`, `sync.Map` cache |
+|---|---|---|---|
+| render pre-built, discarded | 2.24 µs, 0 allocs | 9.3 ns, 0 allocs | 10.7 ns, 0 allocs |
+| render pre-built, buffered | 3.64 µs, 0 allocs | 34.5 ns, 0 allocs | 37.0 ns, 0 allocs |
+| construct and render, discarded | 4.23 µs, 8.8 KB, 251 allocs | 10.1 ns, 0 allocs | 10.9 ns, 0 allocs |
+| construct and render, buffered | 6.33 µs, 8.8 KB, 251 allocs | 34.4 ns, 0 allocs | 37.9 ns, 0 allocs |
+| construct and render, parallel, discarded | 2.60 µs, 251 allocs | 86.5 ns, 0 allocs | 2.27 ns, 0 allocs |
+| construct and render, parallel, buffered | 3.43 µs, 251 allocs | 91.2 ns, 0 allocs | 7.66 ns, 0 allocs |
+
+The `RWMutex` cache on ten cores lands at 86 ns, the same contention number Step 5 measured for the global lock, which is the point: the lock was never the library's to hold, and a caller who picks `sync.Map` gets 2.3 ns for the same render. Serially the two caches are within 2 ns of each other. Parallel rows are wall time per operation across all cores, so the direct parallel rows being faster than serial is the expected ten-way split, not a speedup.
+
+### What was tricky
+
+Deciding what "whichever rendered first" means once there is no lock. Sequentially it is true and the spec asked for it in the godoc. Concurrently, each miss calls `Set` and a map cache keeps the last one, so the godoc now says both, and adds the rule that makes the difference irrelevant: trees sharing a key must render the same HTML. The reviewers also both asked to drop the in-comment example because `ExampleCached` renders directly below it on pkg.go.dev and the two will drift; the brief asked for both, so it stayed, with the undefined call fixed.
+
+### What warrants review
+
+The godoc for `Cached`, in particular whether keeping the in-comment example next to the whole-file one is wanted. The `Cache` interface is final once released: no errors, no context, and both reviewers noted a remote cache would have to swallow failures inside `Get`, which the decisions entry accepts. The `rwMutexCache` in the benchmark duplicates the example's `cache` type by design, so the benchmark survives changes to the example. Nil `f` panics on the first miss, like `Iff` with a nil function, and is undocumented; both reviewers flagged it as low priority.
+
+### Future work
+
+None. The reviewers' remaining single-reviewer nits, rendering the example twice to show a hit and the nil-cache path buffering before writing, were left as-is: the second is what the brief specified.
