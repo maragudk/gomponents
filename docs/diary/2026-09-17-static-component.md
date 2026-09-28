@@ -189,3 +189,55 @@ Whether the godoc's "f is only called when the slot is empty" reads clearly enou
 ### Future work
 
 None.
+
+## Step 5: Drop `Static` for a caller-owned `Cached`
+
+**Author:** main
+
+### Prompt Context
+
+**Verbatim prompt:** "I wonder if it would be better to explore a design where the cache and its invalidation lives with the caller (maybe a TTL cache, or a bounded one, or one that actually uses a cache key that can be invalidated), so it's not entirely for static content. That would be a stronger component." Then, after discussion: "Definitely Cached alone, I don't want a helper for the simple case. An empty string key is just as easy to use IMO."
+**Interpretation:** Replace `Static` entirely with `Cached(cache, key, f)`, where the caller supplies a cache implementing a small interface and owns keying and invalidation. No convenience wrapper for the pure-static case.
+**Inferred intent:** Ship one component that covers static and mostly-static content instead of a narrow one that only covers content guaranteed never to change, and get the library out of the business of owning cache state.
+
+### What I did
+
+Two research passes before the decision. The first asked what stdlib type should replace the `*string` slot; the second measured what an interface parameter costs. Both are summarised below because their findings drove the pivot.
+
+Then settled the remaining API questions: no errors on the cache interface, a nil cache renders every time rather than panicking, `Get`/`Set` rather than `Load`/`Store`, and a named exported `components.Cache` rather than an anonymous interface in the signature. Wrote this step and a `/docs/decisions.md` entry, then handed the build over.
+
+### Why
+
+The `*string` slot was a hack, though not for the reason first suspected. The empty-string sentinel was cosmetic; the real defect was the package-global `sync.RWMutex`, which put an atomic read-modify-write on one process-wide cache line into every render of every `Static` node in the binary. Measured end-to-end on the cached path: 5.03 ns serial and 85.2 ns on ten cores, against 4.36 ns and 0.73 ns for a slot built on `atomic.Value`. Mutex designs get worse as cores are added; atomic-load designs get better. This went unnoticed because `BenchmarkStatic` had no `b.RunParallel` case, so Step 2's comparison of `Mutex` against `RWMutex` recorded the contention number and read it as a tie between lock flavours rather than as evidence that neither belonged there.
+
+That pointed at `StaticCache`, a struct wrapping `atomic.Value`. The pivot to `Cached` went further for a reason that only emerged from the second measurement: a keyless `Load`/`Store` interface unlocks nothing, because a `Node` renders to an `io.Writer` and has no request in scope from which to derive a key. Relocating one 16-byte process-lifetime string is not a use case. The `Vary`-style, per-tenant, and TTL cases that justify an interface all need a key, and the key can only come from the call site, where the caller does have the request. So the keyed function was always going to be a separate function; the question was whether `Static` deserved to exist beside it. Markus decided it did not, on the grounds that an empty-string key is no harder than a dedicated helper.
+
+Errors were left off the interface because a read failure is indistinguishable from a miss and a write failure just means rendering again next time, so both degrade correctly, and an implementer who wants to log a failure does it inside their own `Get`. An interface implemented by users can never grow a method without breaking all of them, which makes the two-method shape worth protecting.
+
+### What worked
+
+Asking for measurement instead of accepting either my own or the researcher's reasoning about dispatch cost. The interface was found to cost about 0.5 ns serial and eight closure bytes, with no extra allocation, and the explanation mattered more than the number: the concrete version inlines to a bare atomic load, while the interface version becomes an itab call that the compiler provably cannot devirtualize, because the slot is captured by the returned closure and Go's devirtualizer does not follow proven types across a closure boundary. That is not a gap a future Go release closes. It settled the `Static` signature question, and it also showed why the cost is irrelevant for `Cached`, where the caller's own cache lookup dominates.
+
+Checking backwards compatibility by compiling the experiment rather than reasoning about it. Adding `Cached` later would have been fully compatible, which removed all time pressure from that half of the design and left only `Static`'s own exported surface as the thing with a deadline.
+
+### What didn't work
+
+Nothing failed mechanically. The design did move three times — core-package closure, caller-owned `*string` slot, `atomic.Value` struct, caller-owned cache — which is the cost of having started building before the shape was settled. PR #363 now has to be substantially rewritten rather than extended.
+
+### What I learned
+
+A benchmark suite without a parallel case cannot see contention, and contention is the entire failure mode of a shared lock. The lock-versus-no-lock comparison was never run because both sides of the comparison that was run had a lock in them.
+
+Go's devirtualizer does not propagate a proven concrete type into a closure, so any API that returns a closure capturing an interface pays a real itab call however obvious the concrete type is at the call site. A microbenchmark that calls the method directly rather than through the returned node will devirtualize and report the abstraction as free; that result does not transfer.
+
+### What was tricky
+
+Separating the two reasons the `*string` felt wrong. Markus named the sentinel; the measurement found the global lock. Fixing only the named one would have shipped the real defect.
+
+### What warrants review
+
+Whether `Get`/`Set` without errors is the right permanent shape, since users implement this interface and it can never grow a method. And whether dropping the pure-static convenience is the right call for the audience that issue #323 came from, which wanted static trees fast and will now have to supply a cache.
+
+### Future work
+
+None outstanding; the keyed design subsumes what `Static` was for.

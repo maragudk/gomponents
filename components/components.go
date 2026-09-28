@@ -7,7 +7,6 @@ import (
 	"io"
 	"sort"
 	"strings"
-	"sync"
 
 	g "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -193,65 +192,88 @@ func extractAttrValue(buf *bytes.Buffer, boolAttr, attrPrefix []byte, n g.Node) 
 	return true, v
 }
 
-// staticMutex guards every slot passed to [Static].
-var staticMutex sync.RWMutex
+// Cache is a cache of rendered HTML, keyed by string, for use with [Cached].
+// Implementations must be safe for concurrent use if nodes are rendered concurrently,
+// as they are in a web server.
+type Cache interface {
+	// Get returns the HTML cached under key, and whether it was there.
+	Get(key string) (html string, ok bool)
+	// Set caches html under key.
+	Set(key, html string)
+}
 
-// Static renders the node returned by f once into the string pointed to by s and writes the cached HTML
-// on every later render. f is only called when the slot is empty, so neither building nor rendering the
-// tree is repeated. Use it for large element trees that are the same on every render: the tree must not
-// depend on request data, user data, or any other changing state, because only the first render is ever
-// written out.
+// Cached renders the node returned by f, caches the HTML in cache under key, and writes the cached HTML
+// on every later render of that key. f is only called on a cache miss, so neither building nor rendering
+// the tree is repeated on a hit. Use it for element trees that are expensive to build or render and rarely
+// change, such as a document head or a navigation. The key must capture everything the tree depends on,
+// for example a locale or a tenant, because whichever tree rendered first under a key is what every later
+// render of that key gets, including at other call sites that share the key.
 //
-// s is the cache slot and should be a package-level variable. Each call site needs its own slot;
-// two call sites sharing one would render whichever tree came first. A slot can be reset to the empty
-// string to build and render the tree again, but only while nothing is rendering, for example in tests,
-// because Static does not synchronize with writes to the slot made outside of it.
+// The caller owns the cache, and with it eviction and invalidation: to render a tree again, remove its key
+// through the cache's own API. Cached holds no lock and no state of its own, so concurrent renders that all
+// miss on a key each build and render the tree and each call [Cache.Set] with the same HTML.
+//
+// A nil cache renders every time, so caching can be switched off by leaving it nil, for example during
+// development.
 //
 // A render error from the node is returned and nothing is cached, so the next render tries again.
-// An empty render result, including a nil node returned by f, is never cached either, so a tree that
-// renders to nothing is built and rendered every time.
-//
-// Concurrent first renders of a slot may each build and render the tree, and the first result is kept.
+// A nil node returned by f, such as from [g.If], renders as nothing, and that empty result is cached
+// like any other.
 //
 // The returned node is an element node, so don't use it for attributes.
 //
 // For example:
 //
-//	var head string
+//	type cache struct {
+//		mu   sync.RWMutex
+//		html map[string]string
+//	}
 //
-//	func Page() Node {
+//	func (c *cache) Get(key string) (string, bool) {
+//		c.mu.RLock()
+//		defer c.mu.RUnlock()
+//		html, ok := c.html[key]
+//		return html, ok
+//	}
+//
+//	func (c *cache) Set(key, html string) {
+//		c.mu.Lock()
+//		defer c.mu.Unlock()
+//		c.html[key] = html
+//	}
+//
+//	var c = &cache{html: map[string]string{}}
+//
+//	func Page(locale string) Node {
 //		return HTML(
-//			Static(&head, func() Node {
-//				return Head(TitleEl(Text("My site")), Link(Rel("stylesheet"), Href("/app.css")))
+//			Cached(c, "head:"+locale, func() Node {
+//				return Head(TitleEl(Text(title(locale))), Link(Rel("stylesheet"), Href("/app.css")))
 //			}),
 //			Body(),
 //		)
 //	}
-func Static(s *string, f func() g.Node) g.Node {
+func Cached(cache Cache, key string, f func() g.Node) g.Node {
 	return g.NodeFunc(func(w io.Writer) error {
-		staticMutex.RLock()
-		cached := *s
-		staticMutex.RUnlock()
-
-		if cached == "" {
-			var b strings.Builder
-			if node := f(); node != nil {
-				if err := node.Render(&b); err != nil {
-					return err
-				}
-			}
-			cached = b.String()
-
-			if cached != "" {
-				staticMutex.Lock()
-				if *s == "" {
-					*s = cached
-				}
-				staticMutex.Unlock()
+		if cache != nil {
+			if cached, ok := cache.Get(key); ok {
+				_, err := io.WriteString(w, cached)
+				return err
 			}
 		}
 
-		_, err := io.WriteString(w, cached)
+		var b strings.Builder
+		if node := f(); node != nil {
+			if err := node.Render(&b); err != nil {
+				return err
+			}
+		}
+		rendered := b.String()
+
+		if cache != nil {
+			cache.Set(key, rendered)
+		}
+
+		_, err := io.WriteString(w, rendered)
 		return err
 	})
 }

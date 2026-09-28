@@ -287,30 +287,114 @@ func (failingWriter) Write([]byte) (int, error) {
 	return 0, errors.New("no thanks")
 }
 
-func TestStatic(t *testing.T) {
-	t.Run("calls f and renders the node once and reuses the cached HTML on later renders", func(t *testing.T) {
-		var slot string
+// testCache is a concurrency-safe [Cache] that counts its calls.
+type testCache struct {
+	mu         sync.RWMutex
+	html       map[string]string
+	gets, sets int32
+}
+
+func newTestCache() *testCache {
+	return &testCache{html: map[string]string{}}
+}
+
+func (c *testCache) Get(key string) (string, bool) {
+	atomic.AddInt32(&c.gets, 1)
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	html, ok := c.html[key]
+	return html, ok
+}
+
+func (c *testCache) Set(key, html string) {
+	atomic.AddInt32(&c.sets, 1)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.html[key] = html
+}
+
+func (c *testCache) Delete(key string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	delete(c.html, key)
+}
+
+// assertCached fails the test unless the cache holds exactly html under key.
+func (c *testCache) assertCached(t *testing.T, key, html string) {
+	t.Helper()
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	got, ok := c.html[key]
+	if !ok {
+		t.Fatalf("expected %q to be cached under %q, but nothing is", html, key)
+	}
+	if got != html {
+		t.Fatalf("expected %q to be cached under %q, got %q", html, key, got)
+	}
+}
+
+// assertNotCached fails the test if the cache holds anything under key.
+func (c *testCache) assertNotCached(t *testing.T, key string) {
+	t.Helper()
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if got, ok := c.html[key]; ok {
+		t.Fatalf("expected nothing to be cached under %q, got %q", key, got)
+	}
+}
+
+func TestCached(t *testing.T) {
+	t.Run("calls f and renders the node on a miss and writes the cached HTML on a hit", func(t *testing.T) {
+		c := newTestCache()
 		var calls int32
 		f := func() g.Node {
 			atomic.AddInt32(&calls, 1)
 			return P(Class("hat"), g.Text("Party hat"))
 		}
 
-		// A new Static call each time, like a component called per request.
-		for i := 0; i < 3; i++ {
-			assert.Equal(t, `<p class="hat">Party hat</p>`, Static(&slot, f))
+		// A new Cached call each time, like a component called per request.
+		for i := 0; i < 2; i++ {
+			assert.Equal(t, `<p class="hat">Party hat</p>`, Cached(c, "hat", f))
 		}
 
 		if calls != 1 {
 			t.Fatalf("expected 1 call, got %v", calls)
 		}
-		if slot != `<p class="hat">Party hat</p>` {
-			t.Fatalf("expected the slot to hold the HTML, got %q", slot)
+		if c.gets != 2 || c.sets != 1 {
+			t.Fatalf("expected 2 gets and 1 set, got %v and %v", c.gets, c.sets)
+		}
+		c.assertCached(t, "hat", `<p class="hat">Party hat</p>`)
+	})
+
+	t.Run("caches distinct keys separately", func(t *testing.T) {
+		c := newTestCache()
+		f := func(locale string) func() g.Node {
+			return func() g.Node { return P(g.Text(locale)) }
+		}
+
+		for i := 0; i < 2; i++ {
+			assert.Equal(t, "<p>en</p>", Cached(c, "en", f("en")))
+			assert.Equal(t, "<p>da</p>", Cached(c, "da", f("da")))
+		}
+
+		c.assertCached(t, "en", "<p>en</p>")
+		c.assertCached(t, "da", "<p>da</p>")
+		if c.sets != 2 {
+			t.Fatalf("expected 2 sets, got %v", c.sets)
 		}
 	})
 
-	t.Run("returns a render error, leaves the slot empty, and calls f again on the next render", func(t *testing.T) {
-		var slot string
+	t.Run("renders whichever node came first when two call sites share a key", func(t *testing.T) {
+		c := newTestCache()
+
+		assert.Equal(t, "<p>first</p>", Cached(c, "shared", func() g.Node { return P(g.Text("first")) }))
+		assert.Equal(t, "<p>first</p>", Cached(c, "shared", func() g.Node { return P(g.Text("second")) }))
+	})
+
+	t.Run("returns a render error, caches nothing, and calls f again on the next render", func(t *testing.T) {
+		c := newTestCache()
 		var calls int32
 		f := func() g.Node {
 			atomic.AddInt32(&calls, 1)
@@ -320,40 +404,39 @@ func TestStatic(t *testing.T) {
 		}
 
 		for i := 0; i < 2; i++ {
-			err := Static(&slot, f).Render(io.Discard)
+			err := Cached(c, "broken", f).Render(io.Discard)
 			assert.Error(t, err)
-			if slot != "" {
-				t.Fatalf("expected an empty slot after a render error, got %q", slot)
-			}
+			c.assertNotCached(t, "broken")
 		}
 
 		if calls != 2 {
 			t.Fatalf("expected 2 calls, got %v", calls)
 		}
+		if c.sets != 0 {
+			t.Fatalf("expected 0 sets, got %v", c.sets)
+		}
 	})
 
 	t.Run("returns a write error but keeps the cache and does not call f again", func(t *testing.T) {
-		var slot string
+		c := newTestCache()
 		var calls int32
 		f := func() g.Node {
 			atomic.AddInt32(&calls, 1)
 			return P(g.Text("hat"))
 		}
 
-		err := Static(&slot, f).Render(failingWriter{})
+		err := Cached(c, "hat", f).Render(failingWriter{})
 		assert.Error(t, err)
-		if slot != "<p>hat</p>" {
-			t.Fatalf("expected the slot to be filled despite the write error, got %q", slot)
-		}
+		c.assertCached(t, "hat", "<p>hat</p>")
 
-		assert.Equal(t, "<p>hat</p>", Static(&slot, f))
+		assert.Equal(t, "<p>hat</p>", Cached(c, "hat", f))
 		if calls != 1 {
 			t.Fatalf("expected 1 call, got %v", calls)
 		}
 	})
 
-	t.Run("calls f every time when the node renders nothing", func(t *testing.T) {
-		var slot string
+	t.Run("caches empty output so f is not called again", func(t *testing.T) {
+		c := newTestCache()
 		var calls int32
 		f := func() g.Node {
 			atomic.AddInt32(&calls, 1)
@@ -361,7 +444,42 @@ func TestStatic(t *testing.T) {
 		}
 
 		for i := 0; i < 3; i++ {
-			assert.Equal(t, "", Static(&slot, f))
+			assert.Equal(t, "", Cached(c, "empty", f))
+		}
+
+		if calls != 1 {
+			t.Fatalf("expected 1 call, got %v", calls)
+		}
+		c.assertCached(t, "empty", "")
+	})
+
+	t.Run("renders nothing and caches that when f returns nil", func(t *testing.T) {
+		c := newTestCache()
+		var calls int32
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return g.If(false, Span())
+		}
+
+		for i := 0; i < 2; i++ {
+			assert.Equal(t, "<div></div>", Div(Cached(c, "nil", f)))
+		}
+
+		if calls != 1 {
+			t.Fatalf("expected 1 call, got %v", calls)
+		}
+		c.assertCached(t, "nil", "")
+	})
+
+	t.Run("calls f and renders every time when the cache is nil", func(t *testing.T) {
+		var calls int32
+		f := func() g.Node {
+			atomic.AddInt32(&calls, 1)
+			return P(g.Text("hat"))
+		}
+
+		for i := 0; i < 3; i++ {
+			assert.Equal(t, "<p>hat</p>", Cached(nil, "hat", f))
 		}
 
 		if calls != 3 {
@@ -369,33 +487,18 @@ func TestStatic(t *testing.T) {
 		}
 	})
 
-	t.Run("renders nothing when f returns nil", func(t *testing.T) {
-		var slot string
-
-		assert.Equal(t, "<div></div>", Div(Static(&slot, func() g.Node { return g.If(false, Span()) })))
-		if slot != "" {
-			t.Fatalf("expected an empty slot, got %q", slot)
-		}
-	})
-
-	t.Run("renders whichever node came first when two call sites share a slot", func(t *testing.T) {
-		var slot string
-
-		assert.Equal(t, "<p>first</p>", Static(&slot, func() g.Node { return P(g.Text("first")) }))
-		assert.Equal(t, "<p>first</p>", Static(&slot, func() g.Node { return P(g.Text("second")) }))
-	})
-
-	t.Run("calls f again after the slot is reset", func(t *testing.T) {
-		var slot string
+	t.Run("calls f again after the key is deleted from the cache", func(t *testing.T) {
+		c := newTestCache()
 		var calls int32
 		f := func() g.Node {
 			atomic.AddInt32(&calls, 1)
-			return P(g.Text("hat"))
+			return P(g.Textf("hat %v", atomic.LoadInt32(&calls)))
 		}
 
-		assert.Equal(t, "<p>hat</p>", Static(&slot, f))
-		slot = ""
-		assert.Equal(t, "<p>hat</p>", Static(&slot, f))
+		assert.Equal(t, "<p>hat 1</p>", Cached(c, "hat", f))
+		assert.Equal(t, "<p>hat 1</p>", Cached(c, "hat", f))
+		c.Delete("hat")
+		assert.Equal(t, "<p>hat 2</p>", Cached(c, "hat", f))
 
 		if calls != 2 {
 			t.Fatalf("expected 2 calls, got %v", calls)
@@ -403,27 +506,23 @@ func TestStatic(t *testing.T) {
 	})
 
 	t.Run("renders as an element, not an attribute", func(t *testing.T) {
-		var slot string
+		c := newTestCache()
 
-		assert.Equal(t, `<div> class="hat"</div>`, Div(Static(&slot, func() g.Node { return Class("hat") })))
+		assert.Equal(t, `<div> class="hat"</div>`, Div(Cached(c, "class", func() g.Node { return Class("hat") })))
 	})
 
-	t.Run("fills both slots when one Static is nested in another", func(t *testing.T) {
-		var outer, inner string
+	t.Run("caches both keys when one Cached is nested in another", func(t *testing.T) {
+		c := newTestCache()
 
-		assert.Equal(t, "<div><span>hat</span></div>", Static(&outer, func() g.Node {
-			return Div(Static(&inner, func() g.Node { return Span(g.Text("hat")) }))
+		assert.Equal(t, "<div><span>hat</span></div>", Cached(c, "outer", func() g.Node {
+			return Div(Cached(c, "inner", func() g.Node { return Span(g.Text("hat")) }))
 		}))
-		if outer != "<div><span>hat</span></div>" {
-			t.Fatalf("expected the outer slot to be filled, got %q", outer)
-		}
-		if inner != "<span>hat</span>" {
-			t.Fatalf("expected the inner slot to be filled, got %q", inner)
-		}
+		c.assertCached(t, "outer", "<div><span>hat</span></div>")
+		c.assertCached(t, "inner", "<span>hat</span>")
 	})
 
-	t.Run("leaves the slot empty when the node panics", func(t *testing.T) {
-		var slot string
+	t.Run("caches nothing when the node panics", func(t *testing.T) {
+		c := newTestCache()
 		f := func() g.Node {
 			return g.NodeFunc(func(w io.Writer) error {
 				panic("oh no")
@@ -436,19 +535,20 @@ func TestStatic(t *testing.T) {
 					t.Fatal("expected a panic")
 				}
 			}()
-			_ = Static(&slot, f).Render(io.Discard)
+			_ = Cached(c, "hat", f).Render(io.Discard)
 		}()
 
-		if slot != "" {
-			t.Fatalf("expected an empty slot, got %q", slot)
+		c.assertNotCached(t, "hat")
+		if c.sets != 0 {
+			t.Fatalf("expected 0 sets, got %v", c.sets)
 		}
-		assert.Equal(t, "<p>hat</p>", Static(&slot, func() g.Node { return P(g.Text("hat")) }))
+		assert.Equal(t, "<p>hat</p>", Cached(c, "hat", func() g.Node { return P(g.Text("hat")) }))
 	})
 
-	t.Run("fills the slot and gives every goroutine the full output when many render it concurrently", func(t *testing.T) {
+	t.Run("gives every goroutine the full output when many render a key concurrently", func(t *testing.T) {
 		const goroutines = 64
 
-		var slot string
+		c := newTestCache()
 		var calls int32
 		start := make(chan struct{})
 		f := func() g.Node {
@@ -465,7 +565,7 @@ func TestStatic(t *testing.T) {
 				defer wg.Done()
 				<-start
 				var b strings.Builder
-				errs[i] = Static(&slot, f).Render(&b)
+				errs[i] = Cached(c, "hat", f).Render(&b)
 				outputs[i] = b.String()
 			}(i)
 		}
@@ -480,91 +580,21 @@ func TestStatic(t *testing.T) {
 				t.Fatalf("goroutine %v got %q", i, outputs[i])
 			}
 		}
-		if slot != "<p>hat</p>" {
-			t.Fatalf("expected the slot to hold the HTML, got %q", slot)
-		}
+		c.assertCached(t, "hat", "<p>hat</p>")
 		if calls < 1 {
 			t.Fatal("expected at least 1 call")
 		}
-	})
-
-	t.Run("lets readers of a filled slot proceed while another slot's first render is in progress", func(t *testing.T) {
-		const readers = 32
-
-		var slotA, slotB string
-		var callsA int32
-		fA := func() g.Node {
-			atomic.AddInt32(&callsA, 1)
-			return P(g.Text("a"))
-		}
-		assert.Equal(t, "<p>a</p>", Static(&slotA, fA))
-
-		started := make(chan struct{})
-		release := make(chan struct{})
-		fB := func() g.Node {
-			return g.NodeFunc(func(w io.Writer) error {
-				close(started)
-				<-release
-				_, err := io.WriteString(w, "<p>b</p>")
-				return err
-			})
-		}
-
-		var writer sync.WaitGroup
-		writer.Add(1)
-		var outputB string
-		var errB error
-		go func() {
-			defer writer.Done()
-			var b strings.Builder
-			errB = Static(&slotB, fB).Render(&b)
-			outputB = b.String()
-		}()
-		// Now the first render of slot B is in progress, inside its node, until release is closed.
-		<-started
-
-		outputs := make([]string, readers)
-		errs := make([]error, readers)
-		var wg sync.WaitGroup
-		for i := 0; i < readers; i++ {
-			wg.Add(1)
-			go func(i int) {
-				defer wg.Done()
-				var b strings.Builder
-				errs[i] = Static(&slotA, fA).Render(&b)
-				outputs[i] = b.String()
-			}(i)
-		}
-		// The readers finish while slot B is still rendering; this would hang if they had to wait for it.
-		wg.Wait()
-		close(release)
-		writer.Wait()
-
-		if errB != nil {
-			t.Fatal("writer got error:", errB)
-		}
-		if outputB != "<p>b</p>" {
-			t.Fatalf("writer got %q", outputB)
-		}
-		for i := 0; i < readers; i++ {
-			if errs[i] != nil {
-				t.Fatalf("reader %v got error %v", i, errs[i])
-			}
-			if outputs[i] != "<p>a</p>" {
-				t.Fatalf("reader %v got %q", i, outputs[i])
-			}
-		}
-		if callsA != 1 {
-			t.Fatalf("expected 1 call for a, got %v", callsA)
+		if int32(c.sets) != calls {
+			t.Fatalf("expected one set per call, got %v sets for %v calls", c.sets, calls)
 		}
 	})
 
-	t.Run("keeps the first result when concurrent first renders of a slot all try to store it", func(t *testing.T) {
-		// Every goroutine sees the empty slot and calls f, since the node blocks until all of them
-		// have. They then all try to store their result, and only the first one does.
+	t.Run("calls f and sets the cache from every goroutine when concurrent renders all miss", func(t *testing.T) {
+		// Every goroutine misses and calls f, since the node blocks until all of them have.
+		// They then each set the cache, and all of them write the same output.
 		const goroutines = 32
 
-		var slot string
+		c := newTestCache()
 		var calls int32
 		release := make(chan struct{})
 		f := func() g.Node {
@@ -584,7 +614,7 @@ func TestStatic(t *testing.T) {
 			go func(i int) {
 				defer wg.Done()
 				var b strings.Builder
-				errs[i] = Static(&slot, f).Render(&b)
+				errs[i] = Cached(c, "hat", f).Render(&b)
 				outputs[i] = b.String()
 			}(i)
 		}
@@ -602,11 +632,9 @@ func TestStatic(t *testing.T) {
 				t.Fatalf("goroutine %v got %q", i, outputs[i])
 			}
 		}
-		if slot != "<p>hat</p>" {
-			t.Fatalf("expected the slot to hold the HTML, got %q", slot)
-		}
-		if calls != goroutines {
-			t.Fatalf("expected %v calls, got %v", goroutines, calls)
+		c.assertCached(t, "hat", "<p>hat</p>")
+		if calls != goroutines || c.sets != goroutines {
+			t.Fatalf("expected %v calls and sets, got %v calls and %v sets", goroutines, calls, c.sets)
 		}
 	})
 }
