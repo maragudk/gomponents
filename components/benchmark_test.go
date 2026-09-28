@@ -92,8 +92,26 @@ func staticTree() g.Node {
 	}
 }
 
-// syncMapCache is a [Cache] on a [sync.Map], whose loads take no lock, unlike the map and
-// RWMutex cache from [ExampleCached].
+// rwMutexCache is a [Cache] on a map guarded by a [sync.RWMutex], the simplest safe implementation.
+type rwMutexCache struct {
+	mu   sync.RWMutex
+	html map[string]string
+}
+
+func (c *rwMutexCache) Get(key string) (string, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	html, ok := c.html[key]
+	return html, ok
+}
+
+func (c *rwMutexCache) Set(key, html string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.html[key] = html
+}
+
+// syncMapCache is a [Cache] on a [sync.Map], whose loads take no lock.
 type syncMapCache struct{ m sync.Map }
 
 func (c *syncMapCache) Get(key string) (string, bool) {
@@ -110,7 +128,7 @@ func (c *syncMapCache) Set(key, html string) {
 
 func BenchmarkCached(b *testing.B) {
 	// The buffered writer makes the many short writes of a direct render cost something, unlike
-	// [io.Discard], and is the size of the buffer net/http puts in front of a response writer.
+	// [io.Discard]. 2 KiB is a typical size for the buffer in front of an HTTP response.
 	writers := []struct {
 		Name string
 		New  func() io.Writer
@@ -125,16 +143,16 @@ func BenchmarkCached(b *testing.B) {
 		Name string
 		New  func() Cache
 	}{
-		{Name: "rwmutex", New: func() Cache { return &cache{html: map[string]string{}} }},
+		{Name: "rwmutex", New: func() Cache { return &rwMutexCache{html: map[string]string{}} }},
 		{Name: "syncmap", New: func() Cache { return &syncMapCache{} }},
 	}
 
-	for _, w := range writers {
+	for _, writer := range writers {
 		// Built once and rendered repeatedly, to separate the cost of rendering from the cost
 		// of building the tree.
-		b.Run("direct/render pre-built/"+w.Name, func(b *testing.B) {
+		b.Run("direct/render pre-built/"+writer.Name, func(b *testing.B) {
 			tree := staticTree()
-			w := w.New()
+			w := writer.New()
 
 			for b.Loop() {
 				_ = tree.Render(w)
@@ -143,8 +161,8 @@ func BenchmarkCached(b *testing.B) {
 
 		// Called on every iteration, like a component called per request, so the tree is built
 		// and rendered every time.
-		b.Run("direct/construct and render/"+w.Name, func(b *testing.B) {
-			w := w.New()
+		b.Run("direct/construct and render/"+writer.Name, func(b *testing.B) {
+			w := writer.New()
 
 			for b.Loop() {
 				_ = staticTree().Render(w)
@@ -152,9 +170,9 @@ func BenchmarkCached(b *testing.B) {
 		})
 
 		// The same, from every CPU at once, like a server rendering requests concurrently.
-		b.Run("direct/construct and render parallel/"+w.Name, func(b *testing.B) {
+		b.Run("direct/construct and render parallel/"+writer.Name, func(b *testing.B) {
 			b.RunParallel(func(pb *testing.PB) {
-				w := w.New()
+				w := writer.New()
 
 				for pb.Next() {
 					_ = staticTree().Render(w)
@@ -162,21 +180,23 @@ func BenchmarkCached(b *testing.B) {
 			})
 		})
 
-		for _, c := range caches {
-			b.Run("cached "+c.Name+"/render pre-built/"+w.Name, func(b *testing.B) {
+		for _, impl := range caches {
+			// Cached builds and renders the tree on the first call only, so every cached row
+			// measures the hit path. This one renders a single node repeatedly.
+			b.Run("cached "+impl.Name+"/render pre-built/"+writer.Name, func(b *testing.B) {
 				tree := staticTree()
-				node := Cached(c.New(), "tree", func() g.Node { return tree })
-				w := w.New()
+				node := Cached(impl.New(), "tree", func() g.Node { return tree })
+				w := writer.New()
 
 				for b.Loop() {
 					_ = node.Render(w)
 				}
 			})
 
-			// Cached builds and renders the tree on the first call only.
-			b.Run("cached "+c.Name+"/construct and render/"+w.Name, func(b *testing.B) {
-				store := c.New()
-				w := w.New()
+			// This one calls Cached on every iteration, like a component called per request.
+			b.Run("cached "+impl.Name+"/construct and render/"+writer.Name, func(b *testing.B) {
+				store := impl.New()
+				w := writer.New()
 
 				for b.Loop() {
 					_ = Cached(store, "tree", staticTree).Render(w)
@@ -184,11 +204,11 @@ func BenchmarkCached(b *testing.B) {
 			})
 
 			// This is where a shared lock or cache line in the cached path shows up as contention.
-			b.Run("cached "+c.Name+"/construct and render parallel/"+w.Name, func(b *testing.B) {
-				store := c.New()
+			b.Run("cached "+impl.Name+"/construct and render parallel/"+writer.Name, func(b *testing.B) {
+				store := impl.New()
 
 				b.RunParallel(func(pb *testing.PB) {
-					w := w.New()
+					w := writer.New()
 
 					for pb.Next() {
 						_ = Cached(store, "tree", staticTree).Render(w)

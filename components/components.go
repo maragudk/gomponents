@@ -193,8 +193,7 @@ func extractAttrValue(buf *bytes.Buffer, boolAttr, attrPrefix []byte, n g.Node) 
 }
 
 // Cache is a cache of rendered HTML, keyed by string, for use with [Cached].
-// Implementations must be safe for concurrent use if nodes are rendered concurrently,
-// as they are in a web server.
+// Implementations must be safe for concurrent use if nodes are rendered concurrently.
 type Cache interface {
 	// Get returns the HTML cached under key, and whether it was there.
 	Get(key string) (html string, ok bool)
@@ -209,16 +208,17 @@ type Cache interface {
 // for example a locale or a tenant, because whichever tree rendered first under a key is what every later
 // render of that key gets, including at other call sites that share the key.
 //
-// The caller owns the cache, and with it eviction and invalidation: to render a tree again, remove its key
-// through the cache's own API. Cached holds no lock and no state of its own, so concurrent renders that all
-// miss on a key each build and render the tree and each call [Cache.Set] with the same HTML.
+// Eviction and invalidation happen through the cache's own API: to render a tree again, remove its key.
+// Cached holds no lock and no state of its own, so concurrent renders that all miss on a key each build
+// and render the tree and each call [Cache.Set], and the last one to do so is kept. Trees sharing a key
+// must therefore render the same HTML.
 //
 // A nil cache renders every time, so caching can be switched off by leaving it nil, for example during
 // development.
 //
-// A render error from the node is returned and nothing is cached, so the next render tries again.
-// A nil node returned by f, such as from [g.If], renders as nothing, and that empty result is cached
-// like any other.
+// A render error from the node is returned, nothing is written to w, and nothing is cached, so the next
+// render tries again. A nil node returned by f, such as from [g.If], renders as nothing, and that empty
+// result is cached like any other.
 //
 // The returned node is an element node, so don't use it for attributes.
 //
@@ -247,7 +247,7 @@ type Cache interface {
 //	func Page(locale string) Node {
 //		return HTML(
 //			Cached(c, "head:"+locale, func() Node {
-//				return Head(TitleEl(Text(title(locale))), Link(Rel("stylesheet"), Href("/app.css")))
+//				return Head(TitleEl(Text("My site ("+locale+")")), Link(Rel("stylesheet"), Href("/app.css")))
 //			}),
 //			Body(),
 //		)

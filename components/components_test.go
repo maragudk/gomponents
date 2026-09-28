@@ -404,8 +404,12 @@ func TestCached(t *testing.T) {
 		}
 
 		for i := 0; i < 2; i++ {
-			err := Cached(c, "broken", f).Render(io.Discard)
+			var b strings.Builder
+			err := Cached(c, "broken", f).Render(&b)
 			assert.Error(t, err)
+			if b.String() != "" {
+				t.Fatalf("expected nothing written after a render error, got %q", b.String())
+			}
 			c.assertNotCached(t, "broken")
 		}
 
@@ -428,6 +432,10 @@ func TestCached(t *testing.T) {
 		err := Cached(c, "hat", f).Render(failingWriter{})
 		assert.Error(t, err)
 		c.assertCached(t, "hat", "<p>hat</p>")
+
+		// The same on a hit.
+		err = Cached(c, "hat", f).Render(failingWriter{})
+		assert.Error(t, err)
 
 		assert.Equal(t, "<p>hat</p>", Cached(c, "hat", f))
 		if calls != 1 {
@@ -584,7 +592,7 @@ func TestCached(t *testing.T) {
 		if calls < 1 {
 			t.Fatal("expected at least 1 call")
 		}
-		if int32(c.sets) != calls {
+		if c.sets != calls {
 			t.Fatalf("expected one set per call, got %v sets for %v calls", c.sets, calls)
 		}
 	})
