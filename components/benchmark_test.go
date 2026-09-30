@@ -98,32 +98,40 @@ type rwMutexCache struct {
 	html map[string]string
 }
 
-func (c *rwMutexCache) Get(key string) (string, bool) {
+func (c *rwMutexCache) GetOrSet(key string, f func() (string, error)) (string, error) {
 	c.mu.RLock()
-	defer c.mu.RUnlock()
 	html, ok := c.html[key]
-	return html, ok
-}
+	c.mu.RUnlock()
+	if ok {
+		return html, nil
+	}
 
-func (c *rwMutexCache) Set(key, html string) {
+	html, err := f()
+	if err != nil {
+		return "", err
+	}
+
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	c.html[key] = html
+	c.mu.Unlock()
+	return html, nil
 }
 
 // syncMapCache is a [Cache] on a [sync.Map], whose loads take no lock.
 type syncMapCache struct{ m sync.Map }
 
-func (c *syncMapCache) Get(key string) (string, bool) {
-	v, ok := c.m.Load(key)
-	if !ok {
-		return "", false
+func (c *syncMapCache) GetOrSet(key string, f func() (string, error)) (string, error) {
+	if v, ok := c.m.Load(key); ok {
+		return v.(string), nil
 	}
-	return v.(string), true
-}
 
-func (c *syncMapCache) Set(key, html string) {
+	html, err := f()
+	if err != nil {
+		return "", err
+	}
+
 	c.m.Store(key, html)
+	return html, nil
 }
 
 func BenchmarkCached(b *testing.B) {

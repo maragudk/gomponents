@@ -195,54 +195,66 @@ func extractAttrValue(buf *bytes.Buffer, boolAttr, attrPrefix []byte, n g.Node) 
 // Cache is a cache of rendered HTML, keyed by string, for use with [Cached].
 // Implementations must be safe for concurrent use if nodes are rendered concurrently.
 type Cache interface {
-	// Get returns the HTML cached under key, and whether it was there.
-	Get(key string) (html string, ok bool)
-	// Set caches html under key.
-	Set(key, html string)
+	// GetOrSet returns the HTML cached under key, without calling f. If nothing is cached under key,
+	// it calls f, caches the HTML that f returns under key, and returns it.
+	//
+	// If f returns an error, GetOrSet returns that error and caches nothing. An empty string with
+	// a nil error is a valid result and is cached like any other. GetOrSet may also return an error
+	// of its own, which the node then returns from its Render method.
+	//
+	// f may render another [Cached] node that uses the same cache, so GetOrSet must not hold a lock
+	// shared between keys while it calls f.
+	//
+	// For concurrent calls that all miss on a key, GetOrSet may call f once for each of them,
+	// or call it once and return that result to all of them.
+	//
+	// An implementation that supports invalidation must not cache the result of a call to f
+	// that started before the invalidation.
+	GetOrSet(key string, f func() (string, error)) (string, error)
 }
 
 // Cached renders the node returned by f, caches the HTML in cache under key, and writes the cached HTML
 // on every later render of that key. f is only called on a cache miss, so neither building nor rendering
 // the tree is repeated on a hit. Use it for element trees that are expensive to build or render and rarely
 // change, such as a document head or a navigation. The key must capture everything the tree depends on,
-// for example a locale or a tenant, because whichever tree rendered first under a key is what every later
-// render of that key gets, including at other call sites that share the key.
+// for example a locale or a tenant, because every render of a key gets the HTML cached under it,
+// including at other call sites that share the key.
 //
-// Eviction and invalidation happen through the cache's own API: to render a tree again, remove its key.
-// Cached holds no lock and no state of its own, so concurrent renders that all miss on a key each build
-// and render the tree and each call [Cache.Set], and the last one to do so is kept. Trees sharing a key
-// must therefore render the same HTML.
+// Cached holds no lock and no state of its own. Eviction, invalidation, and what happens when concurrent
+// renders all miss on a key are up to the cache.
 //
 // A nil cache renders every time, so caching can be switched off by leaving it nil, for example during
 // development.
 //
 // A render error from the node is returned, nothing is written to w, and nothing is cached, so the next
-// render tries again. A nil node returned by f, such as from [g.If], renders as nothing, and that empty
-// result is cached like any other.
+// render tries again. An error from the cache is returned the same way. A nil node returned by f, such as
+// from [g.If], renders as nothing, and that empty result is cached like any other.
 //
 // The returned node is an element node, so don't use it for attributes.
 func Cached(cache Cache, key string, f func() g.Node) g.Node {
-	return g.NodeFunc(func(w io.Writer) error {
-		if cache != nil {
-			if cached, ok := cache.Get(key); ok {
-				_, err := io.WriteString(w, cached)
-				return err
-			}
-		}
-
+	render := func() (string, error) {
 		var b strings.Builder
 		if node := f(); node != nil {
 			if err := node.Render(&b); err != nil {
-				return err
+				return "", err
 			}
 		}
-		rendered := b.String()
+		return b.String(), nil
+	}
 
+	return g.NodeFunc(func(w io.Writer) error {
+		var rendered string
+		var err error
 		if cache != nil {
-			cache.Set(key, rendered)
+			rendered, err = cache.GetOrSet(key, render)
+		} else {
+			rendered, err = render()
+		}
+		if err != nil {
+			return err
 		}
 
-		_, err := io.WriteString(w, rendered)
+		_, err = io.WriteString(w, rendered)
 		return err
 	})
 }

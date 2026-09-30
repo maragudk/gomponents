@@ -16,22 +16,29 @@ type cache struct {
 	html map[string]string
 }
 
-func (c *cache) Get(key string) (string, bool) {
+func (c *cache) GetOrSet(key string, f func() (string, error)) (string, error) {
 	c.mu.RLock()
-	defer c.mu.RUnlock()
 	html, ok := c.html[key]
-	return html, ok
-}
+	c.mu.RUnlock()
+	if ok {
+		return html, nil
+	}
 
-func (c *cache) Set(key, html string) {
+	// Call f without holding the lock, because f may use the cache too.
+	html, err := f()
+	if err != nil {
+		return "", err
+	}
+
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	c.html[key] = html
+	c.mu.Unlock()
+	return html, nil
 }
 
 var c = &cache{html: map[string]string{}}
 
-// page renders the head once per locale, since only the title depends on it.
+// page caches the head per locale, since only the title depends on it.
 func page(locale string) g.Node {
 	return HTML(
 		Cached(c, "head:"+locale, func() g.Node {
