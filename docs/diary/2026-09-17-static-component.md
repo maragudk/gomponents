@@ -355,3 +355,45 @@ The `Cache` godoc, clause by clause, since it is the contract every implementer 
 ### Future work
 
 None required. If the per-call allocation ever matters, the only fix that keeps the library stateless is for the component to be built once and reused, which already costs nothing.
+
+## Step 8: Panic on a nil cache, and keep `render` outside the node
+
+**Author:** cached-builder
+
+### Prompt Context
+
+**Verbatim prompt:** Markus left two inline comments on PR #363. On the `if cache != nil { ... } else { rendered, err = render() }` branch: "panic on nil cache instead in the beginning, makes no sense to have". On `render := func() (string, error) {`: "inline". The lead's instruction: "Make a nil check with a panic the first statement of `Cached` (before the node is built, so it fires when `Cached` is called, not at render time). [...] Remove the `else` branch so the node always calls `cache.GetOrSet(key, render)`. [...] Decision: skip, do NOT inline. Reason: inlining the literal into the `GetOrSet` call creates the closure on every render, which you measured at 12.2 ns / 1 alloc against 8.5 ns / 0 allocs for a node built once and rendered repeatedly. Add a one-line comment above `render` saying it is created here, once per call to `Cached`, so that rendering a reused node does not allocate."
+**Interpretation:** Apply the first comment as written, and answer the second with a comment in the code instead of the change.
+**Inferred intent:** A component called `Cached` that silently does not cache is a trap, so a nil cache should fail loudly and early; and the one place where the code looks needlessly indirect should say why it is that way.
+
+### What I did
+
+Changed the nil-cache test in `/components/components_test.go` to expect a panic from the call to `Cached` itself, with no render, and watched it fail with `expected a panic with "cache must not be nil", got <nil>`. Dropped the nil-cache half of the partial-output test. In `/components/components.go`, `Cached` now starts with `if cache == nil { panic("cache must not be nil") }`, the node always calls `cache.GetOrSet(key, render)`, the godoc paragraph about a nil cache rendering every time is replaced by "Cached panics if cache is nil.", and `render` has a comment saying it is created once per call to `Cached` so that rendering a reused node doesn't allocate. Removed the nil-cache sentence from the PR body; README and AGENTS.md never mentioned it.
+
+### Why
+
+The nil-cache off switch came from the Step 5 brief, for `var cache Cache; if !dev { cache = mine }`. Markus's view is that it makes no sense to have, and the panic turns a forgotten cache from a silent performance bug into an immediate one. Panicking when `Cached` is called rather than when the node renders puts the stack trace at the call site that passed nil.
+
+### What worked
+
+The message follows the library's one existing panic, `panic("attribute must be just name or name and value pair")` in `/gomponents.go`: lowercase, no package prefix, stating the requirement.
+
+### What didn't work
+
+Nothing failed in this step. `make lint`, `make test`, `go test -race -shuffle on -count=20 ./components/...`, and `go vet -gcflags=-lang=go1.18 ./components/` pass, and coverage is 100% in three of three runs.
+
+### What I learned
+
+The early panic does not disturb the escape analysis: the reused-node row is still 8.1 ns with no allocation and the construct-per-render row 12.9 ns with one.
+
+### What was tricky
+
+Nothing. The test asserts the panic without rendering, so it cannot pass if the check drifts back into the node.
+
+### What warrants review
+
+Whether `"cache must not be nil"` is the wanted wording. Anyone who relied on the nil off switch now needs a cache that always misses, which is three lines.
+
+### Future work
+
+None.

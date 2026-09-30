@@ -225,15 +225,19 @@ type Cache interface {
 // renders all miss on a key are up to the cache. The tree must not contain another Cached node with
 // the same cache and key, because a cache may wait for the outer render to finish before serving the key.
 //
-// A nil cache renders every time, so caching can be switched off by leaving it nil, for example during
-// development.
-//
 // A render error from the node is returned, nothing is written, and nothing is cached, so the next
 // render tries again. An error from the cache is returned the same way. A nil node returned by f, such as
 // from [g.If], renders as nothing, and that empty result is cached like any other.
 //
 // The returned node is an element node, so don't use it for attributes.
+//
+// Cached panics if cache is nil.
 func Cached(cache Cache, key string, f func() g.Node) g.Node {
+	if cache == nil {
+		panic("cache must not be nil")
+	}
+
+	// Created here, once per call to Cached, so that rendering a reused node doesn't allocate.
 	render := func() (string, error) {
 		var b strings.Builder
 		if node := f(); node != nil {
@@ -245,13 +249,7 @@ func Cached(cache Cache, key string, f func() g.Node) g.Node {
 	}
 
 	return g.NodeFunc(func(w io.Writer) error {
-		var rendered string
-		var err error
-		if cache != nil {
-			rendered, err = cache.GetOrSet(key, render)
-		} else {
-			rendered, err = render()
-		}
+		rendered, err := cache.GetOrSet(key, render)
 		if err != nil {
 			return err
 		}

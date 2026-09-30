@@ -566,20 +566,23 @@ func TestCached(t *testing.T) {
 		c.assertCached(t, "nil", "")
 	})
 
-	t.Run("calls f and renders every time when the cache is nil", func(t *testing.T) {
+	t.Run("panics when called with a nil cache, before anything is rendered", func(t *testing.T) {
 		var calls int32
 		f := func() g.Node {
 			atomic.AddInt32(&calls, 1)
 			return P(g.Text("hat"))
 		}
 
-		for i := 0; i < 3; i++ {
-			assert.Equal(t, "<p>hat</p>", Cached(nil, "hat", f))
-		}
-
-		if calls != 3 {
-			t.Fatalf("expected 3 calls, got %v", calls)
-		}
+		defer func() {
+			if rec := recover(); rec != "cache must not be nil" {
+				t.Fatalf(`expected a panic with "cache must not be nil", got %v`, rec)
+			}
+			if calls != 0 {
+				t.Fatalf("expected 0 calls, got %v", calls)
+			}
+		}()
+		// Not rendered, so the panic is from the call itself.
+		_ = Cached(nil, "hat", f)
 	})
 
 	t.Run("calls f again after the key is invalidated in the cache", func(t *testing.T) {
@@ -772,13 +775,6 @@ func TestCached(t *testing.T) {
 			t.Fatalf("expected nothing written after a render error, got %q", b.String())
 		}
 		c.assertNotCached(t, "half")
-
-		// The same without a cache.
-		err = Cached(nil, "half", f).Render(&b)
-		assert.Error(t, err)
-		if b.String() != "" {
-			t.Fatalf("expected nothing written after a render error without a cache, got %q", b.String())
-		}
 	})
 
 	t.Run("lets a cache keep the new HTML when a render from before an invalidation finishes after it", func(t *testing.T) {
