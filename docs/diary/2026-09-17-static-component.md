@@ -296,3 +296,60 @@ The godoc for `Cached`, in particular whether keeping the in-comment example nex
 ### Future work
 
 None. The reviewers' remaining single-reviewer nits, rendering the example twice to show a hit and the nil-cache path buffering before writing, were left as-is: the second is what the brief specified.
+
+## Step 7: Replace `Get` and `Set` with a single `GetOrSet`
+
+**Author:** cached-builder
+
+### Prompt Context
+
+**Verbatim prompt:** "Change the `Cache` interface from `Get`/`Set` to a single `GetOrSet`, the usual atomic caching pattern. [...] Why: an outside adversarial review (gpt-6-astra via codex) found a contract defect, which I verified. With separate `Get` and `Set`, nothing links a miss to its later fill. Sequence: render A misses and captures old content; the app updates the content and deletes the key; render B caches the new HTML; A finishes and `Set`s the old HTML over it. So the godoc's "to render a tree again, remove its key" is unsafe. The same split also makes it impossible for a cache to share one render among concurrent misses (a lock taken in `Get` is never released if `f` errors or panics), and a cache cannot surface its own failures. Markus's response, verbatim: "Don't we just need a GetOrSet with a callback function or something?" and then "The usual atomic caching pattern". New API in /components/components.go: `type Cache interface { GetOrSet(key string, f func() (string, error)) (string, error) }` and `func Cached(cache Cache, key string, f func() g.Node) g.Node // unchanged signature` [...] The hit path was 0 allocs; check whether passing the callback through the interface now allocates per render. If it does, try building the callback once per `Cached` call rather than per render, or any other restructuring that keeps hits allocation-free, and report what you measured either way, serial and parallel, against the previous table."
+**Interpretation:** Same `Cached` signature, new one-method interface, a godoc that states the implementer's contract clause by clause, tests that prove the interface makes a correct invalidating cache and a render-sharing cache possible, and a measured answer on allocations.
+**Inferred intent:** Fix the contract before it is released and can never change, by giving the cache the whole miss-to-fill operation instead of two unrelated halves of it.
+
+### What I did
+
+Ported the test cache to `GetOrSet` first and added the new cases, then watched `go vet` fail with `*testCache does not implement components.Cache (missing method Get)`. Rewrote `Cache` and `Cached` in `/components/components.go`: `Cached` builds a `render` closure that calls `f`, renders the node into a `strings.Builder`, and returns the HTML or the error; the returned node calls `cache.GetOrSet(key, render)`, or `render()` directly for a nil cache, returns any error without writing, and otherwise writes the HTML. Ported the example cache in `/components/example_cached_test.go` and both benchmark caches in `/components/benchmark_test.go`, each calling `f` with no lock held (commit `c791ba3`, which also carries the lead's update to `/docs/decisions.md`).
+
+`/components/components_test.go` now has four test caches: `testCache` (map and `RWMutex`, one call to `f` per miss, counts calls and fills), `failingCache` (returns its own error without calling `f`), `invalidatingCache` (a generation counter, so a result from before an invalidation is returned but not stored), and `sharingCache` (a per-key mutex held across `f` with `defer`). New tests: an error from the cache itself surfaces and `f` is not called; a node that writes half its output and then fails writes and caches nothing, with and without a cache; the stale-fill sequence from the review, deterministically; a sharing cache runs `f` once for 32 concurrent misses; and the same cache still serves the key after `f` errors and after it panics.
+
+Ran the code-review skill again with two competing reviewers and fixed their consensus findings (`3d49597`). The single-flight test released the render as soon as one goroutine was in it, so the other 31 could arrive after the fill and merely hit; `sharingCache` now counts calls and the test waits until all 32 have entered `GetOrSet` before releasing. The contract said nothing about `f` panicking, though the panic test asserted a behaviour for it, so the `Cache` godoc now says a panic must not leave `GetOrSet` unable to serve later calls. Nothing said a tree may not contain a `Cached` node with its own cache and key, which deadlocks any cache that holds a per-key lock across `f`, as the contract allows; the `Cached` godoc now says so. `testCache` had a `Delete` that stored stale fills, violating the clause it was documented under, so it is gone and the invalidation test uses `invalidatingCache`. The godoc said "nothing is written to w" where no `w` is in scope. The recover test would have hung rather than failed, so its last renders run against a ten-second deadline.
+
+### Why
+
+With two methods the cache sees a read and, some time later, an unrelated write, and cannot tell that the write belongs to a read from before an invalidation. With one method the cache is on the stack for the whole operation, so it can record a generation before calling `f` and compare after, hold a per-key lock across `f` and release it with `defer` whatever `f` does, and return an error instead of pretending to miss. None of that is the library's to implement, but the interface has to make it possible, and the tests exist to prove that it does rather than to test the test caches.
+
+### What worked
+
+Writing each new test cache as the smallest thing that satisfies one clause of the contract. The stale-fill test needed no sleeps: the first render closes a channel from inside its node after `f` has already read the old content, which gives the main goroutine a happens-before edge to change the content, invalidate, and cache the new HTML before releasing the first render.
+
+### What didn't work
+
+`gofmt -l .` flagged `/components/components.go` after the rewrite for a trailing blank line, fixed with `gofmt -w`. My first `GetOrSet` call site named its result `html`, shadowing the `html` import in that file, the same trap Step 2 recorded; it is `rendered`. The first attempt to benchmark only the cached rows, `-bench 'BenchmarkCached/cached.*/discarded'`, matched nothing and printed only `PASS`, because slash-separated patterns match one sub-benchmark level each and the writer name is the fourth level; `-bench 'BenchmarkCached/cached//discarded'` worked.
+
+### What I learned
+
+The callback costs one 16-byte allocation per `Cached` call, not per render. The `render` closure captures `f` and is passed through an interface method, so it escapes and cannot live on the stack; the outer node closure still does. A node that is built once and rendered repeatedly therefore stays at zero allocations, and a component that calls `Cached` on every request pays one. Building the closure inside the node instead, per render, was measured and is strictly worse: one allocation in every row, including the reused node, at 12.2 ns against 8.5 ns. A `sync.Pool` of callbacks could remove the allocation but would be library-owned global state, which the design rules out, and would break any cache that kept `f` past its own return. Same machine and method as Step 6:
+
+| Case | Direct | `Cached`, `RWMutex` cache | `Cached`, `sync.Map` cache |
+|---|---|---|---|
+| render pre-built, discarded | 2.23 µs, 0 allocs | 8.7 ns, 0 allocs (was 9.3 ns) | 10.7 ns, 0 allocs (was 10.7 ns) |
+| render pre-built, buffered | 3.58 µs, 0 allocs | 31.8 ns, 0 allocs (was 34.5 ns) | 36.4 ns, 0 allocs (was 37.0 ns) |
+| construct and render, discarded | 4.05 µs, 8.8 KB, 251 allocs | 13.3 ns, 16 B, 1 alloc (was 10.1 ns, 0) | 15.1 ns, 16 B, 1 alloc (was 10.9 ns, 0) |
+| construct and render, buffered | 5.44 µs, 8.8 KB, 251 allocs | 37.1 ns, 16 B, 1 alloc (was 34.4 ns, 0) | 41.1 ns, 16 B, 1 alloc (was 37.9 ns, 0) |
+| construct and render, parallel, discarded | 2.40 µs, 251 allocs | 95.2 ns, 16 B, 1 alloc (was 86.5 ns, 0) | 7.2 ns ±28%, 16 B, 1 alloc (was 2.27 ns, 0) |
+| construct and render, parallel, buffered | 2.76 µs, 251 allocs | 92.1 ns, 16 B, 1 alloc (was 91.2 ns, 0) | 10.4 ns ±30%, 16 B, 1 alloc (was 7.66 ns, 0) |
+
+Serially the allocation costs about 3 to 4 ns per call. The parallel `sync.Map` row shows it most, 2.3 to 7.2 ns with wide variance, because at that speed the allocator is the only shared thing left; it is still 330 times faster than rendering directly.
+
+### What was tricky
+
+The contract allows a cache to share one call to `f` among concurrent misses, and the obvious way to do that is a per-key lock held across `f`. That is sound only if `f` never comes back for the same key, which the library cannot prevent, so it has to be a rule on the tree rather than on the cache. One reviewer also noted that two keys nested in opposite orders on two pages would deadlock such a cache the same way; that is a property of per-key locking in the cache, not something `Cached` can rule out, and it is not in the godoc.
+
+### What warrants review
+
+The `Cache` godoc, clause by clause, since it is the contract every implementer will read and the interface can never change. Two sentences in it were not in the brief: that `f` may panic, and, on `Cached`, that a tree must not contain a `Cached` node with its own cache and key. The one-allocation cost on the construct-per-request path. One reviewer asked what waiters get when a shared call to `f` fails, the same error or a call of their own; the godoc leaves that to the cache, and `sharingCache` lets each waiter call `f` itself.
+
+### Future work
+
+None required. If the per-call allocation ever matters, the only fix that keeps the library stateless is for the component to be built once and reused, which already costs nothing.
