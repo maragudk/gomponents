@@ -9,6 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	g "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/components"
@@ -321,12 +322,6 @@ func (c *testCache) GetOrSet(key string, f func() (string, error)) (string, erro
 	return html, nil
 }
 
-func (c *testCache) Delete(key string) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	delete(c.html, key)
-}
-
 // failingCache is a [Cache] that fails every call with an error of its own, without calling f.
 type failingCache struct{}
 
@@ -335,7 +330,8 @@ func (failingCache) GetOrSet(string, func() (string, error)) (string, error) {
 }
 
 // invalidatingCache is a [Cache] that supports invalidation: a result from a call to f that started
-// before the latest invalidation is returned but not stored.
+// before the latest invalidation is returned but not stored. It keeps one generation for the whole
+// cache, so invalidating any key discards the calls to f in progress for every key.
 type invalidatingCache struct {
 	mu         sync.Mutex
 	html       map[string]string
@@ -372,10 +368,11 @@ func (c *invalidatingCache) Invalidate(key string) {
 }
 
 // sharingCache is a [Cache] that lets concurrent misses on a key share one call to f,
-// by holding a lock for that key while f runs.
+// by holding a lock for that key while f runs. It counts its calls.
 type sharingCache struct {
 	mu      sync.Mutex
 	entries map[string]*sharingCacheEntry
+	calls   int32
 }
 
 type sharingCacheEntry struct {
@@ -385,6 +382,8 @@ type sharingCacheEntry struct {
 }
 
 func (c *sharingCache) GetOrSet(key string, f func() (string, error)) (string, error) {
+	atomic.AddInt32(&c.calls, 1)
+
 	c.mu.Lock()
 	e, ok := c.entries[key]
 	if !ok {
@@ -583,8 +582,8 @@ func TestCached(t *testing.T) {
 		}
 	})
 
-	t.Run("calls f again after the key is deleted from the cache", func(t *testing.T) {
-		c := newTestCache()
+	t.Run("calls f again after the key is invalidated in the cache", func(t *testing.T) {
+		c := &invalidatingCache{html: map[string]string{}}
 		var calls int32
 		f := func() g.Node {
 			atomic.AddInt32(&calls, 1)
@@ -593,7 +592,7 @@ func TestCached(t *testing.T) {
 
 		assert.Equal(t, "<p>hat 1</p>", Cached(c, "hat", f))
 		assert.Equal(t, "<p>hat 1</p>", Cached(c, "hat", f))
-		c.Delete("hat")
+		c.Invalidate("hat")
 		assert.Equal(t, "<p>hat 2</p>", Cached(c, "hat", f))
 
 		if calls != 2 {
@@ -841,13 +840,10 @@ func TestCached(t *testing.T) {
 
 		c := &sharingCache{entries: map[string]*sharingCacheEntry{}}
 		var calls int32
-		start := make(chan struct{})
-		started := make(chan struct{})
 		release := make(chan struct{})
 		f := func() g.Node {
 			atomic.AddInt32(&calls, 1)
 			return g.NodeFunc(func(w io.Writer) error {
-				close(started)
 				<-release
 				_, err := io.WriteString(w, "<p>hat</p>")
 				return err
@@ -861,15 +857,16 @@ func TestCached(t *testing.T) {
 			wg.Add(1)
 			go func(i int) {
 				defer wg.Done()
-				<-start
 				var b strings.Builder
 				errs[i] = Cached(c, "hat", f).Render(&b)
 				outputs[i] = b.String()
 			}(i)
 		}
-		close(start)
-		// One goroutine is now rendering, and the others wait for it or find its result.
-		<-started
+		// The render can't finish until release is closed, so once every goroutine has called
+		// the cache, all of them have missed: one is rendering and the others wait for it.
+		for atomic.LoadInt32(&c.calls) < goroutines {
+			runtime.Gosched()
+		}
 		close(release)
 		wg.Wait()
 
@@ -887,8 +884,8 @@ func TestCached(t *testing.T) {
 	})
 
 	t.Run("lets a cache that shares renders recover when the node fails or panics", func(t *testing.T) {
-		// The cache holds a lock for the key while f runs. These renders would block forever
-		// if an error or a panic left it locked.
+		// The cache holds a lock for the key while f runs. The last renders would block
+		// if an error or a panic left it locked, so they get a deadline.
 		c := &sharingCache{entries: map[string]*sharingCacheEntry{}}
 
 		err := Cached(c, "hat", func() g.Node {
@@ -916,8 +913,30 @@ func TestCached(t *testing.T) {
 			atomic.AddInt32(&calls, 1)
 			return P(g.Text("hat"))
 		}
-		for i := 0; i < 2; i++ {
-			assert.Equal(t, "<p>hat</p>", Cached(c, "hat", f))
+		outputs := make([]string, 2)
+		errs := make([]error, 2)
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			for i := range outputs {
+				var b strings.Builder
+				errs[i] = Cached(c, "hat", f).Render(&b)
+				outputs[i] = b.String()
+			}
+		}()
+		select {
+		case <-done:
+		case <-time.After(10 * time.Second):
+			t.Fatal("expected the renders to finish, but the key is still locked")
+		}
+
+		for i := range outputs {
+			if errs[i] != nil {
+				t.Fatalf("render %v got error %v", i, errs[i])
+			}
+			if outputs[i] != "<p>hat</p>" {
+				t.Fatalf("render %v got %q", i, outputs[i])
+			}
 		}
 		if calls != 1 {
 			t.Fatalf("expected 1 call, got %v", calls)

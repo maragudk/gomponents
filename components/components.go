@@ -203,7 +203,8 @@ type Cache interface {
 	// of its own, which the node then returns from its Render method.
 	//
 	// f may render another [Cached] node that uses the same cache, so GetOrSet must not hold a lock
-	// shared between keys while it calls f.
+	// shared between keys while it calls f. f may also panic, and the panic must not leave GetOrSet
+	// unable to serve later calls.
 	//
 	// For concurrent calls that all miss on a key, GetOrSet may call f once for each of them,
 	// or call it once and return that result to all of them.
@@ -221,12 +222,13 @@ type Cache interface {
 // including at other call sites that share the key.
 //
 // Cached holds no lock and no state of its own. Eviction, invalidation, and what happens when concurrent
-// renders all miss on a key are up to the cache.
+// renders all miss on a key are up to the cache. The tree must not contain another Cached node with
+// the same cache and key, because a cache may wait for the outer render to finish before serving the key.
 //
 // A nil cache renders every time, so caching can be switched off by leaving it nil, for example during
 // development.
 //
-// A render error from the node is returned, nothing is written to w, and nothing is cached, so the next
+// A render error from the node is returned, nothing is written, and nothing is cached, so the next
 // render tries again. An error from the cache is returned the same way. A nil node returned by f, such as
 // from [g.If], renders as nothing, and that empty result is cached like any other.
 //
